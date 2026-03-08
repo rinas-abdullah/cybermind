@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CyberMind</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span>CyberMind</span>
+            </div>
+            <div class="nav-links">
+                <a href="/dashboard">Dashboard</a>
+                <a href="/training">Training</a>
+                <a href="/terminal">Terminal</a>
+                <a href="/leaderboard-page">Leaderboard</a>
+                <a href="/admin" class="active-link">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="admin-header">
+            <h1>Administrative Dashboard</h1>
+            <p class="subtitle">Institutional analytics and management</p>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3>Total Users</h3>
+                    <div class="stat-value" id="total-users">-</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <h3>Active Users</h3>
+                    <div class="stat-value" id="active-users">-</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-content">
+                    <h3>Completion Rate</h3>
+                    <div class="stat-value" id="completion-rate">-%</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-content">
+                    <h3>Average Score</h3>
+                    <div class="stat-value" id="avg-score">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>User Role Distribution</h3>
+                <canvas id="roleChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Course Completion Trends</h3>
+                <canvas id="completionChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Detailed Reports -->
+        <div class="reports-section">
+            <div class="report-panel">
+                <h3>Institution Report</h3>
+                <div class="report-content" id="institution-report">
+                    <p>Loading institution analytics...</p>
+                </div>
+                <button class="btn-primary" id="refresh-report">Refresh Report</button>
+            </div>
+
+            <div class="report-panel">
+                <h3>Top Performers</h3>
+                <div class="report-content" id="top-performers">
+                    <p>Loading top performers...</p>
+                </div>
+            </div>
+
+            <div class="report-panel">
+                <h3>Compliance Overview</h3>
+                <div class="report-content" id="compliance-report">
+                    <p>Loading compliance data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="user-management">
+            <h3>User Management</h3>
+            <div class="user-search">
+                <input type="text" id="user-search" placeholder="Search users by username...">
+                <button class="btn-secondary" id="search-user">Search</button>
+            </div>
+            <div class="user-details" id="user-details" style="display: none;">
+                <h4>User Report</h4>
+                <div id="user-report-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/utils/api.js"></script>
+    <script src="../js/components/adminDashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberMind – Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <span>CyberMind</span>
+      </div>
+      <div class="nav-links">
+        <a href="/dashboard" class="active-link">Dashboard</a>
+        <a href="/training">Training</a>
+        <a href="/terminal">Terminal</a>
+        <a href="/leaderboard-page">Leaderboard</a>
+        <a href="/admin" id="admin-link" style="display: none;">Admin</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-shell">
+    <!-- HERO -->
+    <section class="hero-panel">
+      <div class="hero-left">
+        <div class="eyebrow">Adaptive Cyber Training Platform</div>
+        <h1 class="hero-title">
+          Welcome back, <span id="userLabel">Guest</span>
+        </h1>
+        <p class="hero-subtitle">
+          Continue your cybersecurity journey through realistic simulations,
+          terminal labs, and adaptive training paths.
+        </p>
+
+        <div class="hero-actions">
+          <a href="/training" class="btn btn-primary">Start Training</a>
+          <a href="/terminal" class="btn btn-secondary">Open Terminal</a>
+          <a href="/leaderboard-page" class="btn btn-ghost">View Rankings</a>
+        </div>
+
+        <div class="hero-meta">
+          <div class="meta-chip">
+            <span class="meta-label">Current Rank</span>
+            <span class="meta-value" id="userRank">-</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Completed Scenarios</span>
+            <span class="meta-value" id="userScenarios">0</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Total Score</span>
+            <span class="meta-value" id="userScore">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card glow-card">
+          <div class="hero-card-header">
+            <span class="status-dot"></span>
+            <span>System Status</span>
+          </div>
+
+          <div class="system-grid">
+            <div class="system-item">
+              <span class="system-label">Training Mode</span>
+              <strong>Adaptive</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Threat Level</span>
+              <strong>Moderate</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Learning Path</span>
+              <strong>Active</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Environment</span>
+              <strong>Sandbox</strong>
+            </div>
+          </div>
+
+          <div class="mini-progress">
+            <div class="mini-progress-top">
+              <span>Learning Progress</span>
+              <span>68%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 68%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="section-header">
+      <h2>Quick Stats</h2>
+    </div>
+    <section class="stats-v2-grid">
+      <article class="stat-card-v2">
+        <div class="stat-top">
+          <span class="stat-badge">Performance</span>
+          <span class="stat-icon-v2">🏆</span>
+        </div>
+        <h3>Your Score</h3>
+        <div class="stat-big" id="userScoreMirror">0</div>
+        <p class="stat-note">Your accumulated cybersecurity points.</p>
+      </article>
+
+      <article class="stat-card-v2">
+        <div class="stat-top">
+          <span class="stat-badge">Position</span>
+          <span class="stat-icon-v2">📈</span>
+        </div>
+        <h3>Leaderboard Rank</h3>
+        <div class="stat-big" id="userRankMirror">-</div>
+        <p class="stat-note">Updated from the live leaderboard.</p>
+      </article>
+
+      <article class="stat-card-v2">
+        <div class="stat-top">
+          <span class="stat-badge">Progress</span>
+          <span class="stat-icon-v2">🎯</span>
+        </div>
+        <h3>Completed Scenarios</h3>
+        <div class="stat-big" id="userScenariosMirror">0</div>
+        <p class="stat-note">Tracks your finished hands-on labs.</p>
+      </article>
+
+      <article class="stat-card-v2">
+        <div class="stat-top">
+          <span class="stat-badge">Readiness</span>
+          <span class="stat-icon-v2">🛡️</span>
+        </div>
+        <h3>Security Level</h3>
+        <div class="stat-big" id="userLevel">L1</div>
+        <p class="stat-note">Calculated from your current score.</p>
+      </article>
+    </section>
+
+    <!-- MAIN DASHBOARD GRID -->
+    <div class="section-header">
+      <h2>Main Dashboard</h2>
+    </div>
+    <section class="dashboard-grid-v2">
+      <!-- LEFT -->
+      <div class="dashboard-main-col">
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Analytics</p>
+              <h3>Score History</h3>
+            </div>
+            <span class="card-tag">Live View</span>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="scoreChart" width="900" height="240"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Adaptive Recommendation</p>
+              <h3>Next Best Action</h3>
+            </div>
+            <span class="card-tag">AI-Ready</span>
+          </div>
+
+          <div class="recommendation-box">
+            <div class="recommendation-icon">⚡</div>
+            <div>
+              <h4>Recommended Challenge: Network Scanning</h4>
+              <p>
+                Based on your current progress, the next ideal step is to
+                strengthen your reconnaissance and threat discovery skills.
+              </p>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <a href="/training" class="btn btn-primary">Continue Path</a>
+            <a href="/terminal" class="btn btn-secondary">Practice in Terminal</a>
+          </div>
+        </div>
+
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Achievements</p>
+              <h3>Badges & Milestones</h3>
+            </div>
+            <span class="card-tag">Gamification</span>
+          </div>
+
+          <div class="badges-grid">
+            <div class="badge-pill">First Login</div>
+            <div class="badge-pill">Scenario Master</div>
+            <div class="badge-pill">Streak Builder</div>
+            <div class="badge-pill">Terminal Ready</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <aside class="dashboard-side-col">
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Quick Access</p>
+              <h3>Operations Panel</h3>
+            </div>
+          </div>
+
+          <div class="quick-links-grid">
+            <a href="/training" class="quick-link-card">
+              <span class="quick-link-icon">🎓</span>
+              <div>
+                <strong>Training Labs</strong>
+                <p>Practice scenario-based security challenges.</p>
+              </div>
+            </a>
+
+            <a href="/terminal" class="quick-link-card">
+              <span class="quick-link-icon">💻</span>
+              <div>
+                <strong>Terminal Lab</strong>
+                <p>Use commands in a controlled simulation space.</p>
+              </div>
+            </a>
+
+            <a href="/leaderboard-page" class="quick-link-card">
+              <span class="quick-link-icon">🏅</span>
+              <div>
+                <strong>Leaderboard</strong>
+                <p>Track performance against other trainees.</p>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Top Performers</p>
+              <h3>Leaderboard Preview</h3>
+            </div>
+          </div>
+
+          <div id="leaderboardContainer">Loading leaderboard...</div>
+        </div>
+
+        <div class="dashboard-card-v2">
+          <div class="card-header-v2">
+            <div>
+              <p class="card-kicker">Mission Status</p>
+              <h3>Learning Summary</h3>
+            </div>
+          </div>
+
+          <ul class="summary-list">
+            <li><span>Active User</span><strong id="summaryUser">Guest</strong></li>
+            <li><span>Current Rank</span><strong id="summaryRank">-</strong></li>
+            <li><span>Total Score</span><strong id="summaryScore">0</strong></li>
+            <li><span>Completed Labs</span><strong id="summaryScenarios">0</strong></li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="/js/app.js"></script>
+
+  <script>
+    // Mirror dashboard values visually without changing app.js structure
+    const syncMirrors = () => {
+      const score = document.getElementById("userScore")?.textContent || "0";
+      const rank = document.getElementById("userRank")?.textContent || "-";
+      const scenarios = document.getElementById("userScenarios")?.textContent || "0";
+      const user = document.getElementById("userLabel")?.textContent || "Guest";
+
+      const scoreMirror = document.getElementById("userScoreMirror");
+      const rankMirror = document.getElementById("userRankMirror");
+      const scenariosMirror = document.getElementById("userScenariosMirror");
+      const summaryUser = document.getElementById("summaryUser");
+      const summaryRank = document.getElementById("summaryRank");
+      const summaryScore = document.getElementById("summaryScore");
+      const summaryScenarios = document.getElementById("summaryScenarios");
+      const userLevel = document.getElementById("userLevel");
+
+      if (scoreMirror) scoreMirror.textContent = score;
+      if (rankMirror) rankMirror.textContent = rank;
+      if (scenariosMirror) scenariosMirror.textContent = scenarios;
+      if (summaryUser) summaryUser.textContent = user;
+      if (summaryRank) summaryRank.textContent = rank;
+      if (summaryScore) summaryScore.textContent = score;
+      if (summaryScenarios) summaryScenarios.textContent = scenarios;
+
+      const numericScore = parseInt(score, 10) || 0;
+      const level = Math.floor(numericScore / 300) + 1;
+      if (userLevel) userLevel.textContent = `L${level}`;
+    };
+
+    const observer = new MutationObserver(syncMirrors);
+    window.addEventListener("load", () => {
+      syncMirrors();
+
+      const targets = [
+        document.getElementById("userScore"),
+        document.getElementById("userRank"),
+        document.getElementById("userScenarios"),
+        document.getElementById("userLabel"),
+      ].filter(Boolean);
+
+      targets.forEach((target) => {
+        observer.observe(target, { childList: true, subtree: true, characterData: true });
+      });
+    });
+  </script>
+</body>
+</html>
