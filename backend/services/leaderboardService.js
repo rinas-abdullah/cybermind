@@ -1,43 +1,169 @@
-// Leaderboard Service - Future database integration
-// TODO: Implement when adding MongoDB/MySQL
-//
-// This service will handle:
-// - Leaderboard generation
-// - User rankings
-// - Cached leaderboard data (for performance)
-// - Real-time leaderboard updates
+// Leaderboard Service - Demo leaderboard logic (in-memory fallback)
+// Real leaderboard should be built from PostgreSQL user progress in future.
+
+const authUsers = require("../data/authUsers");
 
 class LeaderboardService {
-  // TODO: Replace in-memory leaderboard with database query
+  constructor() {
+    this.cache = {
+      leaderboard: null,
+      generatedAt: null,
+      expiresAt: null,
+    };
+
+    this.defaultCacheTtlMs = 60 * 1000; // 1 minute
+  }
+
+  // ==================================================
+  // HELPERS
+  // ==================================================
+
+  normalizeString(value, maxLength = 100) {
+    if (typeof value !== "string") return "";
+    return value.trim().slice(0, maxLength);
+  }
+
+  safeNumber(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  isCacheValid() {
+    return (
+      this.cache.leaderboard &&
+      Array.isArray(this.cache.leaderboard) &&
+      this.cache.expiresAt &&
+      Date.now() < this.cache.expiresAt
+    );
+  }
+
+  buildLeaderboardData() {
+    const rawLeaderboard =
+      typeof authUsers.getLeaderboard === "function"
+        ? authUsers.getLeaderboard()
+        : [];
+
+    return rawLeaderboard.map((user, index) => ({
+      rank: this.safeNumber(user.rank, index + 1),
+      username: this.normalizeString(user.username, 50),
+      points: this.safeNumber(user.points, 0),
+      level: this.safeNumber(user.level, 1),
+      completedScenarios: this.safeNumber(user.completedScenarios, 0),
+      riskPersona: this.normalizeString(user.riskPersona, 80) || "Unclassified",
+    }));
+  }
+
+  invalidateCache() {
+    this.cache = {
+      leaderboard: null,
+      generatedAt: null,
+      expiresAt: null,
+    };
+  }
+
+  // ==================================================
+  // CORE METHODS
+  // ==================================================
+
+  /**
+   * Get leaderboard
+   * @param {number} limit
+   * @returns {Promise<Array>}
+   */
   async getLeaderboard(limit = 50) {
-    // Future implementation:
-    // 1. Query users table ordered by points DESC
-    // 2. Limit results for performance
-    // 3. Include rank, username, points, level
-    // 4. Consider caching for frequently accessed data
-    // 5. Return formatted leaderboard data
+    const safeLimit = Math.min(Math.max(this.safeNumber(limit, 50), 1), 500);
 
-    throw new Error('Not implemented - awaiting database integration');
+    if (!this.isCacheValid()) {
+      await this.refreshLeaderboardCache();
+    }
+
+    const leaderboard = Array.isArray(this.cache.leaderboard)
+      ? this.cache.leaderboard
+      : [];
+
+    return leaderboard.slice(0, safeLimit);
   }
 
-  // TODO: Implement user rank lookup
+  /**
+   * Get a user's rank and nearby context
+   * @param {string} username
+   * @returns {Promise<object|null>}
+   */
   async getUserRank(username) {
-    // Future implementation:
-    // 1. Find user's current points
-    // 2. Count users with higher points
-    // 3. Return user's rank and surrounding context
+    const cleanUsername = this.normalizeString(username, 50);
+    if (!cleanUsername) {
+      return null;
+    }
 
-    throw new Error('Not implemented - awaiting database integration');
+    if (!this.isCacheValid()) {
+      await this.refreshLeaderboardCache();
+    }
+
+    const leaderboard = Array.isArray(this.cache.leaderboard)
+      ? this.cache.leaderboard
+      : [];
+
+    const index = leaderboard.findIndex(
+      (user) => user.username.toLowerCase() === cleanUsername.toLowerCase()
+    );
+
+    if (index === -1) {
+      return null;
+    }
+
+    const user = leaderboard[index];
+
+    const surrounding = leaderboard.slice(
+      Math.max(0, index - 2),
+      Math.min(leaderboard.length, index + 3)
+    );
+
+    return {
+      user,
+      surrounding,
+      totalUsers: leaderboard.length,
+      percentile:
+        leaderboard.length > 0
+          ? Math.round(((leaderboard.length - index) / leaderboard.length) * 100)
+          : 0,
+    };
   }
 
-  // TODO: Implement leaderboard caching
+  /**
+   * Refresh in-memory leaderboard cache
+   * @returns {Promise<object>}
+   */
   async refreshLeaderboardCache() {
-    // Future implementation:
-    // 1. Query latest leaderboard data
-    // 2. Update Redis/cache with new data
-    // 3. Set appropriate cache expiration
+    const leaderboard = this.buildLeaderboardData();
 
-    throw new Error('Not implemented - awaiting database integration');
+    this.cache = {
+      leaderboard,
+      generatedAt: new Date().toISOString(),
+      expiresAt: Date.now() + this.defaultCacheTtlMs,
+    };
+
+    return {
+      success: true,
+      count: leaderboard.length,
+      generatedAt: this.cache.generatedAt,
+      expiresAt: new Date(this.cache.expiresAt).toISOString(),
+    };
+  }
+
+  /**
+   * Optional helper: get cached metadata
+   */
+  async getCacheStatus() {
+    return {
+      valid: this.isCacheValid(),
+      generatedAt: this.cache.generatedAt,
+      expiresAt: this.cache.expiresAt
+        ? new Date(this.cache.expiresAt).toISOString()
+        : null,
+      itemCount: Array.isArray(this.cache.leaderboard)
+        ? this.cache.leaderboard.length
+        : 0,
+    };
   }
 }
 

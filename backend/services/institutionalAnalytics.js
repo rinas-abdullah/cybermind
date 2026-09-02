@@ -9,51 +9,137 @@
 class InstitutionalAnalyticsEngine {
   constructor() {
     this.reportTypes = {
-      cohort: 'Cohort-wide analysis and benchmarks',
-      skillGap: 'Skills that most students struggle with',
-      vulnerability: 'Common behavioral vulnerabilities',
-      effectiveness: 'Training program effectiveness metrics',
-      personaAnalysis: 'Behavioral persona distribution',
-      recommendation: 'AI-powered curriculum recommendations',
-      progress: 'Cohort progress over time',
-      benchmark: 'Performance benchmarks and standards'
+      cohort: "Cohort-wide analysis and benchmarks",
+      skillGap: "Skills that most students struggle with",
+      vulnerability: "Common behavioral vulnerabilities",
+      effectiveness: "Training program effectiveness metrics",
+      personaAnalysis: "Behavioral persona distribution",
+      recommendation: "AI-powered curriculum recommendations",
+      progress: "Cohort progress over time",
+      benchmark: "Performance benchmarks and standards",
     };
   }
+
+  // ==================================================
+  // HELPERS
+  // ==================================================
+
+  safeNumber(value, fallback = 0) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  safeArray(value) {
+    return Array.isArray(value) ? value : [];
+  }
+
+  safeString(value, fallback = "") {
+    return typeof value === "string" && value.trim() ? value.trim() : fallback;
+  }
+
+  safeDivide(numerator, denominator, fallback = 0) {
+    const num = this.safeNumber(numerator, 0);
+    const den = this.safeNumber(denominator, 0);
+    if (den <= 0) return fallback;
+    return num / den;
+  }
+
+  round(value, digits = 0) {
+    const n = this.safeNumber(value, 0);
+    const factor = Math.pow(10, digits);
+    return Math.round(n * factor) / factor;
+  }
+
+  normalizeUser(user = {}) {
+    const riskProfile =
+      user && typeof user === "object"
+        ? user.riskProfile && typeof user.riskProfile === "object"
+          ? user.riskProfile
+          : user
+        : {};
+
+    return {
+      ...user,
+      riskProfile,
+      knowledgeLevel: this.safeNumber(riskProfile.knowledgeLevel, 0),
+      completedScenarios: this.safeNumber(
+        user.completedScenarios ?? riskProfile.completedScenarios,
+        0
+      ),
+      riskPersona: this.safeString(riskProfile.riskPersona, "unknown"),
+      skillMemory: this.safeArray(riskProfile.skillMemory),
+      behavioralMetrics:
+        riskProfile.behavioralMetrics && typeof riskProfile.behavioralMetrics === "object"
+          ? riskProfile.behavioralMetrics
+          : {},
+      scenarioHistory: this.safeArray(user.scenarioHistory),
+      createdAt: user.createdAt || null,
+      updatedAt: user.updatedAt || null,
+      lastActivity: user.lastActivity || null,
+    };
+  }
+
+  normalizeUsers(cohortUsers = []) {
+    return this.safeArray(cohortUsers)
+      .filter((u) => u && typeof u === "object")
+      .map((u) => this.normalizeUser(u));
+  }
+
+  // ==================================================
+  // MAIN REPORT
+  // ==================================================
 
   /**
    * Generate comprehensive cohort analysis report
    */
   generateCohortReport(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
+
+    if (users.length === 0) {
+      return {
+        cohortSize: 0,
+        overallMetrics: {},
+        skillGaps: { totalSkillsTracked: 0, criticalGaps: [], highPriorityGaps: [], allGaps: [] },
+        performanceDistribution: {},
+        commonWeaknesses: { totalMistakeTypes: 0, commonMistakes: [], trainingFocus: [] },
+        behavioralPatterns: {},
+        recommendations: [],
+        progressTrends: { weeklyProgress: [], trend: "insufficient-data", isImproving: false, improvementRate: 0 },
+        riskSummary: { totalRisks: 0, criticalRisks: [], allRisks: [] },
+      };
+    }
+
     return {
-      cohortSize: cohortUsers.length,
-
-      overallMetrics: this.calculateCohortMetrics(cohortUsers),
-
-      skillGaps: this.identifySkillGaps(cohortUsers),
-
-      performanceDistribution: this.analyzePerformanceDistribution(cohortUsers),
-
-      commonWeaknesses: this.identifyCommonWeaknesses(cohortUsers),
-
-      behavioralPatterns: this.analyzeBehavioralPatterns(cohortUsers),
-
-      recommendations: this.generateCohortRecommendations(cohortUsers),
-
-      progressTrends: this.calculateProgressTrends(cohortUsers),
-
-      riskSummary: this.identifyCohortRisks(cohortUsers)
+      cohortSize: users.length,
+      overallMetrics: this.calculateCohortMetrics(users),
+      skillGaps: this.identifySkillGaps(users),
+      performanceDistribution: this.analyzePerformanceDistribution(users),
+      commonWeaknesses: this.identifyCommonWeaknesses(users),
+      behavioralPatterns: this.analyzeBehavioralPatterns(users),
+      recommendations: this.generateCohortRecommendations(users),
+      progressTrends: this.calculateProgressTrends(users),
+      riskSummary: this.identifyCohortRisks(users),
     };
   }
+
+  // ==================================================
+  // METRICS
+  // ==================================================
 
   /**
    * Calculate overall cohort metrics
    */
   calculateCohortMetrics(cohortUsers) {
-    const knowledgeLevels = cohortUsers.map(u => u.riskProfile?.knowledgeLevel || 0);
-    const completedScenarios = cohortUsers.map(u => u.completedScenarios || 0);
+    const users = this.normalizeUsers(cohortUsers);
+    if (users.length === 0) return {};
 
-    const avgKnowledge = knowledgeLevels.reduce((a, b) => a + b, 0) / cohortUsers.length;
-    const avgScenarios = completedScenarios.reduce((a, b) => a + b, 0) / cohortUsers.length;
+    const knowledgeLevels = users.map((u) => u.knowledgeLevel);
+    const completedScenarios = users.map((u) => u.completedScenarios);
+
+    const avgKnowledge =
+      knowledgeLevels.reduce((a, b) => a + b, 0) / knowledgeLevels.length;
+    const avgScenarios =
+      completedScenarios.reduce((a, b) => a + b, 0) / completedScenarios.length;
     const maxKnowledge = Math.max(...knowledgeLevels);
     const minKnowledge = Math.min(...knowledgeLevels);
 
@@ -63,8 +149,8 @@ class InstitutionalAnalyticsEngine {
       highestPerformer: Math.round(maxKnowledge),
       lowestPerformer: Math.round(minKnowledge),
       cohortSpread: Math.round(maxKnowledge - minKnowledge),
-      readyForAdvanced: cohortUsers.filter(u => (u.riskProfile?.knowledgeLevel || 0) > 75).length,
-      needsSupport: cohortUsers.filter(u => (u.riskProfile?.knowledgeLevel || 0) < 40).length
+      readyForAdvanced: users.filter((u) => u.knowledgeLevel > 75).length,
+      needsSupport: users.filter((u) => u.knowledgeLevel < 40).length,
     };
   }
 
@@ -72,38 +158,55 @@ class InstitutionalAnalyticsEngine {
    * Identify skill gaps across cohort
    */
   identifySkillGaps(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
     const skillMap = {};
 
-    // Aggregate skill performance across cohort
-    cohortUsers.forEach(user => {
-      if (user.riskProfile?.skillMemory) {
-        user.riskProfile.skillMemory.forEach(skill => {
-          if (!skillMap[skill.skillName]) {
-            skillMap[skill.skillName] = { totalAttempts: 0, totalSuccesses: 0, users: 0 };
-          }
-          skillMap[skill.skillName].totalAttempts += (skill.failureCount + skill.successCount);
-          skillMap[skill.skillName].totalSuccesses += skill.successCount;
-          skillMap[skill.skillName].users += 1;
-        });
-      }
+    users.forEach((user) => {
+      user.skillMemory.forEach((skill) => {
+        const skillName = this.safeString(skill.skillName, "unknown-skill");
+        const successCount = Math.max(this.safeNumber(skill.successCount, 0), 0);
+        const failureCount = Math.max(this.safeNumber(skill.failureCount, 0), 0);
+
+        if (!skillMap[skillName]) {
+          skillMap[skillName] = {
+            totalAttempts: 0,
+            totalSuccesses: 0,
+            users: 0,
+          };
+        }
+
+        skillMap[skillName].totalAttempts += successCount + failureCount;
+        skillMap[skillName].totalSuccesses += successCount;
+        skillMap[skillName].users += 1;
+      });
     });
 
-    // Calculate success rates and identify gaps
     const skillGaps = Object.entries(skillMap)
-      .map(([skillName, data]) => ({
-        skillName,
-        successRate: data.totalAttempts > 0 ? (data.totalSuccesses / data.totalAttempts) * 100 : 0,
-        usersAttempted: data.users,
-        priority: (data.totalSuccesses / data.totalAttempts) < 0.5 ? 'critical' :
-                 (data.totalSuccesses / data.totalAttempts) < 0.7 ? 'high' : 'medium'
-      }))
+      .map(([skillName, data]) => {
+        const successRatio = this.safeDivide(
+          data.totalSuccesses,
+          data.totalAttempts,
+          0
+        );
+        return {
+          skillName,
+          successRate: Math.round(successRatio * 100),
+          usersAttempted: data.users,
+          priority:
+            successRatio < 0.5
+              ? "critical"
+              : successRatio < 0.7
+                ? "high"
+                : "medium",
+        };
+      })
       .sort((a, b) => a.successRate - b.successRate);
 
     return {
       totalSkillsTracked: Object.keys(skillMap).length,
-      criticalGaps: skillGaps.filter(s => s.priority === 'critical'),
-      highPriorityGaps: skillGaps.filter(s => s.priority === 'high'),
-      allGaps: skillGaps
+      criticalGaps: skillGaps.filter((s) => s.priority === "critical"),
+      highPriorityGaps: skillGaps.filter((s) => s.priority === "high"),
+      allGaps: skillGaps,
     };
   }
 
@@ -111,12 +214,42 @@ class InstitutionalAnalyticsEngine {
    * Analyze performance distribution across cohort
    */
   analyzePerformanceDistribution(cohortUsers) {
-    const scores = cohortUsers.map(u => u.riskProfile?.knowledgeLevel || 0).sort((a, b) => a - b);
+    const users = this.normalizeUsers(cohortUsers);
+    const scores = users.map((u) => u.knowledgeLevel).sort((a, b) => a - b);
+
+    if (scores.length === 0) {
+      return {
+        median: 0,
+        mean: 0,
+        standardDeviation: 0,
+        quartiles: {},
+        normalDistribution: "insufficient-data",
+      };
+    }
+
+    const q1Index = Math.ceil(scores.length * 0.25);
+    const q3Index = Math.ceil(scores.length * 0.75);
 
     const quartiles = {
-      bottom25: scores.slice(0, Math.ceil(scores.length * 0.25)),
-      middle50: scores.slice(Math.ceil(scores.length * 0.25), Math.ceil(scores.length * 0.75)),
-      top25: scores.slice(Math.ceil(scores.length * 0.75))
+      bottom25: scores.slice(0, q1Index),
+      middle50: scores.slice(q1Index, q3Index),
+      top25: scores.slice(q3Index),
+    };
+
+    const summarizeBucket = (bucket) => {
+      if (!bucket || bucket.length === 0) {
+        return {
+          range: "0-0",
+          headcount: 0,
+          avgScore: 0,
+        };
+      }
+
+      return {
+        range: `${Math.round(bucket[0])}-${Math.round(bucket[bucket.length - 1])}`,
+        headcount: bucket.length,
+        avgScore: Math.round(bucket.reduce((a, b) => a + b, 0) / bucket.length),
+      };
     };
 
     return {
@@ -124,23 +257,11 @@ class InstitutionalAnalyticsEngine {
       mean: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
       standardDeviation: Math.round(this.calculateStdDev(scores)),
       quartiles: {
-        bottom25: {
-          range: `${Math.round(quartiles.bottom25[0])}-${Math.round(quartiles.bottom25[quartiles.bottom25.length - 1])}`,
-          headcount: quartiles.bottom25.length,
-          avgScore: Math.round(quartiles.bottom25.reduce((a, b) => a + b, 0) / quartiles.bottom25.length)
-        },
-        middle50: {
-          range: `${Math.round(quartiles.middle50[0])}-${Math.round(quartiles.middle50[quartiles.middle50.length - 1])}`,
-          headcount: quartiles.middle50.length,
-          avgScore: Math.round(quartiles.middle50.reduce((a, b) => a + b, 0) / quartiles.middle50.length)
-        },
-        top25: {
-          range: `${Math.round(quartiles.top25[0])}-${Math.round(quartiles.top25[quartiles.top25.length - 1])}`,
-          headcount: quartiles.top25.length,
-          avgScore: Math.round(quartiles.top25.reduce((a, b) => a + b, 0) / quartiles.top25.length)
-        }
+        bottom25: summarizeBucket(quartiles.bottom25),
+        middle50: summarizeBucket(quartiles.middle50),
+        top25: summarizeBucket(quartiles.top25),
       },
-      normalDistribution: this.checkNormalDistribution(scores)
+      normalDistribution: this.checkNormalDistribution(scores),
     };
   }
 
@@ -148,34 +269,41 @@ class InstitutionalAnalyticsEngine {
    * Identify most common mistakes across cohort
    */
   identifyCommonWeaknesses(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
     const mistakeMap = {};
 
-    cohortUsers.forEach(user => {
-      if (user.scenarioHistory) {
-        user.scenarioHistory.forEach(attempt => {
-          if (attempt.errors) {
-            attempt.errors.forEach(error => {
-              mistakeMap[error.type] = (mistakeMap[error.type] || 0) + 1;
-            });
-          }
+    users.forEach((user) => {
+      user.scenarioHistory.forEach((attempt) => {
+        const errors = this.safeArray(attempt.errors);
+
+        errors.forEach((error) => {
+          const type = this.safeString(error?.type, "unknown-error");
+          mistakeMap[type] = (mistakeMap[type] || 0) + 1;
         });
-      }
+      });
     });
 
     const commonMistakes = Object.entries(mistakeMap)
       .map(([mistakeType, count]) => ({
         mistakeType,
         frequency: count,
-        affectedPercentage: Math.round((count / cohortUsers.length) * 100),
-        priority: count > cohortUsers.length * 0.6 ? 'critical' :
-                 count > cohortUsers.length * 0.4 ? 'high' : 'medium'
+        affectedPercentage:
+          users.length > 0 ? Math.round((count / users.length) * 100) : 0,
+        priority:
+          count > users.length * 0.6
+            ? "critical"
+            : count > users.length * 0.4
+              ? "high"
+              : "medium",
       }))
       .sort((a, b) => b.frequency - a.frequency);
 
     return {
       totalMistakeTypes: Object.keys(mistakeMap).length,
       commonMistakes: commonMistakes.slice(0, 10),
-      trainingFocus: commonMistakes.filter(m => m.priority === 'critical').map(m => m.mistakeType)
+      trainingFocus: commonMistakes
+        .filter((m) => m.priority === "critical")
+        .map((m) => m.mistakeType),
     };
   }
 
@@ -183,223 +311,285 @@ class InstitutionalAnalyticsEngine {
    * Analyze behavioral patterns across cohort
    */
   analyzeBehavioralPatterns(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
+    if (users.length === 0) return {};
+
     const personaCounts = {};
     const behavioralMetrics = {
       avgDecisionVelocity: 0,
       avgWarningAcknowledgment: 0,
       avgVerification: 0,
       avgPressurePerformance: 0,
-      avgConsistency: 0
+      avgConsistency: 0,
     };
 
-    cohortUsers.forEach(user => {
-      const persona = user.riskProfile?.riskPersona || 'unknown';
+    users.forEach((user) => {
+      const persona = user.riskPersona || "unknown";
       personaCounts[persona] = (personaCounts[persona] || 0) + 1;
 
-      if (user.riskProfile?.behavioralMetrics) {
-        const metrics = user.riskProfile.behavioralMetrics;
-        behavioralMetrics.avgDecisionVelocity += metrics.decisionVelocity || 0;
-        behavioralMetrics.avgWarningAcknowledgment += metrics.warningAcknowledgment || 0;
-        behavioralMetrics.avgVerification += metrics.verificationBehavior || 0;
-        behavioralMetrics.avgPressurePerformance += metrics.pressurePerformance || 0;
-        behavioralMetrics.avgConsistency += metrics.consistencyScore || 0;
-      }
+      const metrics = user.behavioralMetrics || {};
+      behavioralMetrics.avgDecisionVelocity += this.safeNumber(
+        metrics.decisionVelocity,
+        0
+      );
+      behavioralMetrics.avgWarningAcknowledgment += this.safeNumber(
+        metrics.warningAcknowledgment,
+        0
+      );
+      behavioralMetrics.avgVerification += this.safeNumber(
+        metrics.verificationBehavior,
+        0
+      );
+      behavioralMetrics.avgPressurePerformance += this.safeNumber(
+        metrics.pressurePerformance,
+        0
+      );
+      behavioralMetrics.avgConsistency += this.safeNumber(
+        metrics.consistencyScore,
+        0
+      );
     });
 
-    const count = cohortUsers.length;
-    Object.keys(behavioralMetrics).forEach(key => {
-      behavioralMetrics[key] = Math.round(behavioralMetrics[key] / count);
+    Object.keys(behavioralMetrics).forEach((key) => {
+      behavioralMetrics[key] = Math.round(behavioralMetrics[key] / users.length);
     });
+
+    const dominantPersona =
+      Object.entries(personaCounts).sort((a, b) => b[1] - a[1])[0] || null;
 
     return {
       personaDistribution: personaCounts,
-      dominantPersona: Object.entries(personaCounts).sort((a, b) => b[1] - a[1])[0],
+      dominantPersona,
       averageBehavioralMetrics: behavioralMetrics,
-      warning: behavioralMetrics.avgWarningAcknowledgment < 65 ? 
-               'Cohort shows low warning acknowledgment - critical training need' : 'Cohort demonstrates good warning awareness'
+      warning:
+        behavioralMetrics.avgWarningAcknowledgment < 65
+          ? "Cohort shows weak warning acknowledgment and needs targeted reinforcement."
+          : "Cohort demonstrates acceptable warning awareness overall.",
     };
   }
+
+  // ==================================================
+  // RECOMMENDATIONS
+  // ==================================================
 
   /**
    * Generate curriculum recommendations
    */
   generateCohortRecommendations(cohortUsers) {
-    const skillGaps = this.identifySkillGaps(cohortUsers);
-    const weaknesses = this.identifyCommonWeaknesses(cohortUsers);
+    const users = this.normalizeUsers(cohortUsers);
+    const skillGaps = this.identifySkillGaps(users);
+    const weaknesses = this.identifyCommonWeaknesses(users);
 
     const recommendations = [];
 
-    // Recommend scenario focus
-    skillGaps.criticalGaps.forEach(gap => {
+    skillGaps.criticalGaps.forEach((gap) => {
       recommendations.push({
-        type: 'skill-focus',
+        type: "skill-focus",
         skill: gap.skillName,
-        urgency: 'critical',
-        action: `Add 3+ scenarios focused on ${gap.skillName}`,
-        reason: `Only ${Math.round(gap.successRate)}% of cohort masters this skill`,
-        expectedImpact: 'Would improve cohort average by ~15-20%'
+        urgency: "critical",
+        action: `Add multiple scenarios focused on ${gap.skillName}.`,
+        reason: `Only ${Math.round(gap.successRate)}% cohort success in this skill area.`,
+        expectedImpact: "Would likely improve cohort performance significantly in this area.",
       });
     });
 
-    // Recommend training adjustments
-    weaknesses.trainingFocus.forEach(mistake => {
+    weaknesses.trainingFocus.forEach((mistake) => {
       recommendations.push({
-        type: 'training-adjustment',
+        type: "training-adjustment",
         focus: mistake,
-        urgency: 'high',
-        action: `Create pre-scenario tutorials on ${mistake}`,
-        reason: `60%+ of cohort makes this error`,
-        expectedImpact: 'Would reduce this error by ~40%'
+        urgency: "high",
+        action: `Create pre-scenario guidance and reinforcement on ${mistake}.`,
+        reason: "A large portion of the cohort repeats this mistake pattern.",
+        expectedImpact: "Should reduce repeated errors and improve retention.",
       });
     });
 
-    // Recommend pacing adjustments
-    const performanceMetrics = this.analyzePerformanceDistribution(cohortUsers);
-    if (performanceMetrics.stdDev > 20) {
+    const performanceMetrics = this.analyzePerformanceDistribution(users);
+    if (performanceMetrics.standardDeviation > 20) {
       recommendations.push({
-        type: 'pacing',
-        urgency: 'medium',
-        action: 'Create differentiated tracks: accelerated for top 25%, remedial for bottom 25%',
-        reason: 'Wide spread in performance (IQR: ' + performanceMetrics.standardDeviation + ')',
-        expectedImpact: 'Better engagement and learning across all levels'
+        type: "pacing",
+        urgency: "medium",
+        action:
+          "Consider differentiated learning tracks for high performers and learners needing support.",
+        reason: `Wide spread in cohort performance (std. dev. ${performanceMetrics.standardDeviation}).`,
+        expectedImpact: "Can improve engagement and relevance across ability levels.",
       });
     }
 
     return recommendations;
   }
 
+  // ==================================================
+  // TRENDS
+  // ==================================================
+
   /**
    * Calculate cohort progress over time
    */
   calculateProgressTrends(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
     const progressByWeek = {};
 
-    cohortUsers.forEach(user => {
-      if (user.scenarioHistory) {
-        user.scenarioHistory.forEach(attempt => {
-          const week = this.getWeekNumber(new Date(attempt.completedAt));
-          if (!progressByWeek[week]) {
-            progressByWeek[week] = { totalScore: 0, count: 0 };
-          }
-          progressByWeek[week].totalScore += attempt.score;
-          progressByWeek[week].count += 1;
-        });
-      }
+    users.forEach((user) => {
+      user.scenarioHistory.forEach((attempt) => {
+        if (!attempt?.completedAt) return;
+
+        const week = this.getWeekNumber(new Date(attempt.completedAt));
+        if (!progressByWeek[week]) {
+          progressByWeek[week] = { totalScore: 0, count: 0 };
+        }
+
+        progressByWeek[week].totalScore += this.safeNumber(attempt.score, 0);
+        progressByWeek[week].count += 1;
+      });
     });
 
     const trends = Object.entries(progressByWeek)
       .map(([week, data]) => ({
-        week: parseInt(week),
-        averageScore: Math.round(data.totalScore / data.count),
-        attempts: data.count
+        week: parseInt(week, 10),
+        averageScore: data.count > 0 ? Math.round(data.totalScore / data.count) : 0,
+        attempts: data.count,
       }))
       .sort((a, b) => a.week - b.week);
 
+    const firstScore = trends[0]?.averageScore || 0;
+    const lastScore = trends[trends.length - 1]?.averageScore || 0;
+    const improvementRate =
+      trends.length > 1 && firstScore > 0
+        ? Math.round(((lastScore - firstScore) / firstScore) * 100)
+        : 0;
+
     return {
       weeklyProgress: trends,
-      trend: this.calculateTrend(trends.map(t => t.averageScore)),
-      isImproving: trends.length > 1 && trends[trends.length - 1].averageScore > trends[0].averageScore,
-      improvementRate: trends.length > 1 ? 
-                       Math.round(((trends[trends.length - 1].averageScore - trends[0].averageScore) / trends[0].averageScore) * 100) : 0
+      trend: this.calculateTrend(trends.map((t) => t.averageScore)),
+      isImproving: trends.length > 1 && lastScore > firstScore,
+      improvementRate,
     };
   }
+
+  // ==================================================
+  // RISKS
+  // ==================================================
 
   /**
    * Identify cohort-wide risks
    */
   identifyCohortRisks(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
     const risks = [];
-    const metrics = this.calculateCohortMetrics(cohortUsers);
-    const behavioral = this.analyzeBehavioralPatterns(cohortUsers);
+    const metrics = this.calculateCohortMetrics(users);
+    const behavioral = this.analyzeBehavioralPatterns(users);
 
-    // Risk: Low average knowledge
-    if (metrics.averageKnowledgeLevel < 50) {
+    if ((metrics.averageKnowledgeLevel || 0) < 50) {
       risks.push({
-        risk: 'Low baseline knowledge',
-        severity: 'critical',
-        affectedCount: cohortUsers.length,
-        impact: 'Cohort lacks fundamental security understanding',
-        mitigation: 'Increase beginner-level scenarios and foundational training'
+        risk: "Low baseline knowledge",
+        severity: "critical",
+        affectedCount: users.length,
+        impact: "The cohort may lack key security fundamentals.",
+        mitigation:
+          "Increase foundational scenarios and reinforce core security concepts.",
       });
     }
 
-    // Risk: Large performance gap
-    if (metrics.cohortSpread > 40) {
+    if ((metrics.cohortSpread || 0) > 40) {
       risks.push({
-        risk: 'Large performance variance',
-        severity: 'high',
-        affectedCount: metrics.needsSupport,
-        impact: 'Wide gap between best and worst learners',
-        mitigation: 'Implement differentiated learning paths'
+        risk: "Large performance variance",
+        severity: "high",
+        affectedCount: metrics.needsSupport || 0,
+        impact: "Large differences between high and low performers may reduce training efficiency.",
+        mitigation: "Introduce differentiated learning paths and targeted support.",
       });
     }
 
-    // Risk: Low warning acknowledgment
-    if (behavioral.averageBehavioralMetrics.avgWarningAcknowledgment < 60) {
+    if (
+      (behavioral.averageBehavioralMetrics?.avgWarningAcknowledgment || 0) < 60
+    ) {
       risks.push({
-        risk: 'Poor warning recognition',
-        severity: 'critical',
-        affectedCount: cohortUsers.length,
-        impact: 'Cohort vulnerable to attacks using prominent warnings',
-        mitigation: 'Add warning-focused scenarios and teach warning interpretation'
+        risk: "Poor warning recognition",
+        severity: "critical",
+        affectedCount: users.length,
+        impact: "The cohort may miss visible danger signals during attacks.",
+        mitigation:
+          "Add warning-focused scenarios and train interpretation of suspicious indicators.",
       });
     }
 
-    // Risk: Students stuck at skill
-    const stallCount = cohortUsers.filter(u => (u.lastActivity && 
-      new Date() - new Date(u.lastActivity) > 7 * 24 * 60 * 60 * 1000)).length;
-    if (stallCount > cohortUsers.length * 0.2) {
+    const stallCount = users.filter((u) => {
+      if (!u.lastActivity) return false;
+      return new Date() - new Date(u.lastActivity) > 7 * 24 * 60 * 60 * 1000;
+    }).length;
+
+    if (stallCount > users.length * 0.2) {
       risks.push({
-        risk: 'Learner disengagement',
-        severity: 'high',
+        risk: "Learner disengagement",
+        severity: "high",
         affectedCount: stallCount,
-        impact: `${stallCount} learners inactive for 7+ days`,
-        mitigation: 'Follow up with disengaged learners; review difficulty levels'
+        impact: `${stallCount} learners have been inactive for more than 7 days.`,
+        mitigation:
+          "Follow up with inactive learners and review pacing or difficulty alignment.",
       });
     }
 
     return {
       totalRisks: risks.length,
-      criticalRisks: risks.filter(r => r.severity === 'critical'),
-      allRisks: risks
+      criticalRisks: risks.filter((r) => r.severity === "critical"),
+      allRisks: risks,
     };
   }
+
+  // ==================================================
+  // VISUALIZATION
+  // ==================================================
 
   /**
    * Generate heatmap data for skill gaps
    */
   generateSkillGapHeatmap(cohortUsers) {
+    const users = this.normalizeUsers(cohortUsers);
     const skillsByDifficulty = {};
 
-    cohortUsers.forEach(user => {
-      if (user.riskProfile?.skillMemory) {
-        user.riskProfile.skillMemory.forEach(skill => {
-          const key = `${skill.skillName}-intermediate`;
-          if (!skillsByDifficulty[key]) {
-            skillsByDifficulty[key] = { total: 0, successful: 0 };
-          }
-          skillsByDifficulty[key].total += 1;
-          skillsByDifficulty[key].successful += (skill.successCount / (skill.successCount + skill.failureCount));
-        });
-      }
+    users.forEach((user) => {
+      user.skillMemory.forEach((skill) => {
+        const skillName = this.safeString(skill.skillName, "unknown-skill");
+        const key = `${skillName}::intermediate`;
+
+        const successCount = Math.max(this.safeNumber(skill.successCount, 0), 0);
+        const failureCount = Math.max(this.safeNumber(skill.failureCount, 0), 0);
+        const successRate = this.safeDivide(
+          successCount,
+          successCount + failureCount,
+          0
+        );
+
+        if (!skillsByDifficulty[key]) {
+          skillsByDifficulty[key] = {
+            total: 0,
+            totalSuccessRate: 0,
+          };
+        }
+
+        skillsByDifficulty[key].total += 1;
+        skillsByDifficulty[key].totalSuccessRate += successRate;
+      });
     });
 
-    // Create heatmap structure
-    const heatmapData = Object.entries(skillsByDifficulty)
-      .map(([skillDiff, data]) => {
-        const [skill, difficulty] = skillDiff.split('-');
-        return {
-          skill,
-          difficulty,
-          successRate: Math.round((data.successful / data.total) * 100),
-          intensity: Math.round((data.successful / data.total) * 100) // 0-100 for color intensity
-        };
-      });
+    const heatmapData = Object.entries(skillsByDifficulty).map(([key, data]) => {
+      const [skill, difficulty] = key.split("::");
+      const avgSuccessRate =
+        data.total > 0 ? (data.totalSuccessRate / data.total) * 100 : 0;
+
+      return {
+        skill,
+        difficulty,
+        successRate: Math.round(avgSuccessRate),
+        intensity: Math.round(avgSuccessRate),
+      };
+    });
 
     return {
       heatmapData,
-      criticalCells: heatmapData.filter(cell => cell.successRate < 50),
-      visualizationData: heatmapData // Ready for Chart.js or similar
+      criticalCells: heatmapData.filter((cell) => cell.successRate < 50),
+      visualizationData: heatmapData,
     };
   }
 
@@ -407,37 +597,60 @@ class InstitutionalAnalyticsEngine {
    * Export anonymized learner data for comparison
    */
   exportAnonymizedCohortData(cohortUsers) {
-    return cohortUsers.map((user, index) => ({
-      learnerID: `L${String(index + 1).padStart(3, '0')}`,
-      knowledgeLevel: user.riskProfile?.knowledgeLevel || 0,
-      riskPersona: user.riskProfile?.riskPersona || 'unknown',
-      completedScenarios: user.completedScenarios || 0,
-      weakestSkill: user.riskProfile?.skillMemory?.[0]?.skillName || 'unknown',
-      warningAcknowledgment: user.riskProfile?.behavioralMetrics?.warningAcknowledgment || 0,
-      decisionVelocity: user.riskProfile?.behavioralMetrics?.decisionVelocity || 0,
+    const users = this.normalizeUsers(cohortUsers);
+
+    return users.map((user, index) => ({
+      learnerID: `L${String(index + 1).padStart(3, "0")}`,
+      knowledgeLevel: user.knowledgeLevel,
+      riskPersona: user.riskPersona,
+      completedScenarios: user.completedScenarios,
+      weakestSkill: user.skillMemory?.[0]?.skillName || "unknown",
+      warningAcknowledgment: this.safeNumber(
+        user.behavioralMetrics?.warningAcknowledgment,
+        0
+      ),
+      decisionVelocity: this.safeNumber(
+        user.behavioralMetrics?.decisionVelocity,
+        0
+      ),
       joinedAt: user.createdAt,
-      lastActive: user.lastActivity || user.updatedAt
+      lastActive: user.lastActivity || user.updatedAt,
     }));
   }
 
-  // ===== HELPER FUNCTIONS =====
+  // ==================================================
+  // STATS HELPERS
+  // ==================================================
 
-  median(values) {
-    const sorted = values.sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  median(values = []) {
+    const arr = [...this.safeArray(values)].sort((a, b) => a - b);
+    if (arr.length === 0) return 0;
+
+    const mid = Math.floor(arr.length / 2);
+    return arr.length % 2 !== 0
+      ? arr[mid]
+      : (arr[mid - 1] + arr[mid]) / 2;
   }
 
-  calculateStdDev(values) {
-    const mean = values.reduce((a, b) => a + b) / values.length;
-    const sq = values.map(val => Math.pow(val - mean, 2));
-    return Math.sqrt(sq.reduce((a, b) => a + b) / values.length);
+  calculateStdDev(values = []) {
+    const arr = this.safeArray(values).map((v) => this.safeNumber(v, 0));
+    if (arr.length === 0) return 0;
+
+    const mean = arr.reduce((a, b) => a + b, 0) / arr.length;
+    const variance =
+      arr.map((val) => Math.pow(val - mean, 2)).reduce((a, b) => a + b, 0) /
+      arr.length;
+
+    return Math.sqrt(variance);
   }
 
-  checkNormalDistribution(values) {
-    // Simple check: if stdDev is ~15-16 for ~0-100 scale, likely normal
-    return this.calculateStdDev(values) > 10 && this.calculateStdDev(values) < 25 ?
-      'approximately-normal' : 'skewed';
+  checkNormalDistribution(values = []) {
+    const stdDev = this.calculateStdDev(values);
+    return stdDev > 10 && stdDev < 25
+      ? "approximately-normal"
+      : values.length < 2
+        ? "insufficient-data"
+        : "skewed";
   }
 
   getWeekNumber(date) {
@@ -448,11 +661,26 @@ class InstitutionalAnalyticsEngine {
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
-  calculateTrend(values) {
-    if (values.length < 2) return 'insufficient-data';
-    const firstHalf = values.slice(0, Math.floor(values.length / 2)).reduce((a, b) => a + b) / Math.floor(values.length / 2);
-    const secondHalf = values.slice(Math.floor(values.length / 2)).reduce((a, b) => a + b) / Math.ceil(values.length / 2);
-    return secondHalf > firstHalf ? 'improving' : secondHalf < firstHalf ? 'declining' : 'stable';
+  calculateTrend(values = []) {
+    const arr = this.safeArray(values).map((v) => this.safeNumber(v, 0));
+    if (arr.length < 2) return "insufficient-data";
+
+    const midpoint = Math.floor(arr.length / 2);
+    const firstHalf = arr.slice(0, midpoint);
+    const secondHalf = arr.slice(midpoint);
+
+    const firstAvg =
+      firstHalf.length > 0
+        ? firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length
+        : 0;
+    const secondAvg =
+      secondHalf.length > 0
+        ? secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length
+        : 0;
+
+    if (secondAvg > firstAvg) return "improving";
+    if (secondAvg < firstAvg) return "declining";
+    return "stable";
   }
 }
 

@@ -2,13 +2,24 @@
 
 import { scenarios } from "./scenarioData.js";
 import { updateProgress } from "../utils/api.js";
+import { securityLogs } from "./securityLogs.js";
 
-// simple quiz state
 const quizState = {
   questions: [],
   currentIndex: 0,
   total: 5,
   totalDelta: 0,
+  scenarioId: null,
+  startTime: null,
+  behavioralData: {
+    decisionTimeMs: 0,
+    warningsPresented: 0,
+    warningsAcknowledged: 0,
+    verificationsPerformed: 0,
+    questionsAnswered: 0,
+    timeLimited: false,
+    decisions: [],
+  },
 };
 
 export function loadScenario() {
@@ -17,12 +28,135 @@ export function loadScenario() {
 
   container.classList.remove("hidden");
 
-  // Reset state for a new quiz
   quizState.questions = [];
   quizState.currentIndex = 0;
   quizState.totalDelta = 0;
+  quizState.scenarioId = `scenario-${Date.now()}`;
+  quizState.startTime = Date.now();
+  quizState.behavioralData = {
+    decisionTimeMs: 0,
+    warningsPresented: 0,
+    warningsAcknowledged: 0,
+    verificationsPerformed: 0,
+    questionsAnswered: 0,
+    timeLimited: false,
+    decisions: [],
+  };
 
+  securityLogs.init();
+  securityLogs.logEvent("Starting new quiz session");
+
+  loadAdaptiveScenario(container);
+}
+
+function getStoredUsername() {
+  return (
+    localStorage.getItem("username") ||
+    localStorage.getItem("cybermind_user") ||
+    "Guest"
+  );
+}
+
+function getAuthHeaders(extra = {}) {
+  const token = localStorage.getItem("authToken");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
+async function loadAdaptiveScenario(container) {
+  const username = getStoredUsername();
+  const lastBehavior = JSON.parse(
+    localStorage.getItem("lastBehavioralData") || "{}"
+  );
+
+  try {
+    const query =
+      lastBehavior && Object.keys(lastBehavior).length
+        ? `?behavioralData=${encodeURIComponent(JSON.stringify(lastBehavior))}`
+        : "";
+
+    const response = await fetch(
+      `/api/ai/next-scenario/${encodeURIComponent(username)}${query}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      const scenario = data.data;
+      quizState.scenarioId = scenario.id || quizState.scenarioId;
+
+      securityLogs.logEvent(
+        `Loaded scenario: ${scenario.title || "adaptive"}`
+      );
+
+      await generateScenarioQuestions(scenario.skillTags || ["phishing"]);
+      renderCurrentQuestion(container);
+    } else {
+      fallbackToStaticScenarios(container);
+    }
+  } catch (error) {
+    console.error("Failed to load adaptive scenario:", error);
+    securityLogs.logEvent("Adaptive load failed, using static content");
+    fallbackToStaticScenarios(container);
+  }
+}
+
+async function generateScenarioQuestions(skillTags) {
+  try {
+    const primarySkill = skillTags[0] || "phishing";
+
+    const response = await fetch("/api/ai/generate-questions", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        topic: primarySkill,
+        difficulty: "intermediate",
+        count: quizState.total,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success && data.data && data.data.questions && Array.isArray(data.data.questions)) {
+      quizState.questions = data.data.questions.map((q) => ({
+        title: q.question,
+        description: q.question,
+        options: q.options && Array.isArray(q.options) ? q.options.map((opt, index) => ({
+          text: opt,
+          score: index === q.correctAnswer ? 100 : -50,
+          explanation:
+            index === q.correctAnswer
+              ? `Correct! ${q.explanation}`
+              : `Incorrect. ${q.explanation}`,
+        })) : [],
+      }));
+    } else {
+      throw new Error("Invalid data structure from API");
+    }
+  } catch (error) {
+    console.error("Failed to generate questions:", error);
+
+    const totalScenarios = scenarios.length;
+    for (let i = 0; i < quizState.total; i++) {
+      const randomIndex = Math.floor(Math.random() * totalScenarios);
+      quizState.questions.push(scenarios[randomIndex]);
+    }
+  }
+}
+
+function fallbackToStaticScenarios(container) {
   const totalScenarios = scenarios.length;
+
   for (let i = 0; i < quizState.total; i++) {
     const randomIndex = Math.floor(Math.random() * totalScenarios);
     quizState.questions.push(scenarios[randomIndex]);
@@ -32,16 +166,22 @@ export function loadScenario() {
 }
 
 function renderCurrentQuestion(container) {
+  container.classList.add("immersive-scenario");
+
   const idx = quizState.currentIndex;
   const scenario = quizState.questions[idx];
 
+  if (!scenario) return;
+
   const progressPercent = (idx / quizState.total) * 100;
   const isLast = idx === quizState.total - 1;
+  const questionStartTime = Date.now();
 
   container.innerHTML = `
     <div class="quiz-progress">
       <div class="quiz-progress-bar" style="width: ${progressPercent}%"></div>
     </div>
+
     <p class="quiz-progress-label">
       Question ${idx + 1} of ${quizState.total}
     </p>
@@ -49,19 +189,19 @@ function renderCurrentQuestion(container) {
     <div class="scenario scenario-question" data-q-index="${idx}">
       <h3>${scenario.title}</h3>
       <p>${scenario.description}</p>
+
       <div class="options">
         ${scenario.options
           .map(
             (opt, optIndex) => `
-              <button
-                class="choice"
-                data-opt-index="${optIndex}">
+              <button class="choice" data-opt-index="${optIndex}">
                 ${opt.text}
               </button>
             `
           )
           .join("")}
       </div>
+
       <p class="explanation" id="exp-${idx}"></p>
 
       <button id="nextQuestionBtn" disabled>
@@ -76,62 +216,82 @@ function renderCurrentQuestion(container) {
   let answered = false;
 
   buttons.forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       if (answered) return;
       answered = true;
 
       const optIndex = Number(btn.dataset.optIndex);
       const option = scenario.options[optIndex];
 
-      // ❗ Use real score (can be negative)
-      const change = option.score;
+      const decisionTime = Date.now() - questionStartTime;
+      quizState.behavioralData.decisionTimeMs += decisionTime;
+      quizState.behavioralData.questionsAnswered++;
 
-      // Track this question's score change for summary
+      securityLogs.logEvent(
+        `Answered question ${idx + 1}: selected option ${optIndex + 1}`
+      );
+      securityLogs.animateAttack(option.score > 0 ? "defend" : "breach");
+
+      const change = Number(option.score) || 0;
       quizState.totalDelta += change;
 
-      // Apply score (negative allowed)
-      applyScore(change);
+      quizState.behavioralData.decisions.push({
+        questionIndex: idx,
+        chosenOption: optIndex,
+        isCorrect: option.score > 0,
+        decisionTime,
+      });
 
-      // Show explanation
+      await applyScore(change);
+
       const expEl = document.getElementById(`exp-${idx}`);
       if (expEl) {
-        expEl.textContent = option.explanation;
+        if (option.score <= 0) {
+          try {
+            const correctOption = scenario.options.find((o) => o.score > 0);
+            const aiExplanation = await getAIExplanation(
+              scenario,
+              option,
+              correctOption
+            );
+            expEl.innerHTML = `<div class="ai-explanation">${aiExplanation}</div>`;
+            securityLogs.logEvent("Displaying AI explanation for wrong answer");
+          } catch (error) {
+            expEl.textContent = option.explanation;
+          }
+        } else {
+          expEl.textContent = option.explanation;
+        }
       }
 
-      // Disable all answer buttons
       buttons.forEach((b) => {
         b.disabled = true;
         b.style.opacity = "0.6";
       });
 
-      // Find correct answer (highest score)
       const maxScore = Math.max(...scenario.options.map((o) => o.score));
       const correctOptionIndex = scenario.options.findIndex(
         (o) => o.score === maxScore
       );
 
-      // Highlight user's choice
       if (optIndex === correctOptionIndex) {
-        // correct -> green
         btn.style.backgroundColor = "#16a34a";
         btn.style.color = "white";
       } else {
-        // wrong -> red
         btn.style.backgroundColor = "#dc2626";
         btn.style.color = "white";
       }
 
-      // Highlight the correct answer in green (if not already)
       const correctButton = container.querySelector(
         `.choice[data-opt-index="${correctOptionIndex}"]`
       );
+
       if (correctButton) {
         correctButton.style.backgroundColor = "#16a34a";
         correctButton.style.color = "white";
         correctButton.style.opacity = "1";
       }
 
-      // Enable Next / Finish button
       if (nextBtn) {
         nextBtn.disabled = false;
         nextBtn.classList.add("next-enabled");
@@ -161,7 +321,10 @@ function renderSummary(container) {
   const delta = quizState.totalDelta;
   const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
 
-  const aiHtml = getAiAnalysis(quizState.total, delta, finalScore);
+  localStorage.setItem(
+    "lastBehavioralData",
+    JSON.stringify(quizState.behavioralData)
+  );
 
   container.innerHTML = `
     <div class="scenario quiz-summary">
@@ -170,13 +333,16 @@ function renderSummary(container) {
       <p>Total score change this quiz: <strong>${deltaLabel}</strong></p>
       <p>Your current score: <strong>${finalScore}</strong></p>
 
-      ${aiHtml}
+      <div id="aiFeedback" class="ai-analysis">
+        <h4>AI Analysis Loading...</h4>
+        <p>Generating personalized feedback...</p>
+      </div>
 
       <button id="nextQuizBtn">Next Quiz</button>
     </div>
   `;
 
-  // Save progress to backend for learner continuity
+  processScenarioWithAI(delta);
   saveScenarioProgress(delta);
 
   const nextQuizBtn = document.getElementById("nextQuizBtn");
@@ -187,138 +353,220 @@ function renderSummary(container) {
   }
 }
 
-// 🔮 Fake AI “analysis”
-function getAiAnalysis(totalQuestions, delta, finalScore) {
-  if (totalQuestions === 0) return "";
+async function processScenarioWithAI(scoreDelta) {
+  const username = getStoredUsername();
+  if (username === "Guest") return;
 
-  const maxPossible = totalQuestions * 100; // since best answers are 100
-  const positiveRatio =
-    maxPossible > 0 ? Math.max(delta, 0) / maxPossible : 0;
+  try {
+    const incorrectAnswers = quizState.behavioralData.decisions
+      .filter((d) => !d.isCorrect)
+      .map((d) => ({
+        questionIndex: d.questionIndex,
+        userAnswer:
+          quizState.questions[d.questionIndex].options[d.chosenOption].text,
+        correctAnswer:
+          quizState.questions[d.questionIndex].options.find((o) => o.score > 0)
+            ?.text || "",
+      }));
 
-  let title = "AI Agent Feedback";
-  let summary = "";
-  const tips = [];
+    const avgDecisionTime =
+      quizState.behavioralData.questionsAnswered > 0
+        ? Math.floor(
+            quizState.behavioralData.decisionTimeMs /
+              quizState.behavioralData.questionsAnswered
+          )
+        : 0;
 
-  if (delta <= 0) {
-    summary =
-      "The AI agent detected that you lost points this round. That’s actually useful: it highlights where attackers would succeed against you right now.";
-    tips.push(
-      "Look for options that involve reporting to IT/security or using official channels.",
-      "Avoid clicking links, opening attachments, or installing software directly from emails and pop-ups.",
-      "Treat unexpected messages, USB devices, and login prompts as suspicious until proven safe."
-    );
-  } else if (positiveRatio < 0.4) {
-    summary =
-      "Your decisions show an emerging awareness of cyber threats, but there are still several risky patterns.";
-    tips.push(
-      "Prioritize options that avoid clicking links or opening attachments directly from emails.",
-      "When in doubt, report incidents instead of ignoring them or engaging with suspicious content.",
-      "Ask: 'Is there a safer, more official way to handle this?' before choosing."
-    );
-  } else if (positiveRatio < 0.8) {
-    summary =
-      "You’re making mostly strong security decisions with a few gaps the AI has flagged.";
-    tips.push(
-      "You already avoid obvious traps — focus now on subtle risks like password sharing or insecure channels.",
-      "Think about who else should be informed (IT, security teams) when something looks off."
-    );
-  } else {
-    summary =
-      "Excellent performance. Your decisions closely match what a security-aware professional would do.";
-    tips.push(
-      "Keep reinforcing these habits by imagining how you’d explain each choice to a security officer.",
-      "You’re ready for more advanced scenarios with social engineering and insider threats."
-    );
+    const response = await fetch("/api/ai/process-attempt", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        scenarioId: quizState.scenarioId,
+        score: scoreDelta,
+        timeSpent: Math.floor((Date.now() - quizState.startTime) / 1000),
+        incorrectAnswers,
+        behavioralData: {
+          ...quizState.behavioralData,
+          decisionTimeMs: avgDecisionTime,
+          skillsInvolved: ["phishing", "general-security"],
+        },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      displayAIFeedback(data.data);
+    }
+  } catch (error) {
+    console.error("AI processing failed:", error);
+  }
+}
+
+function displayAIFeedback(feedback) {
+  securityLogs.logEvent("AI feedback received");
+
+  const aiFeedbackEl = document.getElementById("aiFeedback");
+  if (!aiFeedbackEl) return;
+
+  const explanations = feedback.explanations || [];
+  const behavioralInsights = feedback.behavioralInsights || {};
+  const userProgressUpdate = feedback.userProgressUpdate || {};
+
+  if (feedback.nextActions && feedback.nextActions.nextScenario) {
+    securityLogs.animateAttack("defend");
   }
 
-  // Level-style label based on total score (can still show even if score is negative)
-  const level =
-    finalScore >= 1700
-      ? "Legend"
-      : finalScore >= 1300
-      ? "Visionary"
-      : finalScore >= 900
-      ? "Voyager"
-      : finalScore >= 600
-      ? "Adept"
-      : finalScore >= 300
-      ? "Apprentice"
-      : "Newbie";
+  aiFeedbackEl.innerHTML = `
+    <h4>AI Training Analysis</h4>
 
-  tips.push(
-    `Current profile: the AI estimates your awareness level as **${level}** based on your total points.`
-  );
+    ${
+      explanations.length > 0
+        ? `
+      <div class="ai-explanations">
+        <h5>Key Learning Points:</h5>
+        <ul>
+          ${explanations
+            .slice(0, 3)
+            .map(
+              (exp) => `<li>${exp.keyTakeaway || exp.summary || "Insight available"}</li>`
+            )
+            .join("")}
+        </ul>
+      </div>
+    `
+        : ""
+    }
 
-  return `
-    <div class="ai-analysis">
-      <h4>${title}</h4>
-      <p>${summary}</p>
-      <ul>
-        ${tips.map((tip) => `<li>${tip}</li>`).join("")}
-      </ul>
+    ${
+      userProgressUpdate.newPersona
+        ? `
+      <div class="persona-update">
+        <h5>Your Learning Profile:</h5>
+        <p><strong>Current Persona:</strong> ${userProgressUpdate.newPersona}</p>
+        <p><strong>Knowledge Level:</strong> ${userProgressUpdate.newKnowledgeLevel || 0}/100</p>
+      </div>
+    `
+        : ""
+    }
+
+    ${
+      behavioralInsights.behavioralProfile
+        ? `
+      <div class="behavioral-insights">
+        <h5>Behavioral Analysis:</h5>
+        <p><strong>Decision Style:</strong> ${
+          behavioralInsights.behavioralProfile.summary?.decisionSpeed || "Developing"
+        }</p>
+        <p><strong>Security Awareness:</strong> ${
+          behavioralInsights.behavioralProfile.summary?.warningAwareness || "Building"
+        }</p>
+      </div>
+    `
+        : ""
+    }
+
+    <div class="next-steps">
+      <h5>Recommended Next Steps:</h5>
+      <p>${
+        feedback.nextActions?.nextScenario ||
+        "Continue practicing to improve your skills!"
+      }</p>
+    </div>
+
+    <div class="feynman-tip">
+      <em>Feynman Tip: Try explaining the above concepts in your own words or teach a peer — teaching is learning.</em>
     </div>
   `;
 }
 
-function applyScore(amount) {
-  const username = localStorage.getItem("cybermind_user");
+async function getAIExplanation(question, userAnswer, correctAnswer) {
+  try {
+    const response = await fetch("/api/ai/mentor", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        question: `Why is "${userAnswer.text}" wrong for: ${question.title}`,
+        context: "scenario-explanation",
+      }),
+    });
 
-  if (!username) {
+    const data = await response.json();
+
+    if (data.success) {
+      return `
+        <div class="ai-tutor-explanation">
+          <h4>AI Tutor Explanation</h4>
+          <p><strong>Why this was wrong:</strong> ${userAnswer.explanation}</p>
+          <p><strong>Security Principle:</strong> ${data.data.explanation || ""}</p>
+          <p><strong>Prevention:</strong> ${
+            data.data.prevention?.[0] || "Always verify before acting"
+          }</p>
+        </div>
+      `;
+    }
+  } catch (error) {
+    console.error("AI explanation failed:", error);
+  }
+
+  return userAnswer.explanation;
+}
+
+async function applyScore(amount) {
+  const username = getStoredUsername();
+  const token = localStorage.getItem("authToken");
+
+  if (!username || username === "Guest" || !token) {
     alert("Session expired. Please log in again.");
     window.location.href = "/";
     return;
   }
 
-  // amount can be positive or negative
   const numericAmount = Number(amount) || 0;
 
-  fetch("http://localhost:3001/api/update-score", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, amount: numericAmount }),
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      if (data.updated) {
-        const newScore = data.score;
-        localStorage.setItem("cybermind_score", newScore);
-
-        // update history
-        let history = [];
-        try {
-          history = JSON.parse(
-            localStorage.getItem("cybermind_score_history") || "[]" 
-          );
-        } catch (_) {
-          history = [];
-        }
-
-        history.push(newScore);
-        localStorage.setItem(
-          "cybermind_score_history",
-          JSON.stringify(history)
-        );
-      }
-    })
-    .catch((err) => {
-      console.error("Error updating score:", err);
+  try {
+    const res = await fetch("/api/update-score", {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ amount: numericAmount }),
     });
+
+    const data = await res.json();
+
+    if (data.success && data.data) {
+      const newScore = data.data.points ?? 0;
+      localStorage.setItem("cybermind_score", String(newScore));
+
+      let history = [];
+      try {
+        history = JSON.parse(
+          localStorage.getItem("cybermind_score_history") || "[]"
+        );
+      } catch {
+        history = [];
+      }
+
+      history.push(newScore);
+      localStorage.setItem(
+        "cybermind_score_history",
+        JSON.stringify(history)
+      );
+    }
+  } catch (err) {
+    console.error("Error updating score:", err);
+  }
 }
 
-// Save scenario progress for learner continuity
 async function saveScenarioProgress(scoreDelta) {
-  const username = localStorage.getItem("cybermind_user");
-  if (!username) return;
+  const username = getStoredUsername();
+  if (!username || username === "Guest") return;
 
   try {
-    // For now, we'll save a generic scenario completion
-    // In a real implementation, this would track specific scenarios
     const progressData = {
-      username,
-      scenarioId: "training-quiz", // Generic scenario ID
+      scenarioId: "training-quiz",
       score: scoreDelta,
-      timeSpent: Math.floor(Math.random() * 300) + 60, // Mock time spent
-      status: scoreDelta > 0 ? "completed" : "attempted"
+      timeSpent: Math.floor((Date.now() - quizState.startTime) / 1000),
+      status: scoreDelta > 0 ? "completed" : "attempted",
     };
 
     await updateProgress(progressData);

@@ -1,70 +1,216 @@
-// Validation Middleware - Input validation and sanitization
+const { z } = require("zod");
+const { VALIDATION_RULES } = require("../config/constants");
+const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
-/**
- * Validate score update request body
- */
-const validateScoreUpdate = (req, res, next) => {
-  const { username, amount } = req.body;
+function createValidationError(res, errors) {
+  return res.status(400).json({
+    success: false,
+    message: "Validation failed",
+    errors,
+    timestamp: new Date().toISOString(),
+  });
+}
 
-  const errors = [];
+function normalizeString(value, maxLength = 200) {
+  if (typeof value !== "string") return value;
+  return value.trim().slice(0, maxLength);
+}
 
-  if (!username || typeof username !== 'string') {
-    errors.push('Username is required and must be a string');
+function sanitizeValue(value, depth = 0) {
+  if (depth > 10) return null;
+
+  if (typeof value === "string") {
+    return normalizeString(value);
   }
 
-  if (amount === undefined || amount === null) {
-    errors.push('Amount is required');
-  } else if (isNaN(amount) || !isFinite(amount)) {
-    errors.push('Amount must be a valid number');
-  } else if (amount < -1000 || amount > 1000) {
-    errors.push('Amount must be between -1000 and 1000');
+  if (Array.isArray(value)) {
+    return value.slice(0, 100).map((item) => sanitizeValue(item, depth + 1));
   }
 
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors
-    });
+  if (value && typeof value === "object") {
+    const sanitized = {};
+
+    for (const [key, val] of Object.entries(value)) {
+      if (FORBIDDEN_KEYS.has(key)) continue;
+      sanitized[key] = sanitizeValue(val, depth + 1);
+    }
+
+    return sanitized;
   }
 
-  // Sanitize inputs
-  req.body.username = String(username).trim();
-  req.body.amount = Number(amount);
+  return value;
+}
 
-  next();
-};
+function sanitizeInterests(interests) {
+  if (!Array.isArray(interests)) return [];
 
-/**
- * General request sanitization middleware
- */
-const sanitizeRequest = (req, res, next) => {
-  // Recursively sanitize string inputs
-  const sanitizeValue = (value) => {
-    if (typeof value === 'string') {
-      return value.trim();
+  return [
+    ...new Set(
+      interests
+        .filter((item) => typeof item === "string")
+        .map((item) => normalizeString(item, 40))
+        .filter(Boolean)
+        .slice(0, 20)
+    ),
+  ];
+}
+
+function createSchemaValidator(schema) {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.body || {});
+    if (!result.success) {
+      const errors = result.error.errors.map((error) => {
+        const path = error.path.length ? error.path.join(".") : "body";
+        return `${path}: ${error.message}`;
+      });
+      return createValidationError(res, errors);
     }
-    if (Array.isArray(value)) {
-      return value.map(sanitizeValue);
-    }
-    if (value && typeof value === 'object') {
-      const sanitized = {};
-      for (const [key, val] of Object.entries(value)) {
-        sanitized[key] = sanitizeValue(val);
-      }
-      return sanitized;
-    }
-    return value;
+
+    req.body = result.data;
+    next();
   };
+}
 
+const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required")
+    .max(VALIDATION_RULES.EMAIL.MAX_LENGTH, "Email is too long")
+    .email("Email must be valid"),
+  password: z.string().min(1, "Password is required").max(128, "Password is too long"),
+});
+
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .trim()
+      .min(VALIDATION_RULES.USERNAME.MIN_LENGTH, `Username must be at least ${VALIDATION_RULES.USERNAME.MIN_LENGTH} characters`)
+      .max(VALIDATION_RULES.USERNAME.MAX_LENGTH, `Username must be at most ${VALIDATION_RULES.USERNAME.MAX_LENGTH} characters`)
+      .regex(VALIDATION_RULES.USERNAME.PATTERN, "Username may only contain letters, numbers, or underscores"),
+    email: z
+      .string()
+      .trim()
+      .max(VALIDATION_RULES.EMAIL.MAX_LENGTH, "Email is too long")
+      .email("Email must be valid"),
+    password: z
+      .string()
+      .min(VALIDATION_RULES.PASSWORD.MIN_LENGTH, `Password must be at least ${VALIDATION_RULES.PASSWORD.MIN_LENGTH} characters`)
+      .max(VALIDATION_RULES.PASSWORD.MAX_LENGTH, `Password must be at most ${VALIDATION_RULES.PASSWORD.MAX_LENGTH} characters`)
+      .refine((value) => /[A-Z]/.test(value), "Password must include at least one uppercase letter")
+      .refine((value) => /[a-z]/.test(value), "Password must include at least one lowercase letter")
+      .refine((value) => /[0-9]/.test(value), "Password must include at least one number"),
+    skillLevel: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) =>
+          !value || ["beginner", "intermediate", "advanced"].includes(value.toLowerCase()),
+        "Skill level must be beginner, intermediate, or advanced"
+      ),
+    interests: z.array(z.string().trim().max(40)).optional(),
+  })
+  .strict();
+
+const profileUpdateSchema = z
+  .object({
+    institution_id: z
+      .union([z.string().trim(), z.number()])
+      .optional()
+      .transform((value) => {
+        const numberValue = Number(value);
+        return Number.isFinite(numberValue) ? numberValue : undefined;
+      }),
+    bio: z.string().trim().max(VALIDATION_RULES.BIO.MAX_LENGTH).optional(),
+    interests: z.array(z.string().trim().max(40)).optional(),
+    skillLevel: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (value) =>
+          !value || ["beginner", "intermediate", "advanced"].includes(value.toLowerCase()),
+        "Skill level must be beginner, intermediate, or advanced"
+      ),
+  })
+  .strict();
+
+const scoreUpdateSchema = z.object({
+  amount: z.number().int().min(-1000).max(1000),
+});
+
+const aiMentorSchema = z
+  .object({
+    question: z.string().trim().min(1, "Question is required").max(3000),
+    context: z.string().trim().max(100).optional(),
+  })
+  .strict();
+
+const aiQuerySchema = z
+  .object({
+    prompt: z.string().trim().min(1, "Prompt is required").max(4000),
+    model: z.string().trim().optional(),
+  })
+  .strict();
+
+const processAttemptSchema = z
+  .object({
+    scenarioId: z.string().trim().min(1).max(100),
+    score: z.number().int().min(0).max(1000).optional(),
+    timeSpent: z.number().int().min(0).max(86400).optional(),
+    incorrectAnswers: z.array(z.string().trim().max(200)).optional(),
+    behavioralData: z.record(z.any()).optional(),
+  })
+  .strict();
+
+const progressCompletionSchema = z
+  .object({
+    scenarioId: z.string().trim().min(1).max(100),
+    score: z.number().int().min(0).max(1000).optional(),
+    timeSpent: z.number().int().min(0).max(86400).optional(),
+  })
+  .strict();
+
+const scenarioGenerateSchema = z
+  .object({
+    scenarioId: z.string().trim().min(1).max(100),
+    basePrompt: z.string().trim().min(1).max(1000),
+  })
+  .strict();
+
+const scenarioAttemptSchema = z
+  .object({
+    sessionId: z.string().trim().min(1).max(100),
+    scenarioId: z.string().trim().min(1).max(100),
+    userResponse: z.string().trim().min(1).max(2000),
+    isCorrect: z.boolean(),
+    responseTime: z.number().int().min(0).max(86400),
+  })
+  .strict();
+
+/**
+ * General request normalization middleware
+ * Trims strings, limits nesting, removes dangerous keys.
+ */
+function sanitizeRequest(req, res, next) {
   req.body = sanitizeValue(req.body);
   req.query = sanitizeValue(req.query);
   req.params = sanitizeValue(req.params);
-
   next();
-};
+}
 
 module.exports = {
-  validateScoreUpdate,
-  sanitizeRequest
+  sanitizeRequest,
+  validateScoreUpdate: createSchemaValidator(scoreUpdateSchema),
+  validateLogin: createSchemaValidator(loginSchema),
+  validateRegister: createSchemaValidator(registerSchema),
+  validateProfileUpdate: createSchemaValidator(profileUpdateSchema),
+  validateAiMentorRequest: createSchemaValidator(aiMentorSchema),
+  validateAiQuery: createSchemaValidator(aiQuerySchema),
+  validateProcessAttempt: createSchemaValidator(processAttemptSchema),
+  validateProgressCompletion: createSchemaValidator(progressCompletionSchema),
+  validateScenarioGenerate: createSchemaValidator(scenarioGenerateSchema),
+  validateScenarioAttempt: createSchemaValidator(scenarioAttemptSchema),
 };

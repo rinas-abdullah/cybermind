@@ -1,6 +1,8 @@
 // Admin Dashboard Component - Institutional analytics and management
 // TODO: Add role-based access control when implementing authentication
 
+import { API } from "../utils/api.js";
+
 class AdminDashboard {
     constructor() {
         this.institutionReport = null;
@@ -50,7 +52,7 @@ class AdminDashboard {
             const [institutionRes, complianceRes, engagementRes] = await Promise.all([
                 API.get('/analytics/institution'),
                 API.get('/analytics/compliance'),
-                API.get('/analytics/engagement/30')
+                API.get('/analytics/engagement')
             ]);
 
             this.institutionReport = institutionRes.data;
@@ -83,6 +85,17 @@ class AdminDashboard {
         if (element) {
             element.textContent = value;
         }
+        const heroMirror = {
+            'total-users': 'hero-total-users',
+            'active-users': 'hero-active-users',
+            'completion-rate': 'hero-completion-rate',
+            'avg-score': 'hero-avg-score',
+        };
+        const heroId = heroMirror[elementId];
+        if (heroId) {
+            const heroEl = document.getElementById(heroId);
+            if (heroEl) heroEl.textContent = value;
+        }
     }
 
     updateCharts() {
@@ -107,18 +120,25 @@ class AdminDashboard {
                 datasets: [{
                     data: [roleData.students, roleData.instructors, roleData.admins],
                     backgroundColor: [
-                        '#4CAF50',
-                        '#2196F3',
-                        '#FF9800'
+                        '#00e5b0',
+                        '#45a6ff',
+                        '#8b5cf6'
                     ],
+                    borderColor: 'rgba(10, 16, 32, 0.9)',
                     borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 plugins: {
                     legend: {
-                        position: 'bottom'
+                        position: 'bottom',
+                        labels: {
+                            color: '#8b9dc4',
+                            padding: 14,
+                            font: { size: 11, weight: '600' }
+                        }
                     }
                 }
             }
@@ -144,17 +164,25 @@ class AdminDashboard {
                     data: courseData.map(course =>
                         Math.round((course.completedUsers / course.enrolledUsers) * 100) || 0
                     ),
-                    backgroundColor: '#4CAF50',
-                    borderColor: '#45a049',
-                    borderWidth: 1
+                    backgroundColor: 'rgba(0, 229, 176, 0.55)',
+                    borderColor: '#00e5b0',
+                    borderWidth: 1,
+                    borderRadius: 6
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
+                    x: {
+                        ticks: { color: '#8b9dc4', maxRotation: 45, minRotation: 0 },
+                        grid: { color: 'rgba(120, 180, 255, 0.06)' }
+                    },
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        ticks: { color: '#8b9dc4' },
+                        grid: { color: 'rgba(120, 180, 255, 0.08)' }
                     }
                 },
                 plugins: {
@@ -250,11 +278,13 @@ class AdminDashboard {
 
             reportContent.innerHTML = this.formatUserReport(userReport);
             userDetails.style.display = 'block';
+            userDetails.classList.remove('hidden');
 
         } catch (error) {
             console.error('Failed to load user report:', error);
             this.showError('User not found or failed to load report');
             userDetails.style.display = 'none';
+            userDetails.classList.add('hidden');
         }
     }
 

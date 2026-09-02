@@ -1,78 +1,71 @@
-// API Utilities - Centralized API calls for the frontend
-// This makes it easy to change API endpoints and add error handling
+// API utilities — same-origin /api + auth headers (works as ES module and sets window.API)
 
-const API_BASE = 'http://localhost:3001/api';
-
-/**
- * Generic API call wrapper with error handling
- */
-async function apiCall(endpoint, options = {}) {
-  try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP ${response.status}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error(`API call failed: ${endpoint}`, error);
-    throw error;
+function mergeAuthHeaders(base = {}) {
+  const headers = { ...base };
+  if (
+    typeof window !== "undefined" &&
+    window.authService &&
+    typeof window.authService.getAuthHeader === "function"
+  ) {
+    Object.assign(headers, window.authService.getAuthHeader());
   }
+  return headers;
 }
 
-/**
- * Update user score
- */
+async function apiRequest(method, path, body) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const url = `/api${normalized}`;
+  const headers = mergeAuthHeaders({});
+  if (method !== "GET" && method !== "HEAD") {
+    headers["Content-Type"] = "application/json";
+  }
+  const opts = {
+    method,
+    headers,
+  };
+  if (body !== undefined && method !== "GET" && method !== "HEAD") {
+    opts.body = typeof body === "string" ? body : JSON.stringify(body);
+  }
+  const response = await fetch(url, opts);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+export const API = {
+  get(path) {
+    return apiRequest("GET", path);
+  },
+  post(path, body) {
+    return apiRequest("POST", path, body);
+  },
+};
+
 export async function updateScore(username, amount) {
-  return apiCall('/update-score', {
-    method: 'POST',
-    body: JSON.stringify({ username, amount })
-  });
+  return API.post("/update-score", { username, amount });
 }
 
-/**
- * Get leaderboard data
- */
 export async function getLeaderboard() {
-  return apiCall('/leaderboard');
+  return API.get("/leaderboard");
 }
 
-/**
- * Get user data
- */
 export async function getUserData(username) {
-  return apiCall(`/user/${username}`);
+  return API.get(`/user/${username}`);
 }
 
-/**
- * Get user progress
- */
 export async function getUserProgress(username) {
-  return apiCall(`/progress/${username}`);
+  return API.get(`/progress/${username}`);
 }
 
-/**
- * Update user progress
- */
 export async function updateProgress(progressData) {
-  return apiCall('/progress', {
-    method: 'POST',
-    body: JSON.stringify(progressData)
-  });
+  return API.post("/progress", progressData);
 }
 
-/**
- * Health check
- */
 export async function healthCheck() {
-  return apiCall('/health');
+  return API.get("/health");
+}
+
+if (typeof window !== "undefined") {
+  window.API = API;
 }

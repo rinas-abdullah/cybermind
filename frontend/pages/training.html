@@ -1,44 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CyberMind – Training</title>
-  <link rel="stylesheet" href="/css/style.css" />
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Raqeem | رقيم — Practice</title>
+
+<script src="/js/theme.js"></script>
+<link rel="stylesheet" href="/css/style.css"/>
+
+<script src="/js/components/auth.js"></script>
+<script src="/js/translations.js"></script>
+<script src="/js/i18n.js"></script>
+
 </head>
+
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand"><span>CyberMind</span></div>
-      <div class="nav-links">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/training" class="active-link">Training</a>
-        <a href="/terminal">Terminal</a>
-        <a href="/leaderboard-page">Leaderboard</a>
-        <a href="/admin" id="admin-link" style="display:none;">Admin</a>
-      </div>
-    </div>
-  </nav>
+<!-- NAVBAR -->
+<nav id="navbar-container" class="navbar"></nav>
 
-  <main class="container section-spacing">
-    <div class="section-header">
-      <h2>Training Missions</h2>
-    </div>
 
-    <div class="panel mission-panel">
-      <div class="panel-header">
-        <span class="pill">Beginner</span>
-        <h3 class="mission-title">Network Recon Challenge</h3>
-      </div>
-      <p>Face realistic cyber attacks and practice your decisions.</p>
-      <button id="startScenario" class="btn btn-primary">Start Scenario</button>
-    </div>
+<main class="training-shell">
 
-    <div id="scenarioContainer" class="hidden"></div>
-  </main>
 
-  <script type="module" src="/js/app.js"></script>
+<!-- HEADER -->
+<div class="training-header">
+
+<div class="kicker">Mission Control</div>
+
+<h1>Practice Missions</h1>
+
+<p>
+Select a cybersecurity scenario and start practicing real-world attacks and defenses.
+</p>
+
+</div>
+
+
+<!-- FILTER -->
+<div class="filter-row">
+
+<button class="filter-pill active" data-filter="all">
+All Missions
+</button>
+
+<button class="filter-pill" data-filter="beginner">
+Beginner
+</button>
+
+<button class="filter-pill" data-filter="intermediate">
+Intermediate
+</button>
+
+<button class="filter-pill" data-filter="advanced">
+Advanced
+</button>
+
+<button class="filter-pill" data-filter="expert">
+Expert
+</button>
+
+</div>
+
+
+
+<!-- MISSIONS GRID -->
+<div class="missions-grid" id="missionGrid">
+
+
+<!-- AI MENTOR -->
+<div class="mission-card ai-mentor-card" data-difficulty="helper">
+
+<div class="mission-top">
+
+<span class="mission-icon">🤖</span>
+
+<span class="badge badge-purple">
+AI Mentor
+</span>
+
+</div>
+
+<h3>AI Cybersecurity Mentor</h3>
+
+<p>
+Ask questions about cybersecurity concepts and attacks.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
+Free
+</span>
+
+<button id="openAIMentor" class="btn btn-primary btn-sm">
+Ask AI
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- NETWORK RECON -->
+<div class="mission-card" data-difficulty="beginner">
+
+<div class="mission-top">
+
+<span class="mission-icon">🌐</span>
+
+<span class="badge badge-teal">
+Beginner
+</span>
+
+</div>
+
+<h3>Network Recon Challenge</h3>
+
+<p>
+Scan networks and identify live hosts.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++150 XP
+</span>
+
+<button class="btn btn-primary btn-sm">
+Launch
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- PHISHING -->
+<div class="mission-card" data-difficulty="beginner">
+
+<div class="mission-top">
+
+<span class="mission-icon">📧</span>
+
+<span class="badge badge-teal">
+Beginner
+</span>
+
+</div>
+
+<h3>Phishing Takedown</h3>
+
+<p>
+Analyze phishing emails and detect malicious links.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++120 XP
+</span>
+
+<button class="btn btn-secondary btn-sm">
+Launch
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- PRIV ESC -->
+<div class="mission-card" data-difficulty="intermediate">
+
+<div class="mission-top">
+
+<span class="mission-icon">🔐</span>
+
+<span class="badge badge-blue">
+Intermediate
+</span>
+
+</div>
+
+<h3>Privilege Escalation</h3>
+
+<p>
+Exploit misconfigured permissions.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++280 XP
+</span>
+
+<button class="btn btn-secondary btn-sm">
+Launch
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- SQLI -->
+<div class="mission-card" data-difficulty="intermediate">
+
+<div class="mission-top">
+
+<span class="mission-icon">💉</span>
+
+<span class="badge badge-blue">
+Intermediate
+</span>
+
+</div>
+
+<h3>SQL Injection Lab</h3>
+
+<p>
+Exploit SQL injection vulnerabilities.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++320 XP
+</span>
+
+<button class="btn btn-secondary btn-sm">
+Launch
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- AD ATTACK -->
+<div class="mission-card" data-difficulty="advanced">
+
+<div class="mission-top">
+
+<span class="mission-icon">👻</span>
+
+<span class="badge badge-purple">
+Advanced
+</span>
+
+</div>
+
+<h3>Active Directory Attack</h3>
+
+<p>
+Perform Kerberoasting and lateral movement.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++500 XP
+</span>
+
+<button class="btn btn-secondary btn-sm">
+Launch
+</button>
+
+</div>
+
+</div>
+
+
+
+<!-- EXPERT -->
+<div class="mission-card locked" data-difficulty="expert">
+
+<div class="mission-top">
+
+<span class="mission-icon">🔒</span>
+
+<span class="badge badge-red">
+Expert
+</span>
+
+</div>
+
+<h3>Zero-Day Exploitation</h3>
+
+<p>
+Analyze a simulated zero-day vulnerability.
+</p>
+
+<div class="mission-footer">
+
+<span class="mission-xp">
++900 XP
+</span>
+
+<span style="font-size:12px">
+🔒 Locked — reach Level 8
+</span>
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<!-- ACTIVE SCENARIO -->
+<div id="scenarioContainer" class="hidden">
+
+<h2>Active Mission</h2>
+
+<div class="progress-track">
+
+<div class="progress-fill"></div>
+
+</div>
+
+<p id="progressLabel">
+Question 0 / 0
+</p>
+
+</div>
+
+
+</main>
+
+
+
+<!-- AI MENTOR MODAL -->
+
+<div id="aiMentorModal" class="modal-overlay hidden">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h3>🤖 AI Cybersecurity Mentor</h3>
+
+<button id="closeAIMentor">
+×
+</button>
+
+</div>
+
+
+<div class="mentor-chat">
+
+<div id="chatMessages" class="chat-messages">
+
+<div class="message ai-message">
+
+<div class="message-avatar">
+🤖
+</div>
+
+<div class="message-content">
+
+<p>
+Hello! Ask me anything about cybersecurity.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<div class="chat-input-area">
+
+<input
+id="mentorQuestion"
+class="chat-input"
+placeholder="Ask a question"
+/>
+
+<button id="sendQuestion" class="btn btn-primary btn-sm">
+Send
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<script>
+
+
+/* FILTER MISSIONS */
+
+document.querySelectorAll(".filter-pill").forEach(pill=>{
+
+pill.onclick=()=>{
+
+document.querySelectorAll(".filter-pill").forEach(p=>p.classList.remove("active"))
+
+pill.classList.add("active")
+
+const filter=pill.dataset.filter
+
+document.querySelectorAll(".mission-card").forEach(card=>{
+
+if(filter==="all" || card.dataset.difficulty===filter){
+
+card.style.display=""
+
+}
+
+else{
+
+card.style.display="none"
+
+}
+
+})
+
+}
+
+})
+
+
+
+/* AI MENTOR */
+
+const modal=document.getElementById("aiMentorModal")
+
+document.getElementById("openAIMentor").onclick=()=>{
+
+modal.classList.remove("hidden")
+
+}
+
+document.getElementById("closeAIMentor").onclick=()=>{
+
+modal.classList.add("hidden")
+
+}
+
+
+
+async function sendQuestion(){
+
+const input=document.getElementById("mentorQuestion")
+
+const chat=document.getElementById("chatMessages")
+
+const q=input.value.trim()
+
+if(!q)return
+
+addMessage("user",q)
+
+input.value=""
+
+const res=await fetch("/api/ai/mentor",{
+
+method:"POST",
+
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({question:q})
+
+})
+
+const data=await res.json()
+
+if(data.success){
+
+addMessage("ai",data.data.explanation)
+
+}
+
+}
+
+
+
+function addMessage(type,text){
+
+const chat=document.getElementById("chatMessages")
+
+const div=document.createElement("div")
+
+div.className="message "+type+"-message"
+
+div.innerHTML=`
+
+<div class="message-avatar">
+
+${type==="ai"?"🤖":"👤"}
+
+</div>
+
+<div class="message-content">
+
+${text}
+
+</div>
+
+`
+
+chat.appendChild(div)
+
+chat.scrollTop=chat.scrollHeight
+
+}
+
+
+
+document.getElementById("sendQuestion").onclick=sendQuestion
+
+
+
+</script>
+
+
+
+<script src="/js/components/modernNavBar.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+if(!window.navBar){
+
+window.navBar=new ModernNavBar()
+
+window.navBar.render()
+
+}
+
+})
+
+</script>
+
+
 </body>
 </html>

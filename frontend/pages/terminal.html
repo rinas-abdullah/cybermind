@@ -3,32 +3,852 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CyberMind – Terminal</title>
+  <meta
+    name="description"
+    content="Raqeem Terminal Lab — Live command simulation environment."
+  />
+  <title>Raqeem | رقيم – Elite Terminal Labs</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
+
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
 </head>
 <body>
+  <nav id="navbar-container" class="navbar"></nav>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand"><span>CyberMind</span></div>
-      <div class="nav-links">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/training">Training</a>
-        <a href="/terminal" class="active-link">Terminal</a>
-        <a href="/leaderboard-page">Leaderboard</a>
-        <a href="/admin" id="admin-link" style="display:none;">Admin</a>
+  <main class="terminal-shell">
+    <div class="training-header" data-anim="1">
+      <div class="kicker" data-i18n="terminal.kicker">Guided AI Labs</div>
+      <h1 data-i18n="terminal.title">Cyber Terminal Sandbox</h1>
+      <p data-i18n="terminal.desc">
+        Hone your defensive and offensive skills in our premium state-machine sandbox. Complete labs to unlock achievements and earn real XP.
+      </p>
+    </div>
+
+    <!-- Notification Overlay for Flag Celebrations -->
+    <div id="celebrationOverlay" class="celebration-overlay">
+      <div class="celebration-card">
+        <div class="celebration-icon">🏆</div>
+        <h2 data-i18n="terminal.labCompleted">LAB COMPLETED!</h2>
+        <p id="celebrationMessage">You successfully submitted the flag and earned +50 XP!</p>
+        <button class="btn btn-primary" onclick="closeCelebration()">Acknowledge</button>
       </div>
     </div>
-  </nav>
 
-  <main class="container section-spacing">
-    <div class="section-header">
-      <h2>Terminal Lab</h2>
+    <div class="terminal-layout" data-anim="2">
+      <!-- Terminal Console Window -->
+      <div class="terminal-window">
+        <div class="terminal-chrome">
+          <div class="traffic-lights">
+            <span class="tl tl-red" onclick="resetActiveLab()"></span>
+            <span class="tl tl-yellow"></span>
+            <span class="tl tl-green"></span>
+          </div>
+
+          <div class="terminal-title mono" id="terminalTitle">
+            agent@raqeem:~/recon_lab — bash — 80×24
+          </div>
+
+          <div class="terminal-status">
+            <span class="status-dot green"></span>
+            <span data-i18n="terminal.status">Sandbox Active</span>
+          </div>
+        </div>
+
+        <div id="terminalOutput" class="terminal-output mono">
+          <div class="terminal-welcome-text">Raqeem | رقيم Terminal v3.0 — AI-Guided Interactive Sandbox</div>
+          <div class="terminal-instruction-text">Select a training scenario in the sidebar to begin. Type 'help' to view command structure.</div>
+          <div class="terminal-separator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+        </div>
+
+        <div class="terminal-input-row">
+          <span class="terminal-prompt mono" id="terminalPromptPrefix">agent@raqeem:~$ &nbsp;</span>
+          <input
+            type="text"
+            id="terminalInput"
+            class="mono"
+            placeholder="enter command or submit flag (e.g. submit FLAG{...})"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            aria-label="Terminal input"
+          />
+        </div>
+      </div>
+
+      <!-- Lab Control & Sidebar -->
+      <div class="terminal-sidebar">
+        <!-- Lab Selector Panel -->
+        <div class="terminal-info-card" data-anim="3">
+          <h4 data-i18n="terminal.labSelector">Lab Selector</h4>
+          <div class="lab-selector-list">
+            <button class="lab-select-btn active" onclick="switchLab(1)">
+              <span class="lab-num">01</span>
+              <div class="lab-meta">
+                <span class="lab-name">Reconnaissance Lab</span>
+                <span class="lab-diff beginner">Beginner</span>
+              </div>
+            </button>
+            <button class="lab-select-btn" onclick="switchLab(2)">
+              <span class="lab-num">02</span>
+              <div class="lab-meta">
+                <span class="lab-name">SQLi Log Auditing</span>
+                <span class="lab-diff intermediate">Intermediate</span>
+              </div>
+            </button>
+            <button class="lab-select-btn" onclick="switchLab(3)">
+              <span class="lab-num">03</span>
+              <div class="lab-meta">
+                <span class="lab-name">Privilege Escalation</span>
+                <span class="lab-diff advanced">Advanced</span>
+              </div>
+            </button>
+            <button class="lab-select-btn" onclick="switchLab(4)">
+              <span class="lab-num">04</span>
+              <div class="lab-meta">
+                <span class="lab-name">Defensive Firewall Block</span>
+                <span class="lab-diff intermediate">Intermediate</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Lab Objective -->
+        <div class="terminal-info-card" data-anim="4">
+          <h4 data-i18n="terminal.activeObjective">Active Objective</h4>
+          <div id="labObjectiveText" class="lab-objective-text">
+            Scanning a subnet is the first step of any cybersecurity engagement. Perform a TCP scan on target IP <code class="neon-code">10.0.4.15</code>, locate open service ports, find the hidden config file and cat it to retrieve the flag.
+          </div>
+          <div class="lab-badge-row">
+            <span class="badge badge-gold" id="labXPReward">+50 XP Reward</span>
+            <span class="badge badge-completed" id="labCompletedStatus" style="display: none;">Completed</span>
+          </div>
+        </div>
+
+        <!-- Submit Flag Direct Panel -->
+        <div class="terminal-info-card" data-anim="5">
+          <h4 data-i18n="terminal.submitFlag">Submit Captured Flag</h4>
+          <div class="flag-submit-container">
+            <input type="text" id="directFlagInput" placeholder="FLAG{...}" class="flag-input mono" />
+            <button class="btn btn-primary flag-btn" onclick="submitFlagFromInput()">Submit</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="terminalContainer" class="terminal panel"></div>
   </main>
 
-  <script type="module" src="/js/app.js"></script>
+  <script>
+    // State management for Labs
+    const LABS = {
+      1: {
+        name: "Reconnaissance Lab",
+        difficulty: "Beginner",
+        objective: "Scan target IP <code class='neon-code'>10.0.4.15</code> to identify ports, then extract flag from the target machine's config directory.",
+        flag: "FLAG{nmap_recon_specialist_902}",
+        hint: "Try typing: `nmap -sS 10.0.4.15` to find open ports, then list files with `ls` or read readme.txt",
+        commands: {
+          "help": "Available: ls, cat <file>, nmap <ip>, whoami, pwd, clear, hint",
+          "whoami": "agent",
+          "pwd": "/home/agent/recon_lab",
+          "ls": "logs/ &nbsp; documents/ &nbsp; config.ini &nbsp; readme.txt",
+          "ls -la": "drwxr-xr-x  2 agent users  4096 May 22 12:00 .\ndrwxr-xr-x 10 agent users  4096 May 22 12:00 ..\n-rw-r--r--  1 agent users   240 May 22 12:00 config.ini\n-rw-r--r--  1 agent users   512 May 22 12:00 readme.txt\ndrwxr-xr-x  2 agent users  4096 May 22 12:00 logs",
+          "cat readme.txt": "Target environment configuration. Target IP is 10.0.4.15. Read config.ini to check parameters.",
+          "cat config.ini": "[system]\nport = 8080\nenvironment = sandbox\nflag = FLAG{nmap_recon_specialist_902}",
+          "nmap 10.0.4.15": "Starting Nmap 7.93...\nNmap scan report for 10.0.4.15\nHost is up (0.0003s latency).\nNot shown: 998 closed ports\nPORT     STATE SERVICE\n8080/tcp open  http-proxy\n\nNmap done: 1 IP address scanned (1 host up) in 0.05 seconds"
+        }
+      },
+      2: {
+        name: "SQLi Log Auditing",
+        difficulty: "Intermediate",
+        objective: "Analyze access logs in the logs folder. Discover a successful SQLi attack pattern and extract the database flag leaking in the request query parameters.",
+        flag: "FLAG{sqli_log_detective_810}",
+        hint: "Try checking logs: Type `ls logs` or read the webserver access log directly: `cat logs/access.log`.",
+        commands: {
+          "help": "Available: ls, ls logs, cat <file>, whoami, pwd, clear, hint",
+          "whoami": "security_auditor",
+          "pwd": "/var/log/apache2",
+          "ls": "logs/",
+          "ls logs": "access.log &nbsp; error.log",
+          "cat logs/access.log": "192.168.1.55 - - [22/May/2026:14:22:01] \"GET /index.php HTTP/1.1\" 200 442\n192.168.1.110 - - [22/May/2026:14:23:05] \"GET /login.php?user=admin' OR '1'='1&pass=123 HTTP/1.1\" 302 0\n192.168.1.110 - - [22/May/2026:14:24:12] \"GET /search.php?q=union+select+null,null,flag+from+secrets-- HTTP/1.1\" 200 850\n192.168.1.110 - - [22/May/2026:14:24:45] \"GET /query_leak.php?dump=FLAG{sqli_log_detective_810} HTTP/1.1\" 200 12",
+          "cat logs/error.log": "[warn] RSA server certificate CommonName (CN) mismatch\n[info] Apache/2.4.52 (Ubuntu) configured -- resuming normal operations"
+        }
+      },
+      3: {
+        name: "Privilege Escalation",
+        difficulty: "Advanced",
+        objective: "Escalate privilege inside the machine. Uncover security credentials stored in hidden system backup folders.",
+        flag: "FLAG{priv_esc_master_303}",
+        hint: "Hidden files and folders start with a dot (.). Try listing hidden files with `ls -la`. Then read credentials inside `.backups/shadow_credentials`.",
+        commands: {
+          "help": "Available: ls, ls -la, cat <file>, whoami, clear, hint",
+          "whoami": "low_priv_user",
+          "pwd": "/home/low_priv_user",
+          "ls": "documents &nbsp; public &nbsp; downloads",
+          "ls -la": "drwxr-xr-x 4 low_priv_user users 4096 May 22 12:00 .\ndrwxr-xr-x 8 root          root  4096 May 22 12:00 ..\ndrwxr-xr-x 2 low_priv_user users 4096 May 22 12:00 documents\ndrwxr-xr-x 2 low_priv_user users 4096 May 22 12:00 .backups",
+          "ls .backups": "shadow_credentials &nbsp; system.bak",
+          "cat .backups/shadow_credentials": "=== SYSTEM DECRYPTION KEYS ===\nroot_hash = $6$sY92K1$l02Kla\nflag = FLAG{priv_esc_master_303}\n=============================="
+        }
+      },
+      4: {
+        name: "Defensive Firewall Block",
+        difficulty: "Intermediate",
+        objective: "Write a firewall rule to drop all incoming packets from attacking IP <code class='neon-code'>192.168.1.100</code> using standard iptables.",
+        flag: "FLAG{firewall_sentinel_771}",
+        hint: "Use iptables command format: `iptables -A INPUT -s 192.168.1.100 -j DROP`. Run it to contain the attacker!",
+        commands: {
+          "help": "Available: iptables <options>, whoami, pwd, clear, hint",
+          "whoami": "root",
+          "pwd": "/root",
+          "ls": "iptables_logs",
+          "iptables -A INPUT -s 192.168.1.100 -j DROP": "[sudo] executing firewall rule...\nUpdating netfilter policy rule table...\nRule added: DROP packets from 192.168.1.100 to INPUT chain.\nAttack successfully contained! Flag released: FLAG{firewall_sentinel_771}"
+        }
+      }
+    };
+
+    let activeLabId = 1;
+    let completedLabs = JSON.parse(localStorage.getItem("cybermind_completed_labs") || "[]");
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Initialize nav
+      if (typeof ModernNavBar !== "undefined" && !window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      // Check auth
+      if (!window.authService || !authService.isAuthenticated()) {
+        window.location.href = "/auth.html";
+        return;
+      }
+
+      // Render Active Lab
+      renderActiveLab();
+      updateSidebarBadges();
+
+      // Keyboard event handler
+      const terminalInput = document.getElementById("terminalInput");
+      terminalInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          const val = terminalInput.value.trim();
+          if (!val) return;
+          executeTerminalCommand(val);
+          terminalInput.value = "";
+        }
+      });
+      terminalInput.focus();
+    });
+
+    function switchLab(id) {
+      activeLabId = id;
+      document.querySelectorAll(".lab-select-btn").forEach((btn, index) => {
+        if (index === id - 1) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+
+      renderActiveLab();
+      clearTerminal();
+    }
+
+    function renderActiveLab() {
+      const lab = LABS[activeLabId];
+      document.getElementById("terminalTitle").textContent = `agent@raqeem:~/lab0${activeLabId} — bash — 80×24`;
+      document.getElementById("labObjectiveText").innerHTML = lab.objective;
+
+      // Update completion status
+      const isCompleted = completedLabs.includes(activeLabId);
+      const statusBadge = document.getElementById("labCompletedStatus");
+      if (isCompleted) {
+        statusBadge.style.display = "inline-block";
+      } else {
+        statusBadge.style.display = "none";
+      }
+    }
+
+    function updateSidebarBadges() {
+      document.querySelectorAll(".lab-select-btn").forEach((btn, index) => {
+        const id = index + 1;
+        if (completedLabs.includes(id)) {
+          btn.querySelector(".lab-num").textContent = "✓";
+          btn.querySelector(".lab-num").style.color = "var(--accent-primary)";
+          btn.querySelector(".lab-num").style.borderColor = "var(--accent-primary)";
+        } else {
+          btn.querySelector(".lab-num").textContent = `0${id}`;
+          btn.querySelector(".lab-num").style.color = "";
+          btn.querySelector(".lab-num").style.borderColor = "";
+        }
+      });
+    }
+
+    function clearTerminal() {
+      const output = document.getElementById("terminalOutput");
+      const lab = LABS[activeLabId];
+      output.innerHTML = `
+        <div class="terminal-welcome-text">Raqeem | رقيم Terminal v3.0 — AI-Guided Interactive Sandbox</div>
+        <div class="terminal-instruction-text">Lab: <span style="color: var(--accent-primary); font-weight: bold;">${lab.name}</span></div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;">Objective: ${lab.difficulty} tier exercise. Type 'help' for instructions.</div>
+        <div class="terminal-separator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+      `;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function appendLine(text, className = "") {
+      const output = document.getElementById("terminalOutput");
+      const div = document.createElement("div");
+      if (className) div.className = className;
+      div.innerHTML = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function executeTerminalCommand(cmdString) {
+      appendLine(`agent@raqeem:~$ ${cmdString}`, "terminal-input-echo");
+      
+      const cleanString = cmdString.trim();
+      const lowerString = cleanString.toLowerCase();
+
+      // Intercept direct flag submissions in terminal
+      if (lowerString.startsWith("submit ")) {
+        const submittedFlag = cleanString.slice(7).trim();
+        validateFlagValue(submittedFlag);
+        return;
+      }
+
+      if (lowerString === "clear") {
+        clearTerminal();
+        return;
+      }
+
+      // Check state-machine dictionary for active lab
+      const lab = LABS[activeLabId];
+
+      if (lowerString === "hint") {
+        appendLine(`💡 [AI-GUIDED HINT]: ${lab.hint}`, "terminal-hint-line");
+        return;
+      }
+
+      // Check nmap matching
+      if (lowerString.startsWith("nmap")) {
+        const parts = lowerString.split(/\s+/);
+        const targetIp = parts[1] || "";
+        if (targetIp === "10.0.4.15" && lab.commands["nmap 10.0.4.15"]) {
+          appendLine(lab.commands["nmap 10.0.4.15"].replace(/\n/g, "<br>"), "terminal-success-line");
+          return;
+        } else if (!targetIp) {
+          appendLine("nmap: missing host parameter. Try: `nmap 10.0.4.15`", "terminal-error-line");
+          return;
+        } else {
+          appendLine(`Starting Nmap scan...<br>Nmap scan report for ${parts[1]}<br>Host is up, but all 1000 scanned ports are filtered/closed.`, "terminal-error-line");
+          return;
+        }
+      }
+
+      // Check catalog reading
+      if (lowerString.startsWith("cat ")) {
+        const targetFile = cleanString.slice(4).trim();
+        if (lab.commands[`cat ${targetFile}`]) {
+          appendLine(lab.commands[`cat ${targetFile}`].replace(/\n/g, "<br>"), "terminal-data-line");
+          return;
+        } else {
+          appendLine(`cat: ${targetFile}: No such file or directory`, "terminal-error-line");
+          return;
+        }
+      }
+
+      // Check general exact matches
+      if (lab.commands[lowerString]) {
+        appendLine(lab.commands[lowerString].replace(/\n/g, "<br>"), "terminal-data-line");
+        return;
+      }
+
+      // Try checking exact match for complex commands
+      if (lab.commands[cleanString]) {
+        appendLine(lab.commands[cleanString].replace(/\n/g, "<br>"), "terminal-data-line");
+        return;
+      }
+
+      // Unknown
+      appendLine(`bash: ${cleanString.split(" ")[0]}: command or options not supported in this lab scenario. Type 'help' to review scope.`, "terminal-error-line");
+    }
+
+    function submitFlagFromInput() {
+      const input = document.getElementById("directFlagInput");
+      const val = input.value.trim();
+      if (!val) {
+        alert("Please enter a flag first!");
+        return;
+      }
+      validateFlagValue(val);
+      input.value = "";
+    }
+
+    async function validateFlagValue(flagVal) {
+      const lab = LABS[activeLabId];
+      if (flagVal === lab.flag) {
+        // Success!
+        if (completedLabs.includes(activeLabId)) {
+          appendLine(`[ALERT] Flag is correct, but you already completed this lab scenario!`, "terminal-hint-line");
+          return;
+        }
+
+        // Save progress locally and post to backend!
+        try {
+          const token = localStorage.getItem("authToken");
+          const headers = {
+            "Content-Type": "application/json"
+          };
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch("/api/update-score", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify({ amount: 50 })
+          });
+
+          if (!response.ok) {
+            console.error("Failed to post score to DB:", response.statusText);
+          } else {
+            const data = await response.json();
+            console.log("Score update success:", data);
+            // Refresh nav values
+            if (window.navBar && typeof window.navBar.updateUserStats === "function") {
+              window.navBar.updateUserStats();
+            }
+          }
+        } catch (err) {
+          console.error("Score network error:", err);
+        }
+
+        // Register completed
+        completedLabs.push(activeLabId);
+        localStorage.setItem("cybermind_completed_labs", JSON.stringify(completedLabs));
+
+        // Open beautiful notification
+        showCelebration(`Outstanding work! You successfully cracked ${lab.name} and retrieved the flag! +50 XP has been allocated to your profile.`);
+        
+        renderActiveLab();
+        updateSidebarBadges();
+      } else {
+        appendLine(`[FAILED] Invalid flag value submitted. Check capitalization or review command audit output!`, "terminal-error-line");
+      }
+    }
+
+    function showCelebration(msg) {
+      document.getElementById("celebrationMessage").textContent = msg;
+      document.getElementById("celebrationOverlay").classList.add("active");
+    }
+
+    function closeCelebration() {
+      document.getElementById("celebrationOverlay").classList.remove("active");
+    }
+
+    function resetActiveLab() {
+      if (confirm("Reset active terminal sandbox context? All screen history will be cleared.")) {
+        clearTerminal();
+      }
+    }
+  </script>
+
+  <style>
+    /* Premium Glassmorphic Cyber Style overrides for Terminal */
+    .terminal-shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .training-header {
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .training-header h1 {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin: 8px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .terminal-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 32px;
+      margin-top: 24px;
+    }
+
+    .terminal-window {
+      background: rgba(10, 12, 18, 0.95);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(159, 239, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+
+    .terminal-chrome {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tl {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    .tl-red { background: #ff5c7a; }
+    .tl-yellow { background: #ffd64d; }
+    .tl-green { background: #00e676; }
+
+    .terminal-title {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      font-weight: bold;
+    }
+
+    .terminal-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .status-dot.green {
+      background: #00e676;
+      box-shadow: 0 0 8px #00e676;
+    }
+
+    .terminal-output {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #b3e5fc;
+    }
+
+    .terminal-welcome-text {
+      color: var(--accent-primary);
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .terminal-instruction-text {
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .terminal-separator {
+      color: var(--border-dim);
+      margin-bottom: 16px;
+    }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      background: rgba(5, 7, 10, 0.98);
+      border-top: 1px solid var(--border-dim);
+      padding: 16px 24px;
+    }
+
+    .terminal-prompt {
+      color: var(--accent-primary);
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    #terminalInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .terminal-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .terminal-info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-panel);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .terminal-info-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-primary);
+    }
+
+    .terminal-info-card h4 {
+      margin: 0 0 16px 0;
+      color: var(--accent-primary);
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .lab-selector-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .lab-select-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      width: 100%;
+    }
+
+    .lab-select-btn:hover {
+      border-color: var(--accent-primary);
+      background: rgba(159, 239, 0, 0.03);
+    }
+
+    .lab-select-btn.active {
+      border-color: var(--accent-primary);
+      background: rgba(159, 239, 0, 0.08);
+      box-shadow: inset 0 0 10px rgba(159, 239, 0, 0.08);
+    }
+
+    .lab-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      transition: all 0.25s ease;
+    }
+
+    .lab-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .lab-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--text-primary);
+    }
+
+    .lab-diff {
+      font-size: 0.72rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .lab-diff.beginner { color: var(--accent-primary); }
+    .lab-diff.intermediate { color: var(--accent-blue); }
+    .lab-diff.advanced { color: var(--accent-red); }
+
+    .lab-objective-text {
+      font-size: 0.86rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .neon-code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent-primary);
+      border: 1px solid rgba(159, 239, 0, 0.2);
+    }
+
+    .lab-badge-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .badge-completed {
+      background: rgba(0, 230, 118, 0.2);
+      color: #00e676;
+      border: 1px solid rgba(0, 230, 118, 0.3);
+    }
+
+    .flag-submit-container {
+      display: flex;
+      gap: 12px;
+    }
+
+    .flag-input {
+      flex: 1;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .flag-input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    /* Terminal output line variants */
+    .terminal-input-echo {
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    .terminal-success-line {
+      color: #00e676;
+      background: rgba(0, 230, 118, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin: 4px 0;
+    }
+    .terminal-error-line {
+      color: #ff5c7a;
+      background: rgba(255, 92, 122, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin: 4px 0;
+    }
+    .terminal-hint-line {
+      color: #ffd64d;
+      background: rgba(255, 214, 77, 0.05);
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin: 4px 0;
+    }
+    .terminal-data-line {
+      color: #fff;
+      margin: 4px 0;
+    }
+
+    /* Celebration Overlay */
+    .celebration-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(5, 7, 10, 0.85);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .celebration-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .celebration-card {
+      background: var(--bg-card);
+      border: 2px solid var(--accent-primary);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(159, 239, 0, 0.2);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .celebration-overlay.active .celebration-card {
+      transform: scale(1);
+    }
+
+    .celebration-icon {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    .celebration-card h2 {
+      margin: 0 0 16px 0;
+      color: var(--accent-primary);
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .celebration-card p {
+      margin: 0 0 24px 0;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-15px); }
+      60% { transform: translateY(-7px); }
+    }
+
+    @media (max-width: 992px) {
+      .terminal-layout {
+        grid-template-columns: 1fr;
+      }
+      .terminal-window {
+        height: 480px;
+      }
+    }
+  </style>
 </body>
 </html>

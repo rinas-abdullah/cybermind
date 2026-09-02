@@ -3,32 +3,306 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CyberMind – Leaderboard</title>
+  <meta
+    name="description"
+    content="Raqeem Leaderboard — Track global rankings."
+  />
+  <title>Raqeem | رقيم – Leaderboard</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
+
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
 </head>
 <body>
+  <nav id="navbar-container" class="navbar"></nav>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand"><span>CyberMind</span></div>
-      <div class="nav-links">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/training">Training</a>
-        <a href="/terminal">Terminal</a>
-        <a href="/leaderboard-page" class="active-link">Leaderboard</a>
-        <a href="/admin" id="admin-link" style="display:none;">Admin</a>
+  <main class="leaderboard-shell">
+    <section class="lb-header" data-anim="1">
+      <div class="kicker">Global Rankings</div>
+      <h1>Leaderboard</h1>
+      <p>
+        Top agents ranked by mission score. Updated from the live board when available.
+      </p>
+    </section>
+
+    <section class="lb-search-row" data-anim="2">
+      <input
+        class="lb-search"
+        type="search"
+        id="lbSearch"
+        placeholder="Search agent by name…"
+        aria-label="Search leaderboard"
+      />
+
+      <button class="btn btn-secondary btn-sm" id="lbRefreshBtn" type="button">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+        >
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Refresh
+      </button>
+    </section>
+
+    <section id="lbPodiumSection" data-anim="3">
+      <div class="lb-podium" id="lbPodium"></div>
+    </section>
+
+    <section class="lb-table-card" data-anim="4">
+      <div class="lb-table-head">
+        <span style="text-align: center;">#</span>
+        <span>Agent</span>
+        <span>Streak</span>
+        <span>Score</span>
       </div>
-    </div>
-  </nav>
 
-  <main class="container section-spacing">
-    <div class="section-header">
-      <h2>Leaderboard</h2>
-    </div>
-    <div id="leaderboardContainer"></div>
+      <div id="leaderboardContainer">
+        <div
+          style="
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+          "
+        >
+          Loading rankings…
+        </div>
+      </div>
+    </section>
   </main>
 
   <script type="module" src="/js/app.js"></script>
+
+  <script>
+    const demoPlayers = [
+      { rank: 1, username: "Ghost_Reaper", points: 4820, streak: 18, role: "Red Team" },
+      { rank: 2, username: "darknet_dev", points: 4510, streak: 12, role: "Pen Tester" },
+      { rank: 3, username: "zeroTrace", points: 4200, streak: 9, role: "Analyst" },
+      { rank: 4, username: "byteHunter", points: 3980, streak: 7, role: "Defender" },
+      { rank: 5, username: "x0rcist", points: 3740, streak: 5, role: "Exploit Dev" },
+      { rank: 6, username: "shadow_key", points: 3200, streak: 0, role: "Analyst" },
+      { rank: 7, username: "netSurgeon", points: 2950, streak: 0, role: "Red Team" },
+      { rank: 8, username: "cipherWolf", points: 2600, streak: 0, role: "Defender" }
+    ];
+
+    let currentPlayers = [];
+
+    function initials(name) {
+      return String(name || "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .slice(0, 2)
+        .toUpperCase() || "AG";
+    }
+
+    function normalizePlayers(rawPlayers = []) {
+      return rawPlayers.map((player, index) => ({
+        rank: player.rank ?? index + 1,
+        username: player.username || player.name || "Unknown",
+        points: Number(player.points ?? player.score ?? 0),
+        streak: Number(player.streak ?? 0),
+        role: player.role || player.riskPersona || "Agent",
+      }));
+    }
+
+    function formatStreak(streak) {
+      return streak > 0 ? `🔥 ${streak}` : "—";
+    }
+
+    function buildPodium(players) {
+      const podium = document.getElementById("lbPodium");
+      if (!podium) return;
+
+      const top3 = players.slice(0, 3);
+
+      if (top3.length === 0) {
+        podium.innerHTML = `
+          <div class="dashboard-card-v2" style="grid-column: 1 / -1; text-align: center;">
+            <p style="color: var(--text-muted);">No ranking data available.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const ordered = [
+        top3[1] || null,
+        top3[0] || null,
+        top3[2] || null,
+      ];
+
+      const cardTypes = ["silver", "gold", "bronze"];
+      const trophies = ["🥈", "🥇", "🥉"];
+
+      podium.innerHTML = ordered
+        .map((player, index) => {
+          if (!player) {
+            return `
+              <div class="lb-podium-card ${cardTypes[index]}" style="opacity: 0.35;">
+                <div class="lb-trophy">${trophies[index]}</div>
+                <div class="lb-avatar-large">--</div>
+                <div class="lb-podium-name">Empty</div>
+                <div class="lb-podium-role">Waiting</div>
+                <div class="lb-podium-score">0</div>
+                <div class="lb-podium-pts">points</div>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="lb-podium-card ${cardTypes[index]}">
+              <div class="lb-trophy">${trophies[index]}</div>
+              <div class="lb-avatar-large">${initials(player.username)}</div>
+              <div class="lb-podium-name">${player.username}</div>
+              <div class="lb-podium-role">${player.role}</div>
+              <div class="lb-podium-score">${player.points.toLocaleString()}</div>
+              <div class="lb-podium-pts">points</div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function buildTable(players) {
+      const container = document.getElementById("leaderboardContainer");
+      if (!container) return;
+
+      if (!players.length) {
+        container.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+            No rankings available.
+          </div>
+        `;
+        return;
+      }
+
+      const activeUser = localStorage.getItem("username") || "";
+
+      container.innerHTML = players
+        .map((player) => {
+          const isMe =
+            activeUser &&
+            String(player.username).toLowerCase() === activeUser.toLowerCase();
+
+          return `
+            <div class="lb-row ${isMe ? "me" : ""}">
+              <div class="lb-rank-num ${player.rank <= 3 ? "top" : ""}">
+                ${player.rank}
+              </div>
+
+              <div class="lb-row-left">
+                <div class="lb-avatar-small">${initials(player.username)}</div>
+                <div class="lb-row-text">
+                  <span class="lb-username">${player.username}</span>
+                  <span class="lb-tag-small">${player.role}</span>
+                </div>
+              </div>
+
+              <span class="lb-streak">${formatStreak(player.streak)}</span>
+              <span class="lb-row-points">${player.points.toLocaleString()}</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function initSearch() {
+      const search = document.getElementById("lbSearch");
+      if (!search) return;
+
+      search.addEventListener("input", function () {
+        const q = this.value.toLowerCase().trim();
+
+        document.querySelectorAll("#leaderboardContainer .lb-row").forEach((row) => {
+          const name =
+            row.querySelector(".lb-username")?.textContent.toLowerCase() || "";
+
+          row.style.display = name.includes(q) ? "" : "none";
+        });
+      });
+    }
+
+    async function fetchLeaderboard() {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/leaderboard", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && Array.isArray(data.data)) {
+          return normalizePlayers(data.data);
+        }
+
+        return normalizePlayers(demoPlayers);
+      } catch (error) {
+        console.error("Leaderboard fetch failed:", error);
+        return normalizePlayers(demoPlayers);
+      }
+    }
+
+    async function refreshLeaderboard() {
+      currentPlayers = await fetchLeaderboard();
+      buildPodium(currentPlayers);
+      buildTable(currentPlayers);
+    }
+
+    function initRefresh() {
+      const refreshBtn = document.getElementById("lbRefreshBtn");
+      if (!refreshBtn) return;
+
+      refreshBtn.addEventListener("click", async () => {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = "Refreshing...";
+        await refreshLeaderboard();
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = `
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+          >
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Refresh
+        `;
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (typeof ModernNavBar !== "undefined" && !window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      if (!window.authService || !authService.isAuthenticated()) {
+        window.location.href = "/";
+        return;
+      }
+
+      if (window.navBar && typeof window.navBar.updateUserStats === "function") {
+        window.navBar.updateUserStats();
+      }
+
+      await refreshLeaderboard();
+      initSearch();
+      initRefresh();
+    });
+  </script>
 </body>
 </html>

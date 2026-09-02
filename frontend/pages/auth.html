@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="auth.card_title">Wathaq Access | وثاق</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+</head>
+<body>
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <main class="training-shell">
+    <section class="hero-panel align-stretch">
+      <!-- LEFT SIDE -->
+      <div class="hero-left" data-anim="1">
+        <span class="eyebrow" data-i18n="auth.access_eyebrow">Access Layer</span>
+        <h1 class="hero-title" data-i18n="auth.hero_title">
+          Enter Wathaq | وثاق
+        </h1>
+        <p class="hero-subtitle" data-i18n="auth.hero_subtitle">
+          AI-driven cybersecurity training with adaptive missions, guided
+          learning, immersive terminal practice, and a real progression system
+          built for modern cyber education.
+        </p>
+
+        <div class="hero-meta">
+          <div class="meta-chip">
+            <span class="meta-label" data-i18n="auth.meta_platform">Platform</span>
+            <span class="meta-value" data-i18n="auth.meta_platform_val">AI Training</span>
+          </div>
+
+          <div class="meta-chip">
+            <span class="meta-label" data-i18n="auth.meta_mode">Mode</span>
+            <span class="meta-value" data-i18n="auth.meta_mode_val">Secure Access</span>
+          </div>
+
+          <div class="meta-chip">
+            <span class="meta-label" data-i18n="auth.meta_focus">Focus</span>
+            <span class="meta-value" data-i18n="auth.meta_focus_val">Hands-On</span>
+          </div>
+        </div>
+
+        <div class="auth-spacer-24"></div>
+
+        <div class="quick-links-grid">
+          <div class="quick-link-card">
+            <div class="quick-link-icon">🧠</div>
+            <div>
+              <strong data-i18n="auth.feature_adaptive_title">Adaptive Learning</strong>
+              <p data-i18n="auth.feature_adaptive_desc">The platform adjusts mission flow based on your skill level and behavior.</p>
+            </div>
+          </div>
+
+          <div class="quick-link-card">
+            <div class="quick-link-icon">💻</div>
+            <div>
+              <strong data-i18n="auth.feature_terminal_title">Terminal Simulator</strong>
+              <p data-i18n="auth.feature_terminal_desc">Train in a controlled cyber environment with realistic command-based interaction.</p>
+            </div>
+          </div>
+
+          <div class="quick-link-card">
+            <div class="quick-link-icon">🤖</div>
+            <div>
+              <strong data-i18n="auth.feature_mentor_title">AI Mentor</strong>
+              <p data-i18n="auth.feature_mentor_desc">Get guided explanations, hints, and support while learning cybersecurity concepts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE -->
+      <div class="hero-right" data-anim="2">
+        <div class="glow-card glow-card-auth">
+          <!-- Language -->
+          <div class="lang-switcher lang-switcher-auth">
+            <button class="lang-btn" id="langToggle" type="button">
+              <span id="langText">EN</span>
+            </button>
+
+            <div class="lang-dropdown" id="langDropdown">
+              <button class="lang-option active" data-lang="en" type="button" data-i18n="navbar.lang_en">English</button>
+              <button class="lang-option" data-lang="ar" type="button" data-i18n="navbar.lang_ar">العربية</button>
+            </div>
+          </div>
+
+          <div class="card-kicker mb-8" data-i18n="auth.card_kicker">Authentication</div>
+          <h2 class="mb-8" data-i18n="auth.card_title">Wathaq Access | وثاق</h2>
+          <p class="mb-22" data-i18n="auth.card_intro">
+            Sign in to continue your training journey or create a new account to begin.
+          </p>
+
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-target="loginForm" type="button" data-i18n="auth.tab_signin">
+              Sign In
+            </button>
+            <button class="auth-tab" data-target="signupForm" type="button" data-i18n="auth.tab_signup">
+              Create Account
+            </button>
+          </div>
+
+          <div id="msg" class="message mt-18"></div>
+
+          <!-- LOGIN -->
+          <div id="loginForm" class="auth-form-container active">
+            <form class="auth-form" id="loginFormElement">
+              <div class="form-group">
+                <label class="form-label" for="loginIdentifier" data-i18n="auth.label_login_id">Email or Username</label>
+                <input class="form-input" id="loginIdentifier" type="text" data-i18n-placeholder="auth.ph_login_id" placeholder="Enter your email or username" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="loginPassword" data-i18n="auth.label_password">Password</label>
+                <input class="form-input" id="loginPassword" type="password" data-i18n-placeholder="auth.ph_login_password" placeholder="Enter your password" />
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="loginBtn" data-i18n="auth.btn_signin">
+                Sign In
+              </button>
+
+              <div class="auth-footer">
+                <a href="#" class="auth-footer-link" id="showSignup" data-i18n="auth.link_create_account">Create new account</a>
+              </div>
+
+              <div class="helper-note" data-i18n="auth.helper_login">
+                Use your registered account to continue. Administrator access must go through the standard backend authentication flow.
+              </div>
+            </form>
+          </div>
+
+          <!-- SIGNUP -->
+          <div id="signupForm" class="auth-form-container">
+            <form class="auth-form" id="signupFormElement">
+              <div class="form-group">
+                <label class="form-label" for="signupEmail" data-i18n="auth.label_email">Email</label>
+                <input class="form-input" id="signupEmail" type="email" data-i18n-placeholder="auth.ph_email" placeholder="Enter your email" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="signupUsername" data-i18n="auth.label_username">Username</label>
+                <input class="form-input" id="signupUsername" type="text" data-i18n-placeholder="auth.ph_username" placeholder="Choose a username" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="signupPassword" data-i18n="auth.label_password">Password</label>
+                <input class="form-input" id="signupPassword" type="password" data-i18n-placeholder="auth.ph_password_create" placeholder="Create a password" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="signupConfirmPassword" data-i18n="auth.label_confirm_password">Confirm Password</label>
+                <input class="form-input" id="signupConfirmPassword" type="password" data-i18n-placeholder="auth.ph_confirm_password" placeholder="Confirm your password" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="signupLevel" data-i18n="auth.label_skill_level">Skill Level</label>
+                <select class="form-select" id="signupLevel">
+                  <option value="" data-i18n="auth.skill_select">Select level</option>
+                  <option value="beginner" data-i18n="auth.skill_beginner">Beginner</option>
+                  <option value="intermediate" data-i18n="auth.skill_intermediate">Intermediate</option>
+                  <option value="advanced" data-i18n="auth.skill_advanced">Advanced</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" data-i18n="auth.label_interests">Training Interests</label>
+                <div class="interests">
+                  <label><input type="checkbox" value="network-security" /> <span data-i18n="auth.interest_network">Network</span></label>
+                  <label><input type="checkbox" value="web-security" /> <span data-i18n="auth.interest_web">Web</span></label>
+                  <label><input type="checkbox" value="phishing" /> <span data-i18n="auth.interest_phishing">Phishing</span></label>
+                  <label><input type="checkbox" value="malware" /> <span data-i18n="auth.interest_malware">Malware</span></label>
+                </div>
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="signupBtn" data-i18n="auth.btn_create_account">
+                Create Account
+              </button>
+
+              <div class="auth-footer">
+                <a href="#" class="auth-footer-link" id="showLogin" data-i18n="auth.link_have_account">Already have an account?</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!window.navBar && typeof ModernNavBar !== "undefined") {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      setupLanguageSwitcher();
+      setupAuthTabs();
+      setupAuthForms();
+      redirectIfAlreadyLoggedIn();
+    });
+
+    function redirectIfAlreadyLoggedIn() {
+      if (window.authService && authService.isAuthenticated()) {
+        const savedPath = authService.getRedirectAfterLogin();
+        if (savedPath && savedPath !== "/auth") {
+          authService.redirectAfterLogin("/dashboard");
+        }
+      }
+    }
+
+    function tAuth(key) {
+      return window.i18n?.t("auth." + key) || key;
+    }
+
+    function setupLanguageSwitcher() {
+      const langText = document.getElementById("langText");
+      const langToggle = document.getElementById("langToggle");
+      const langDropdown = document.getElementById("langDropdown");
+
+      const syncLangUi = () => {
+        const currentLang = window.i18n?.getCurrentLanguage() || localStorage.getItem("language") || "en";
+        if (langText) langText.textContent = currentLang === "en" ? "EN" : "AR";
+        document.querySelectorAll(".lang-option").forEach((option) => {
+          option.classList.toggle("active", option.dataset.lang === currentLang);
+        });
+      };
+
+      syncLangUi();
+
+      langToggle.onclick = (e) => {
+        e.stopPropagation();
+        langDropdown.classList.toggle("active");
+      };
+
+      document.querySelectorAll(".lang-option").forEach((option) => {
+        option.onclick = (e) => {
+          e.preventDefault();
+          const lang = option.getAttribute("data-lang");
+          if (!lang || !window.i18n) return;
+          window.i18n.setLanguage(lang);
+          syncLangUi();
+          langDropdown.classList.remove("active");
+        };
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".lang-switcher")) {
+          langDropdown.classList.remove("active");
+        }
+      });
+
+      window.addEventListener("languageChanged", () => syncLangUi());
+    }
+
+    function setupAuthTabs() {
+      document.querySelectorAll(".auth-tab").forEach((tab) => {
+        tab.onclick = () => {
+          document.querySelectorAll(".auth-tab").forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+
+          document.querySelectorAll(".auth-form-container").forEach((f) => f.classList.remove("active"));
+          document.getElementById(tab.dataset.target).classList.add("active");
+
+          clearMessage();
+        };
+      });
+
+      document.getElementById("showSignup").onclick = (e) => {
+        e.preventDefault();
+        document.querySelector('[data-target="signupForm"]').click();
+      };
+
+      document.getElementById("showLogin").onclick = (e) => {
+        e.preventDefault();
+        document.querySelector('[data-target="loginForm"]').click();
+      };
+    }
+
+    function showMessage(text, type = "error") {
+      const m = document.getElementById("msg");
+      m.textContent = text;
+      m.className = "message show " + type;
+    }
+
+    function clearMessage() {
+      const m = document.getElementById("msg");
+      m.textContent = "";
+      m.className = "message";
+    }
+
+    function setupAuthForms() {
+      const loginForm = document.getElementById("loginFormElement");
+      const signupForm = document.getElementById("signupFormElement");
+
+      loginForm.addEventListener("submit", handleLoginSubmit);
+      signupForm.addEventListener("submit", handleSignupSubmit);
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      clearMessage();
+
+      const identifier = document.getElementById("loginIdentifier").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const btn = document.getElementById("loginBtn");
+
+      if (!identifier || !password) {
+        showMessage(tAuth("err_required_login"));
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = tAuth("btn_signing_in");
+
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.data && data.data.token && data.data.user) {
+          authService.setAuthData(
+            data.data.token,
+            data.data.user.id || data.data.user.username,
+            data.data.user.username,
+            data.data.user.role || "user"
+          );
+
+          showMessage(tAuth("msg_login_success"), "success");
+
+          setTimeout(() => {
+            authService.redirectAfterLogin("/dashboard");
+          }, 600);
+        } else {
+          showMessage(data.message || tAuth("err_login_failed"));
+        }
+      } catch (error) {
+        console.error("LOGIN ERROR:", error);
+        showMessage(tAuth("err_server_login"));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = tAuth("btn_signin");
+      }
+    }
+
+    async function handleSignupSubmit(e) {
+      e.preventDefault();
+      clearMessage();
+
+      const email = document.getElementById("signupEmail").value.trim();
+      const username = document.getElementById("signupUsername").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      const confirmPassword = document.getElementById("signupConfirmPassword").value;
+      const level = document.getElementById("signupLevel").value;
+      const btn = document.getElementById("signupBtn");
+
+      const interests = [...document.querySelectorAll(".interests input:checked")].map(
+        (i) => i.value
+      );
+
+      if (!email || !username || !password || !confirmPassword) {
+        showMessage(tAuth("err_required_signup"));
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showMessage(tAuth("err_password_mismatch"));
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = tAuth("btn_creating");
+
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            username,
+            password,
+            confirmPassword,
+            skillLevel: level,
+            interests,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.data && data.data.token && data.data.user) {
+          authService.setAuthData(
+            data.data.token,
+            data.data.user.id || data.data.user.username,
+            data.data.user.username,
+            data.data.user.role || "user"
+          );
+
+          showMessage(tAuth("msg_signup_success"), "success");
+
+          setTimeout(() => {
+            authService.redirectAfterLogin("/dashboard");
+          }, 600);
+        } else {
+          showMessage(data.message || tAuth("err_signup_failed"));
+        }
+      } catch (error) {
+        console.error("SIGNUP ERROR:", error);
+        showMessage(tAuth("err_server_signup"));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = tAuth("btn_create_account");
+      }
+    }
+  </script>
+</body>
+</html>

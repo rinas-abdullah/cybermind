@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raqeem | رقيم — Cybersecurity Training Platform</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+
+
+</head>
+<body>
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <div class="page-shell">
+    <section class="landing-hero">
+      <div class="hero-copy">
+        <div class="hero-chip" data-i18n="home.hero_eyebrow">AI-Powered Cybersecurity Training</div>
+
+        <h1>
+          <span data-i18n="home.hero_title_main">Train Smarter.</span>
+          <span class="accent-text" data-i18n="home.hero_title_accent">Defend Faster.</span>
+        </h1>
+
+        <p class="hero-subtitle" data-i18n="home.hero_subtitle">Raqeem | رقيم helps learners and institutions build real cybersecurity skills through adaptive missions, AI-guided feedback, realistic terminal practice, and measurable progress across every training path.</p>
+
+        <div class="hero-trust" data-i18n="home.hero_trust">Designed for students, aspiring analysts, and practical cybersecurity learning.</div>
+
+        <div class="hero-cta">
+          <a href="/learn" class="btn btn-primary" data-i18n="home.hero_action_explore">Explore Platform →</a>
+          <a href="/practice" class="btn btn-secondary" id="startPracticeBtn" data-i18n="home.hero_action_practice">Start Practicing</a>
+          <a href="/auth?mode=login" class="btn btn-ghost" id="loginJoinBtn" data-i18n="home.hero_action_login_join">Log In / Join</a>
+        </div>
+
+        <div class="stats-strip">
+          <div class="stat-box">
+            <strong>120+</strong>
+            <span>Hands-on Missions</span>
+          </div>
+          <div class="stat-box">
+            <strong>AI Mentor</strong>
+            <span>Guided Explanations</span>
+          </div>
+          <div class="stat-box">
+            <strong>Real Labs</strong>
+            <span>Terminal-Based Practice</span>
+          </div>
+          <div class="stat-box">
+            <strong>Live Rank</strong>
+            <span>Progress & Recognition</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+
+        <div class="floating-card small-top">
+          <div class="tag">AI Mentor</div>
+          <strong>Instant Guided Feedback</strong>
+          <span>Hints, explanations, and learning support in real time.</span>
+        </div>
+
+        <div class="terminal-card">
+          <div class="terminal-topbar">
+            <div class="terminal-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="terminal-label">Mission Console</div>
+          </div>
+
+          <div class="terminal-body">
+            <div class="terminal-lines">
+              <div class="terminal-line"><span class="cmd">$ initialize_mission --type web-security</span></div>
+              <div class="terminal-line"><span class="info">[AI] Scenario loaded: SQL injection detection lab</span></div>
+              <div class="terminal-line"><span class="cmd">$ scan_target --surface public-app</span></div>
+              <div class="terminal-line"><span class="info">[AI] 3 anomalies detected. Prioritizing suspicious input vectors...</span></div>
+              <div class="terminal-line"><span class="cmd">$ validate_payload --mode safe-analysis</span></div>
+              <div class="terminal-line"><span class="info">[SYSTEM] Mission progress updated successfully.<span class="cursor"></span></span></div>
+            </div>
+
+            <div class="terminal-status">
+              <div class="status-card">
+                <span class="label">Current Mission</span>
+                <strong>Web Exploitation Basics</strong>
+                <small>Threat discovery, attack flow understanding, secure response.</small>
+              </div>
+
+              <div class="status-card">
+                <span class="label">Performance</span>
+                <strong>Difficulty: Adaptive</strong>
+                <small>Raqeem | رقيم adjusts challenge depth based on your progress.</small>
+              </div>
+
+              <div class="status-card">
+                <span class="label">Progress</span>
+                <strong>76% Completion</strong>
+                <small>Terminal tasks, guided hints, and AI explanations completed.</small>
+              </div>
+
+              <div class="status-card">
+                <span class="label">Recognition</span>
+                <strong>Rank: Silver Tier</strong>
+                <small>Unlock badges, leaderboard visibility, and skill milestones.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="floating-card small-bottom">
+          <div class="tag">Live Progress</div>
+          <strong>Adaptive Mission Scaling</strong>
+          <span>Difficulty shifts with your current strengths and response speed.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="features-wrap">
+      <div class="section-intro">
+        <div class="section-kicker">Core Capabilities</div>
+        <h2 class="section-title">Built for practical skill growth</h2>
+        <p class="section-desc">
+          Raqeem | رقيم blends hands-on training, AI-guided explanation, adaptive challenge design,
+          and measurable performance tracking in one modern platform.
+        </p>
+      </div>
+
+      <div class="features-section">
+        <div class="feature-card">
+          <div class="feature-icon">⚔</div>
+          <h3>Interactive Missions</h3>
+          <p>
+            Complete realistic cybersecurity scenarios designed to simulate modern attack
+            patterns, defensive thinking, and structured problem solving.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>AI Mentor</h3>
+          <p>
+            Receive immediate explanations, guided hints, and concept breakdowns while
+            practicing so learners stay supported at every stage.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📈</div>
+          <h3>Adaptive Difficulty</h3>
+          <p>
+            The platform adjusts mission complexity based on user performance, helping
+            beginners grow while keeping advanced learners challenged.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🏆</div>
+          <h3>Recognition & Ranking</h3>
+          <p>
+            Measure progress through badges, milestones, skill visibility, and leaderboard
+            systems that make improvement visible and motivating.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-wrap">
+      <div class="section-intro">
+        <div class="section-kicker">How It Works</div>
+        <h2 class="section-title">A simple flow with real training value</h2>
+        <p class="section-desc">
+          Learners move through a guided process that starts with path selection and ends with
+          measurable performance growth through repeated practical exposure.
+        </p>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-number">01</div>
+          <h3>Choose a learning path</h3>
+          <p>
+            Start with a track aligned to your level and interests, from security fundamentals
+            to hands-on operational practice.
+          </p>
+        </div>
+
+        <div class="how-card">
+          <div class="how-number">02</div>
+          <h3>Practice through missions</h3>
+          <p>
+            Work through realistic exercises in a clean, focused environment with guided
+            terminal-based interaction and immediate AI support.
+          </p>
+        </div>
+
+        <div class="how-card">
+          <div class="how-number">03</div>
+          <h3>Track progress and improve</h3>
+          <p>
+            Review milestones, recognition, and evolving mission difficulty while building
+            stronger analytical confidence over time.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="paths-wrap">
+      <div class="section-intro">
+        <div class="section-kicker">Training Paths</div>
+        <h2 class="section-title">Explore skill-focused cybersecurity tracks</h2>
+        <p class="section-desc">
+          Each path is structured to help learners focus on a specific area while still building
+          transferable cyber reasoning and practical confidence.
+        </p>
+      </div>
+
+      <div class="paths-grid">
+        <div class="path-card">
+          <div class="path-tag">Foundation</div>
+          <h3>Web Security</h3>
+          <p>
+            Build confidence in web-based attack surfaces, common vulnerabilities,
+            and secure thinking through focused mission scenarios.
+          </p>
+          <div class="path-list">
+            <span>XSS</span>
+            <span>SQLi</span>
+            <span>Input Validation</span>
+          </div>
+        </div>
+
+        <div class="path-card">
+          <div class="path-tag">Operations</div>
+          <h3>Network Defense</h3>
+          <p>
+            Understand traffic behavior, suspicious activity, and defensive monitoring
+            through guided cyber operations tasks.
+          </p>
+          <div class="path-list">
+            <span>Traffic Analysis</span>
+            <span>Alerts</span>
+            <span>Detection</span>
+          </div>
+        </div>
+
+        <div class="path-card">
+          <div class="path-tag">Systems</div>
+          <h3>Linux & Terminal Labs</h3>
+          <p>
+            Strengthen command-line confidence with realistic, mission-oriented exercises
+            tied to security operations and system investigation.
+          </p>
+          <div class="path-list">
+            <span>Bash</span>
+            <span>Permissions</span>
+            <span>Logs</span>
+          </div>
+        </div>
+
+        <div class="path-card">
+          <div class="path-tag">Analytics</div>
+          <h3>SOC Analyst Skills</h3>
+          <p>
+            Practice triage thinking, alert prioritization, and structured investigation
+            in a workflow inspired by real operational environments.
+          </p>
+          <div class="path-list">
+            <span>Triage</span>
+            <span>Incidents</span>
+            <span>Response</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-wrap">
+      <div class="final-cta">
+        <div>
+          <h2>Start your first mission with Raqeem | رقيم</h2>
+          <p>
+            Enter a smarter cybersecurity training experience designed for modern learners,
+            practical skill building, and visible performance growth.
+          </p>
+        </div>
+
+        <div class="final-cta-actions">
+          <a href="/practice" class="btn btn-primary" id="finalStartBtn">Launch Training</a>
+          <a href="/learn" class="btn btn-secondary">View Learning Paths</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+
+  <script>
+    function handleProtectedRedirect(targetPath) {
+      if (
+        typeof authService !== "undefined" &&
+        authService.isAuthenticated()
+      ) {
+        window.location.href = targetPath;
+        return;
+      }
+
+      if (
+        typeof authService !== "undefined" &&
+        typeof authService.setRedirectAfterLogin === "function"
+      ) {
+        authService.setRedirectAfterLogin(targetPath);
+      }
+
+      window.location.href = "/auth?mode=login";
+    }
+
+    function initLandingPage() {
+      if (!window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      const startPracticeBtn = document.getElementById("startPracticeBtn");
+      const loginJoinBtn = document.getElementById("loginJoinBtn");
+      const finalStartBtn = document.getElementById("finalStartBtn");
+
+      if (startPracticeBtn) {
+        startPracticeBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          handleProtectedRedirect("/training");
+        });
+      }
+
+      if (finalStartBtn) {
+        finalStartBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          handleProtectedRedirect("/training");
+        });
+      }
+
+      if (loginJoinBtn) {
+        loginJoinBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          if (
+            typeof authService !== "undefined" &&
+            typeof authService.setRedirectAfterLogin === "function"
+          ) {
+            authService.setRedirectAfterLogin(window.location.pathname);
+          }
+
+          window.location.href = "/auth?mode=login";
+        });
+      }
+
+      document.addEventListener("mousemove", function (e) {
+        document.body.style.setProperty("--mouse-x", e.clientX + "px");
+        document.body.style.setProperty("--mouse-y", e.clientY + "px");
+      });
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initLandingPage);
+    } else {
+      initLandingPage();
+    }
+  </script>
+</body>
+</html>

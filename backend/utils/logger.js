@@ -1,74 +1,52 @@
-// Logger Utility - Centralized logging with different levels
+const pino = require("pino");
+const { config } = require("../config/environment");
 
-const config = require('../config/environment');
+const logger = pino({
+  level: config.logging.level || "info",
+  timestamp: pino.stdTimeFunctions.isoTime,
+  base: { pid: false },
+  redact: ["req.headers.authorization", "req.headers.cookie"],
+});
 
-class Logger {
-  constructor() {
-    this.level = config.logging.level;
-    this.levels = {
-      error: 0,
-      warn: 1,
-      info: 2,
-      debug: 3
-    };
-  }
+function requestLogger(req, res, next) {
+  const startTime = Date.now();
+  const requestId = req.requestId || null;
 
-  shouldLog(level) {
-    return this.levels[level] <= this.levels[this.level];
-  }
-
-  formatMessage(level, message, meta = {}) {
-    const timestamp = new Date().toISOString();
-    const baseMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-
-    if (Object.keys(meta).length > 0) {
-      return `${baseMessage} ${JSON.stringify(meta)}`;
-    }
-
-    return baseMessage;
-  }
-
-  error(message, meta = {}) {
-    if (this.shouldLog('error')) {
-      console.error(this.formatMessage('error', message, meta));
-    }
-  }
-
-  warn(message, meta = {}) {
-    if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage('warn', message, meta));
-    }
-  }
-
-  info(message, meta = {}) {
-    if (this.shouldLog('info')) {
-      console.log(this.formatMessage('info', message, meta));
-    }
-  }
-
-  debug(message, meta = {}) {
-    if (this.shouldLog('debug')) {
-      console.debug(this.formatMessage('debug', message, meta));
-    }
-  }
-
-  // Request logging middleware
-  requestLogger(req, res, next) {
-    const start = Date.now();
-
-    res.on('finish', () => {
-      const duration = Date.now() - start;
-      this.info('Request completed', {
+  res.on("finish", () => {
+    logger.info(
+      {
+        requestId,
         method: req.method,
-        url: req.url,
-        status: res.statusCode,
-        duration: `${duration}ms`,
-        ip: req.ip
-      });
-    });
+        url: req.originalUrl || req.url,
+        statusCode: res.statusCode,
+        durationMs: Date.now() - startTime,
+        ip: req.ip || req.connection?.remoteAddress,
+        userAgent: req.headers["user-agent"],
+      },
+      "HTTP request completed"
+    );
+  });
 
-    next();
-  }
+  next();
 }
 
-module.exports = new Logger();
+function logException(error, context = {}) {
+  logger.error(
+    {
+      ...context,
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack,
+    },
+    "Unhandled exception"
+  );
+}
+
+module.exports = {
+  error: logger.error.bind(logger),
+  warn: logger.warn.bind(logger),
+  info: logger.info.bind(logger),
+  debug: logger.debug.bind(logger),
+  requestLogger,
+  logException,
+};

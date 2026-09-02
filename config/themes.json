@@ -1,0 +1,141 @@
+{
+  "themes": {
+    "dark": {
+      "name": "CyberMind Dark",
+      "description": "Dark cybersecurity-themed interface",
+      "colors": {
+        "bg-primary": "#030810",
+        "bg-secondary": "#0a1420",
+        "bg-tertiary": "#111827",
+        "text-primary": "#e5e7eb",
+        "text-secondary": "#d1d5db",
+        "text-light": "#9ca3af",
+        "text-muted": "#6b7280",
+        "accent-primary": "#00e5b0",
+        "accent-secondary": "#3b82f6",
+        "accent-tertiary": "#8b5cf6",
+        "accent-danger": "#ef4444",
+        "accent-success": "#10b981",
+        "accent-warning": "#f59e0b",
+        "border-color": "#1f2937",
+        "border-light": "#374151",
+        "border-primary": "#00e5b0",
+        "status-success": "#10b981",
+        "status-warning": "#f59e0b",
+        "status-error": "#ef4444",
+        "status-info": "#3b82f6"
+      }
+    },
+    "light": {
+      "name": "CyberMind Light",
+      "description": "Light, professional cybersecurity interface",
+      "colors": {
+        "bg-primary": "#ffffff",
+        "bg-secondary": "#f9fafb",
+        "bg-tertiary": "#f3f4f6",
+        "text-primary": "#1f2937",
+        "text-secondary": "#374151",
+        "text-light": "#6b7280",
+        "text-muted": "#9ca3af",
+        "accent-primary": "#2563eb",
+        "accent-secondary": "#7c3aed",
+        "accent-tertiary": "#06b6d4",
+        "accent-danger": "#dc2626",
+        "accent-success": "#059669",
+        "accent-warning": "#d97706",
+        "border-color": "#e5e7eb",
+        "border-light": "#f3f4f6",
+        "border-primary": "#2563eb",
+        "status-success": "#059669",
+        "status-warning": "#d97706",
+        "status-error": "#dc2626",
+        "status-info": "#2563eb"
+      }
+    },
+    "hacker": {
+      "name": "Hacker Mode",
+      "description": "Intense terminal-style cybersecurity theme",
+      "colors": {
+        "bg-primary": "#000000",
+        "bg-secondary": "#0d0d0d",
+        "bg-tertiary": "#1a1a1a",
+        "text-primary": "#00ff00",
+        "text-secondary": "#00dd00",
+        "text-light": "#00aa00",
+        "text-muted": "#008800",
+        "accent-primary": "#00ff00",
+        "accent-secondary": "#ff00ff",
+        "accent-tertiary": "#00ffff",
+        "accent-danger": "#ff0000",
+        "accent-success": "#00ff00",
+        "accent-warning": "#ffff00",
+        "border-color": "#00ff00",
+        "border-light": "#00aa00",
+        "border-primary": "#00ff00",
+        "status-success": "#00ff00",
+        "status-warning": "#ffff00",
+        "status-error": "#ff0000",
+        "status-info": "#00ffff"
+      }
+    },
+    "ocean": {
+      "name": "Ocean Blue",
+      "description": "Cool blue cybersecurity theme",
+      "colors": {
+        "bg-primary": "#0f1419",
+        "bg-secondary": "#1a2332",
+        "bg-tertiary": "#243447",
+        "text-primary": "#e0f2fe",
+        "text-secondary": "#bae6fd",
+        "text-light": "#7dd3fc",
+        "text-muted": "#38bdf8",
+        "accent-primary": "#06b6d4",
+        "accent-secondary": "#0284c7",
+        "accent-tertiary": "#0369a1",
+        "accent-danger": "#dc2626",
+        "accent-success": "#10b981",
+        "accent-warning": "#f59e0b",
+        "border-color": "#06b6d4",
+        "border-light": "#0284c7",
+        "border-primary": "#06b6d4",
+        "status-success": "#10b981",
+        "status-warning": "#f59e0b",
+        "status-error": "#dc2626",
+        "status-info": "#06b6d4"
+      }
+    },
+    "neon": {
+      "name": "Neon Cyberpunk",
+      "description": "Vibrant neon cyberpunk aesthetic",
+      "colors": {
+        "bg-primary": "#0a0e27",
+        "bg-secondary": "#16213e",
+        "bg-tertiary": "#0f3460",
+        "text-primary": "#e94560",
+        "text-secondary": "#f39c12",
+        "text-light": "#16c784",
+        "text-muted": "#95a5a6",
+        "accent-primary": "#e94560",
+        "accent-secondary": "#f39c12",
+        "accent-tertiary": "#16c784",
+        "accent-danger": "#e74c3c",
+        "accent-success": "#2ecc71",
+        "accent-warning": "#f39c12",
+        "border-color": "#e94560",
+        "border-light": "#f39c12",
+        "border-primary": "#e94560",
+        "status-success": "#2ecc71",
+        "status-warning": "#f39c12",
+        "status-error": "#e74c3c",
+        "status-info": "#16c784"
+      }
+    }
+  },
+  "settings": {
+    "defaultTheme": "dark",
+    "storageKey": "cybermind-theme",
+    "transitionDuration": "0.3s",
+    "enableAutoDetect": true,
+    "enableCustomization": true
+  }
+}

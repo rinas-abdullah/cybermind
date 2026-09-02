@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wathaq | وثاق — AI Insights</title>
+  
+  <script src="/js/theme.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <main class="training-shell">
+    <section class="hero-panel">
+      <div class="hero-left" data-anim="1">
+        <span class="eyebrow" data-i18n="aiInsights.hero_eyebrow">AI-Powered Intelligence</span>
+        <h1 class="hero-title" data-i18n="aiInsights.hero_title">AI Insights</h1>
+        <p class="hero-subtitle" data-i18n="aiInsights.hero_subtitle">Explore comprehensive AI-driven insights from your cybersecurity training journey. Get personalized recommendations, performance analytics, trend analysis, and predictive learning paths powered by advanced machine learning models.</p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="generateInsightsBtn" data-i18n="aiInsights.generate">Generate Insights</button>
+          <button class="btn btn-secondary" id="refreshInsightsBtn" data-i18n="aiInsights.refresh">Refresh Data</button>
+        </div>
+
+        <div class="hero-meta">
+          <div class="meta-chip">
+            <span class="meta-label">AI Models</span>
+            <span class="meta-value">Active</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Data Points</span>
+            <span class="meta-value" id="dataPoints">0</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Last Analysis</span>
+            <span class="meta-value" id="lastAnalysis">Never</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right" data-anim="2">
+        <div class="glow-card">
+          <div class="hero-card-header">
+            <span class="status-dot"></span>
+            <span>Insights Overview</span>
+          </div>
+
+          <div class="system-grid">
+            <div class="system-item">
+              <span class="system-label">Performance Score</span>
+              <strong id="performanceScore">—</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Learning Velocity</span>
+              <strong id="learningVelocity">—</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Risk Assessment</span>
+              <strong id="riskAssessment">—</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Next Milestone</span>
+              <strong id="nextMilestone">—</strong>
+            </div>
+          </div>
+
+          <div class="mini-progress">
+            <div class="mini-progress-top">
+              <span>Insights Confidence</span>
+              <span style="color: var(--accent-primary); font-weight: 700;" id="insightsConfidence">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="insightsProgressBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="insights-container">
+      <div class="insights-grid">
+        <div class="insight-card" data-anim="3">
+          <div class="card-header">
+            <h3>Performance Analytics</h3>
+            <span class="card-icon">📊</span>
+          </div>
+          <div class="card-content" style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="position: relative; height: 180px; width: 100%;">
+              <canvas id="performanceChart"></canvas>
+            </div>
+            <div id="performanceAnalytics">
+              <div class="loading-state">Loading performance analytics...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="insight-card" data-anim="4">
+          <div class="card-header">
+            <h3>Learning Patterns</h3>
+            <span class="card-icon">🧠</span>
+          </div>
+          <div class="card-content" id="learningPatterns">
+            <div class="loading-state">Loading learning patterns...</div>
+          </div>
+        </div>
+
+        <div class="insight-card" data-anim="5">
+          <div class="card-header">
+            <h3>Skill Gaps Analysis</h3>
+            <span class="card-icon">🎯</span>
+          </div>
+          <div class="card-content" id="skillGaps">
+            <div class="loading-state">Loading skill gaps analysis...</div>
+          </div>
+        </div>
+
+        <div class="insight-card" data-anim="6">
+          <div class="card-header">
+            <h3>Predictive Recommendations</h3>
+            <span class="card-icon">🔮</span>
+          </div>
+          <div class="card-content" id="predictiveRecommendations">
+            <div class="loading-state">Loading predictive recommendations...</div>
+          </div>
+        </div>
+
+        <div class="insight-card" data-anim="7">
+          <div class="card-header">
+            <h3>Trend Analysis</h3>
+            <span class="card-icon">📈</span>
+          </div>
+          <div class="card-content" id="trendAnalysis">
+            <div class="loading-state">Loading trend analysis...</div>
+          </div>
+        </div>
+
+        <div class="insight-card" data-anim="8">
+          <div class="card-header">
+            <h3>Comparative Insights</h3>
+            <span class="card-icon">⚖️</span>
+          </div>
+          <div class="card-content" style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="position: relative; height: 180px; width: 100%;">
+              <canvas id="comparisonChart"></canvas>
+            </div>
+            <div id="comparativeInsights">
+              <div class="loading-state">Loading comparative insights...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="insights-actions" data-anim="9">
+        <div class="action-card">
+          <h3>Custom Analysis</h3>
+          <p>Request specific AI analysis for particular aspects of your learning journey.</p>
+          <button class="btn btn-secondary" id="customAnalysisBtn">Request Analysis</button>
+        </div>
+
+        <div class="action-card">
+          <h3>Export Insights</h3>
+          <p>Download comprehensive insights report in PDF or JSON format.</p>
+          <button class="btn btn-secondary" id="exportInsightsBtn">Export Report</button>
+        </div>
+
+        <div class="action-card">
+          <h3>Share Progress</h3>
+          <p>Share anonymized insights with mentors or peers for feedback.</p>
+          <button class="btn btn-secondary" id="shareInsightsBtn">Share Insights</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize navbar
+      if (!window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      const generateInsightsBtn = document.getElementById('generateInsightsBtn');
+      const refreshInsightsBtn = document.getElementById('refreshInsightsBtn');
+      const customAnalysisBtn = document.getElementById('customAnalysisBtn');
+      const exportInsightsBtn = document.getElementById('exportInsightsBtn');
+      const shareInsightsBtn = document.getElementById('shareInsightsBtn');
+
+      // Load insights data
+      loadAIInsights();
+
+      generateInsightsBtn.addEventListener('click', function() {
+        generateNewInsights();
+      });
+
+      refreshInsightsBtn.addEventListener('click', function() {
+        loadAIInsights();
+      });
+
+      customAnalysisBtn.addEventListener('click', function() {
+        requestCustomAnalysis();
+      });
+
+      exportInsightsBtn.addEventListener('click', function() {
+        exportInsights();
+      });
+
+      shareInsightsBtn.addEventListener('click', function() {
+        shareInsights();
+      });
+
+      let performanceChartInstance = null;
+      let comparisonChartInstance = null;
+
+      async function loadAIInsights() {
+        try {
+          const userId = getCurrentUserId();
+          if (!userId) {
+            showError('User not authenticated');
+            return;
+          }
+
+          const token = localStorage.getItem("authToken");
+          const headers = {
+            "Content-Type": "application/json"
+          };
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`/api/ai/insights/${userId}`, {
+            headers: headers
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const insights = await response.json();
+          displayInsights(insights);
+
+        } catch (error) {
+          console.error('Insights load error:', error);
+          showError('Failed to load AI insights');
+        }
+      }
+
+      async function generateNewInsights() {
+        try {
+          const userId = getCurrentUserId();
+          
+          const token = localStorage.getItem("authToken");
+          const headers = {
+            "Content-Type": "application/json"
+          };
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch('/api/ai/generate-insights', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ userId })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const newInsights = await response.json();
+          displayInsights(newInsights);
+
+        } catch (error) {
+          console.error('Generate insights error:', error);
+          showError('Failed to generate new insights');
+        }
+      }
+
+      function displayInsights(insights) {
+        // Update header stats
+        document.getElementById('dataPoints').textContent = insights.dataPoints || 0;
+        document.getElementById('lastAnalysis').textContent = insights.lastAnalysis ? new Date(insights.lastAnalysis).toLocaleDateString() : 'Never';
+        document.getElementById('performanceScore').textContent = insights.performanceScore || '—';
+        document.getElementById('learningVelocity').textContent = insights.learningVelocity || '—';
+        document.getElementById('riskAssessment').textContent = insights.riskAssessment || '—';
+        document.getElementById('nextMilestone').textContent = insights.nextMilestone || '—';
+        document.getElementById('insightsConfidence').textContent = insights.confidence ? `${insights.confidence}%` : '0%';
+        document.getElementById('insightsProgressBar').style.width = `${insights.confidence || 0}%`;
+
+        // Display individual insights
+        displayPerformanceAnalytics(insights.performanceAnalytics);
+        renderPerformanceChart(insights.performanceAnalytics);
+
+        displayLearningPatterns(insights.learningPatterns);
+        displaySkillGaps(insights.skillGaps);
+        displayPredictiveRecommendations(insights.predictiveRecommendations);
+        displayTrendAnalysis(insights.trendAnalysis);
+        
+        displayComparativeInsights(insights.comparativeInsights);
+        renderComparisonChart(insights.comparativeInsights);
+      }
+
+      function displayPerformanceAnalytics(data) {
+        const container = document.getElementById('performanceAnalytics');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No performance data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="metric-grid">
+            <div class="metric-item">
+              <span class="metric-label">Overall Score</span>
+              <span class="metric-value">${data.overallScore || 0}%</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Improvement Rate</span>
+              <span class="metric-value">${data.improvementRate || 0}%</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Consistency</span>
+              <span class="metric-value">${data.consistency || 0}%</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Completion Rate</span>
+              <span class="metric-value">${data.completionRate || 0}%</span>
+            </div>
+          </div>
+          <div class="insights-text">
+            <p>${data.analysis || 'No analysis available'}</p>
+          </div>
+        `;
+      }
+
+      function displayLearningPatterns(data) {
+        const container = document.getElementById('learningPatterns');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No learning patterns available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="pattern-list">
+            ${data.patterns ? data.patterns.map(pattern => `
+              <div class="pattern-item">
+                <div class="pattern-name">${pattern.name}</div>
+                <div class="pattern-strength">
+                  <div class="strength-bar">
+                    <div class="strength-fill" style="width: ${pattern.strength}%"></div>
+                  </div>
+                  <span>${pattern.strength}%</span>
+                </div>
+              </div>
+            `).join('') : ''}
+          </div>
+          <div class="insights-text">
+            <p>${data.summary || 'No pattern summary available'}</p>
+          </div>
+        `;
+      }
+
+      function displaySkillGaps(data) {
+        const container = document.getElementById('skillGaps');
+        if (!data || !data.gaps || data.gaps.length === 0) {
+          container.innerHTML = '<div class="no-data">No skill gaps identified</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="gaps-list">
+            ${data.gaps.map(gap => `
+              <div class="gap-item">
+                <div class="gap-info">
+                  <span class="gap-skill">${gap.skill}</span>
+                  <span class="gap-severity ${gap.severity}">${gap.severity}</span>
+                </div>
+                <div class="gap-recommendation">${gap.recommendation}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      function displayPredictiveRecommendations(data) {
+        const container = document.getElementById('predictiveRecommendations');
+        const list = Array.isArray(data) ? data : (data?.recommendations || []);
+        if (list.length === 0) {
+          container.innerHTML = '<div class="no-data">No recommendations available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="recommendations-list">
+            ${list.map(rec => `
+              <div class="recommendation-item">
+                <div class="rec-header">
+                  <span class="rec-type">${rec.type}</span>
+                  <span class="rec-confidence">${rec.confidence}% confidence</span>
+                </div>
+                <div class="rec-content">${rec.content}</div>
+                <div class="rec-timeline">Expected impact: ${rec.timeline}</div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      function displayTrendAnalysis(data) {
+        const container = document.getElementById('trendAnalysis');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No trend data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="trend-metrics">
+            <div class="trend-item">
+              <span class="trend-label">Performance Trend</span>
+              <span class="trend-value ${data.performanceTrend}">${data.performanceTrend}</span>
+            </div>
+            <div class="trend-item">
+              <span class="trend-label">Learning Acceleration</span>
+              <span class="trend-value ${data.learningAcceleration}">${data.learningAcceleration}</span>
+            </div>
+            <div class="trend-item">
+              <span class="trend-label">Focus Areas</span>
+              <span class="trend-value">${data.focusAreas || 'None'}</span>
+            </div>
+          </div>
+          <div class="insights-text">
+            <p>${data.analysis || 'No trend analysis available'}</p>
+          </div>
+        `;
+      }
+
+      function displayComparativeInsights(data) {
+        const container = document.getElementById('comparativeInsights');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No comparative data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="comparison-grid">
+            <div class="comparison-item">
+              <span class="comparison-label">Peer Ranking</span>
+              <span class="comparison-value">${data.peerRanking || 'N/A'}</span>
+            </div>
+            <div class="comparison-item">
+              <span class="comparison-label">Percentile</span>
+              <span class="comparison-value">${data.percentile || 0}%</span>
+            </div>
+            <div class="comparison-item">
+              <span class="comparison-label">Strength Areas</span>
+              <span class="comparison-value">${data.strengths || 'None'}</span>
+            </div>
+            <div class="comparison-item">
+              <span class="comparison-label">Improvement Areas</span>
+              <span class="comparison-value">${data.improvements || 'None'}</span>
+            </div>
+          </div>
+          <div class="insights-text">
+            <p>${data.summary || 'No comparative summary available'}</p>
+          </div>
+        `;
+      }
+
+      function requestCustomAnalysis() {
+        const analysisType = prompt('What type of analysis would you like? (e.g., "deep-dive on web security", "performance comparison")');
+        if (analysisType) {
+          alert(`Custom analysis request submitted: ${analysisType}`);
+        }
+      }
+
+      function exportInsights() {
+        alert('Export functionality would be implemented here');
+      }
+
+      function shareInsights() {
+        alert('Share functionality would be implemented here');
+      }
+
+      function renderPerformanceChart(data) {
+        if (performanceChartInstance) {
+          performanceChartInstance.destroy();
+        }
+
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        performanceChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Overall Score', 'Improvement', 'Consistency', 'Completion'],
+            datasets: [{
+              data: [
+                data.overallScore || 0,
+                data.improvementRate || 0,
+                data.consistency || 0,
+                data.completionRate || 0
+              ],
+              backgroundColor: [
+                'rgba(0, 245, 155, 0.75)',  /* Mint Green */
+                'rgba(0, 217, 255, 0.75)',  /* Tactical Cyan */
+                'rgba(255, 59, 105, 0.75)',  /* Cyber Red */
+                'rgba(255, 159, 0, 0.75)'   /* Alert Orange */
+              ],
+              borderWidth: 0,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: '#9bb0cf', font: { family: 'Inter', size: 9 } }
+              },
+              y: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9bb0cf', font: { family: 'Inter', size: 9 } },
+                min: 0,
+                max: 100
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      function renderComparisonChart(data) {
+        if (comparisonChartInstance) {
+          comparisonChartInstance.destroy();
+        }
+
+        const ctx = document.getElementById('comparisonChart').getContext('2d');
+        comparisonChartInstance = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: ['Web Security', 'Cryptography', 'Network Recon', 'System Exploits', 'Defense Rule'],
+            datasets: [
+              {
+                label: 'Your Level',
+                data: [85, 80, 60, 75, 90],
+                backgroundColor: 'rgba(0, 245, 155, 0.15)',
+                borderColor: 'rgba(0, 245, 155, 0.85)',
+                pointBackgroundColor: 'rgba(0, 245, 155, 1)',
+                borderWidth: 2
+              },
+              {
+                label: 'Global Average',
+                data: [70, 65, 62, 68, 72],
+                backgroundColor: 'rgba(0, 217, 255, 0.08)',
+                borderColor: 'rgba(0, 217, 255, 0.6)',
+                pointBackgroundColor: 'rgba(0, 217, 255, 1)',
+                borderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
+                pointLabels: { color: '#9bb0cf', font: { family: 'Inter', size: 9, weight: '600' } },
+                ticks: { display: false },
+                suggestedMin: 0,
+                suggestedMax: 100
+              }
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom',
+                labels: { color: '#9bb0cf', boxWidth: 12, font: { family: 'Inter', size: 10 } }
+              }
+            }
+          }
+        });
+      }
+
+      function getCurrentUserId() {
+        return localStorage.getItem("userId") || (window.authService && authService.userId) || 'current-user-id';
+      }
+
+      function showError(message) {
+        console.error(message);
+        alert(message);
+      }
+    });
+  </script>
+
+  <style>
+    .insights-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-panel);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .insight-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .card-header h3 {
+      margin: 0;
+      color: var(--accent-primary);
+      font-size: 1.25rem;
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+    }
+
+    .card-content {
+      min-height: 150px;
+    }
+
+    .metric-grid, .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .metric-item, .comparison-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .metric-label, .comparison-label {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .metric-value, .comparison-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .pattern-list {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .pattern-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .pattern-name {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .pattern-strength {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .strength-bar {
+      width: 100px;
+      height: 6px;
+      background: var(--bg-base);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-blue));
+      border-radius: 3px;
+    }
+
+    .gaps-list {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .gap-item {
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .gap-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .gap-skill {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .gap-severity {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .gap-severity.high { background: rgba(255, 92, 122, 0.2); color: var(--accent-red); }
+    .gap-severity.medium { background: rgba(255, 214, 77, 0.2); color: var(--accent-gold); }
+    .gap-severity.low { background: rgba(159, 239, 0, 0.2); color: var(--accent-primary); }
+
+    .gap-recommendation {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .recommendations-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .recommendation-item {
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .rec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .rec-type {
+      font-weight: 600;
+      color: var(--accent-primary);
+    }
+
+    .rec-confidence {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .rec-content {
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .rec-timeline {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .trend-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .trend-item {
+      text-align: center;
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .trend-label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .trend-value {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .trend-value.improving { color: var(--accent-primary); }
+    .trend-value.declining { color: var(--accent-red); }
+    .trend-value.stable { color: var(--accent-blue); }
+
+    .insights-text {
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .insights-text p {
+      margin: 0;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .insights-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .action-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      box-shadow: var(--shadow-panel);
+      transition: transform 0.3s ease;
+    }
+
+    .action-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .action-card h3 {
+      margin: 0 0 12px 0;
+      color: var(--accent-primary);
+    }
+
+    .action-card p {
+      margin: 0 0 20px 0;
+      color: var(--text-secondary);
+    }
+
+    .loading-state, .no-data {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .insights-container {
+        padding: 0 16px 60px;
+      }
+
+      .insights-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-grid, .comparison-grid, .trend-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .insights-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</body>
+</html>

@@ -3,91 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CyberMind – Dashboard</title>
+  <meta
+    name="description"
+    content="Wathaq — Your adaptive cybersecurity training dashboard."
+  />
+  <title>Wathaq | وثاق – Dashboard</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <div class="nav-brand">
-        <span>CyberMind</span>
-      </div>
-      <div class="nav-links">
-        <a href="/dashboard" class="active-link">Dashboard</a>
-        <a href="/training">Training</a>
-        <a href="/terminal">Terminal</a>
-        <a href="/leaderboard-page">Leaderboard</a>
-        <a href="/admin" id="admin-link" style="display: none;">Admin</a>
-      </div>
-    </div>
-  </nav>
+  <nav id="navbar-container" class="navbar"></nav>
 
   <main class="dashboard-shell">
-    <!-- HERO -->
     <section class="hero-panel">
-      <div class="hero-left">
-        <div class="eyebrow">Adaptive Cyber Training Platform</div>
+      <div class="hero-left" data-anim="1">
+        <div class="eyebrow" data-i18n="hero_eyebrow">
+          Adaptive Cyber Training Platform
+        </div>
+
         <h1 class="hero-title">
-          Welcome back, <span id="userLabel">Guest</span>
+          <span data-i18n="welcome_back">Welcome back,</span>
+          <span id="userLabel">Agent</span>
         </h1>
-        <p class="hero-subtitle">
+
+        <p class="hero-subtitle" data-i18n="hero_subtitle">
           Continue your cybersecurity journey through realistic simulations,
-          terminal labs, and adaptive training paths.
+          terminal labs, and AI-driven adaptive training paths.
         </p>
 
         <div class="hero-actions">
-          <a href="/training" class="btn btn-primary">Start Training</a>
-          <a href="/terminal" class="btn btn-secondary">Open Terminal</a>
-          <a href="/leaderboard-page" class="btn btn-ghost">View Rankings</a>
+          <a href="/practice" class="btn btn-primary">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span data-i18n="start_training">Start Practice</span>
+          </a>
+
+          <a href="/terminal" class="btn btn-secondary">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="4 17 10 11 4 5"></polyline>
+              <line x1="12" y1="19" x2="20" y2="19"></line>
+            </svg>
+            <span data-i18n="open_terminal">Open Terminal</span>
+          </a>
+
+          <a href="/leaderboard" class="btn btn-ghost" data-i18n="rankings">
+            Rankings
+          </a>
         </div>
 
         <div class="hero-meta">
           <div class="meta-chip">
-            <span class="meta-label">Current Rank</span>
-            <span class="meta-value" id="userRank">-</span>
+            <span class="meta-label" data-i18n="current_rank">Current Rank</span>
+            <span class="meta-value skeleton" id="userRank" style="display: inline-block; min-width: 60px;">&nbsp;</span>
           </div>
+
           <div class="meta-chip">
-            <span class="meta-label">Completed Scenarios</span>
-            <span class="meta-value" id="userScenarios">0</span>
+            <span class="meta-label" data-i18n="scenarios_done">Scenarios Done</span>
+            <span class="meta-value skeleton" id="userScenarios" style="display: inline-block; min-width: 60px;">&nbsp;</span>
           </div>
+
           <div class="meta-chip">
-            <span class="meta-label">Total Score</span>
-            <span class="meta-value" id="userScore">0</span>
+            <span class="meta-label" data-i18n="total_score">Total Score</span>
+            <span class="meta-value skeleton" id="userScore" style="display: inline-block; min-width: 60px;">&nbsp;</span>
           </div>
         </div>
       </div>
 
-      <div class="hero-right">
-        <div class="hero-card glow-card">
+      <div class="hero-right" data-anim="2">
+        <div class="glow-card hero-card">
           <div class="hero-card-header">
             <span class="status-dot"></span>
-            <span>System Status</span>
+            <span data-i18n="system_status">System Status</span>
           </div>
 
           <div class="system-grid">
             <div class="system-item">
-              <span class="system-label">Training Mode</span>
-              <strong>Adaptive</strong>
+              <span class="system-label" data-i18n="training_mode">Training Mode</span>
+              <strong data-i18n="adaptive">Adaptive</strong>
             </div>
+
             <div class="system-item">
-              <span class="system-label">Threat Level</span>
-              <strong>Moderate</strong>
+              <span class="system-label" data-i18n="threat_level">Threat Level</span>
+              <strong data-i18n="moderate">Moderate</strong>
             </div>
+
             <div class="system-item">
-              <span class="system-label">Learning Path</span>
-              <strong>Active</strong>
+              <span class="system-label" data-i18n="learning_path">Learning Path</span>
+              <strong data-i18n="learning_path_active">Active</strong>
             </div>
+
             <div class="system-item">
-              <span class="system-label">Environment</span>
-              <strong>Sandbox</strong>
+              <span class="system-label" data-i18n="environment">Environment</span>
+              <strong data-i18n="sandbox">Sandbox</strong>
             </div>
           </div>
 
           <div class="mini-progress">
             <div class="mini-progress-top">
-              <span>Learning Progress</span>
-              <span>68%</span>
+              <span data-i18n="learning_progress">Learning Progress</span>
+              <span style="color: var(--accent-primary); font-weight: 700;">68%</span>
             </div>
             <div class="progress-track">
               <div class="progress-fill" style="width: 68%"></div>
@@ -97,66 +129,87 @@
       </div>
     </section>
 
-    <!-- STATS -->
-    <div class="section-header">
-      <h2>Quick Stats</h2>
+    <div class="section-header" data-anim="3">
+      <h2 data-i18n="quick_stats">Quick Stats</h2>
+      <span class="badge badge-teal" data-i18n="live_badge">Live</span>
     </div>
+
     <section class="stats-v2-grid">
-      <article class="stat-card-v2">
+      <article class="stat-card-v2" data-anim="4">
         <div class="stat-top">
-          <span class="stat-badge">Performance</span>
+          <span class="stat-badge" data-i18n="performance">Performance</span>
           <span class="stat-icon-v2">🏆</span>
         </div>
-        <h3>Your Score</h3>
-        <div class="stat-big" id="userScoreMirror">0</div>
-        <p class="stat-note">Your accumulated cybersecurity points.</p>
+        <h3 data-i18n="your_score">Your Score</h3>
+        <div class="stat-big skeleton" id="userScoreMirror" style="display: inline-block; min-width: 100px;">&nbsp;</div>
+        <p class="stat-note" data-i18n="score_note">
+          Accumulated mission points
+        </p>
       </article>
 
-      <article class="stat-card-v2">
+      <article class="stat-card-v2" data-anim="5">
         <div class="stat-top">
-          <span class="stat-badge">Position</span>
+          <span class="stat-badge" data-i18n="position">Position</span>
           <span class="stat-icon-v2">📈</span>
         </div>
-        <h3>Leaderboard Rank</h3>
-        <div class="stat-big" id="userRankMirror">-</div>
-        <p class="stat-note">Updated from the live leaderboard.</p>
+        <h3 data-i18n="leaderboard_rank">Leaderboard Rank</h3>
+        <div class="stat-big skeleton" id="userRankMirror" style="display: inline-block; min-width: 100px;">&nbsp;</div>
+        <p class="stat-note" data-i18n="rank_note">
+          Updated from the live board
+        </p>
       </article>
 
-      <article class="stat-card-v2">
+      <article class="stat-card-v2" data-anim="6">
         <div class="stat-top">
-          <span class="stat-badge">Progress</span>
+          <span class="stat-badge" data-i18n="progress">Progress</span>
           <span class="stat-icon-v2">🎯</span>
         </div>
-        <h3>Completed Scenarios</h3>
-        <div class="stat-big" id="userScenariosMirror">0</div>
-        <p class="stat-note">Tracks your finished hands-on labs.</p>
+        <h3 data-i18n="completed_labs">Completed Labs</h3>
+        <div class="stat-big skeleton" id="userScenariosMirror" style="display: inline-block; min-width: 100px;">&nbsp;</div>
+        <p class="stat-note" data-i18n="labs_note">
+          Finished hands-on scenarios
+        </p>
       </article>
 
-      <article class="stat-card-v2">
+      <article class="stat-card-v2" data-anim="7">
         <div class="stat-top">
-          <span class="stat-badge">Readiness</span>
+          <span class="stat-badge" data-i18n="readiness">Readiness</span>
           <span class="stat-icon-v2">🛡️</span>
         </div>
-        <h3>Security Level</h3>
+        <h3 data-i18n="security_level">Security Level</h3>
         <div class="stat-big" id="userLevel">L1</div>
-        <p class="stat-note">Calculated from your current score.</p>
+        <p class="stat-note" data-i18n="readiness_note">
+          Based on your current score
+        </p>
       </article>
     </section>
 
-    <!-- MAIN DASHBOARD GRID -->
-    <div class="section-header">
-      <h2>Main Dashboard</h2>
+    <div class="section-header" data-anim="8">
+      <h2 data-i18n="operations_center">Operations Center</h2>
     </div>
+
+    <section class="rooms-section" data-anim="9">
+      <div class="section-header" style="margin-bottom: 18px;">
+        <h2 data-i18n="active_skill_paths">Active Skill Paths</h2>
+        <span class="badge badge-teal" data-i18n="live_badge">Live</span>
+      </div>
+
+      <div class="rooms-grid">
+        <div class="room-card skeleton" style="height: 220px;"></div>
+        <div class="room-card skeleton" style="height: 220px;"></div>
+        <div class="room-card skeleton" style="height: 220px;"></div>
+      </div>
+    </section>
+
     <section class="dashboard-grid-v2">
-      <!-- LEFT -->
       <div class="dashboard-main-col">
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="1">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Analytics</p>
-              <h3>Score History</h3>
+              <p class="card-kicker" data-i18n="analytics_kicker">Analytics</p>
+              <h3 data-i18n="score_history">Score History</h3>
             </div>
-            <span class="card-tag">Live View</span>
+            <span class="card-tag" data-i18n="live_view_tag">Live View</span>
           </div>
 
           <div class="chart-wrap">
@@ -164,162 +217,443 @@
           </div>
         </div>
 
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="2">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Adaptive Recommendation</p>
-              <h3>Next Best Action</h3>
+              <p class="card-kicker" data-i18n="adaptive_rec">
+                Adaptive Recommendation
+              </p>
+              <h3 data-i18n="next_action">Next Best Action</h3>
             </div>
-            <span class="card-tag">AI-Ready</span>
+            <span class="badge badge-teal" data-i18n="ai_ready_tag">AI-Ready</span>
           </div>
 
           <div class="recommendation-box">
             <div class="recommendation-icon">⚡</div>
             <div>
-              <h4>Recommended Challenge: Network Scanning</h4>
-              <p>
-                Based on your current progress, the next ideal step is to
-                strengthen your reconnaissance and threat discovery skills.
+              <h4 data-i18n="rec_title">Recommended: Network Scanning</h4>
+              <p data-i18n="rec_desc">
+                Based on your profile, strengthening reconnaissance and threat
+                discovery will unlock the next skill tier.
               </p>
             </div>
           </div>
 
           <div class="action-row">
-            <a href="/training" class="btn btn-primary">Continue Path</a>
-            <a href="/terminal" class="btn btn-secondary">Practice in Terminal</a>
+            <a href="/practice" class="btn btn-primary btn-sm" data-i18n="continue_path">
+              Continue Path
+            </a>
+            <a href="/terminal" class="btn btn-secondary btn-sm" data-i18n="practice_terminal">
+              Practice in Terminal
+            </a>
           </div>
         </div>
 
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="3">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Achievements</p>
-              <h3>Badges & Milestones</h3>
+              <p class="card-kicker" data-i18n="achievements">Achievements</p>
+              <h3 data-i18n="badges_milestones">Badges &amp; Milestones</h3>
             </div>
-            <span class="card-tag">Gamification</span>
+            <span class="card-tag" data-i18n="gamification_tag">Gamification</span>
           </div>
 
           <div class="badges-grid">
-            <div class="badge-pill">First Login</div>
-            <div class="badge-pill">Scenario Master</div>
-            <div class="badge-pill">Streak Builder</div>
-            <div class="badge-pill">Terminal Ready</div>
+            <div class="badge-pill">🚀 First Login</div>
+            <div class="badge-pill">🎖️ Scenario Master</div>
+            <div class="badge-pill">🔥 Streak Builder</div>
+            <div class="badge-pill">💻 Terminal Ready</div>
+            <div class="badge-pill">👁️ Recon Expert</div>
+            <div class="badge-pill">🛡️ Defender</div>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT -->
       <aside class="dashboard-side-col">
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="4">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Quick Access</p>
-              <h3>Operations Panel</h3>
+              <p class="card-kicker" data-i18n="quick_access">Quick Access</p>
+              <h3 data-i18n="ops_panel">Operations Panel</h3>
             </div>
           </div>
 
           <div class="quick-links-grid">
-            <a href="/training" class="quick-link-card">
+            <a href="/practice" class="quick-link-card">
               <span class="quick-link-icon">🎓</span>
               <div>
-                <strong>Training Labs</strong>
-                <p>Practice scenario-based security challenges.</p>
+                <strong data-i18n="training_labs">Training Labs</strong>
+                <p data-i18n="labs_desc">Scenario-based security challenges</p>
               </div>
             </a>
 
             <a href="/terminal" class="quick-link-card">
               <span class="quick-link-icon">💻</span>
               <div>
-                <strong>Terminal Lab</strong>
-                <p>Use commands in a controlled simulation space.</p>
+                <strong data-i18n="terminal_lab">Terminal Lab</strong>
+                <p data-i18n="terminal_desc">Live command-line simulation</p>
               </div>
             </a>
 
-            <a href="/leaderboard-page" class="quick-link-card">
+            <a href="/leaderboard" class="quick-link-card">
               <span class="quick-link-icon">🏅</span>
               <div>
-                <strong>Leaderboard</strong>
-                <p>Track performance against other trainees.</p>
+                <strong data-i18n="leaderboard">Leaderboard</strong>
+                <p data-i18n="leaderboard_desc">Track global rankings</p>
               </div>
             </a>
           </div>
         </div>
 
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="5">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Top Performers</p>
-              <h3>Leaderboard Preview</h3>
+              <p class="card-kicker" data-i18n="top_performers">Top Performers</p>
+              <h3 data-i18n="leaderboard_preview">Leaderboard Preview</h3>
             </div>
           </div>
 
-          <div id="leaderboardContainer">Loading leaderboard...</div>
+          <div
+            id="leaderboardContainer"
+            style="color: var(--text-muted); font-size: 0.85rem; padding: 8px 0;"
+            data-i18n="loading"
+          >
+            Loading leaderboard…
+          </div>
         </div>
 
-        <div class="dashboard-card-v2">
+        <div class="dashboard-card-v2" data-anim="6">
           <div class="card-header-v2">
             <div>
-              <p class="card-kicker">Mission Status</p>
-              <h3>Learning Summary</h3>
+              <p class="card-kicker" data-i18n="mission_status">Mission Status</p>
+              <h3 data-i18n="learning_summary">Learning Summary</h3>
             </div>
           </div>
 
           <ul class="summary-list">
-            <li><span>Active User</span><strong id="summaryUser">Guest</strong></li>
-            <li><span>Current Rank</span><strong id="summaryRank">-</strong></li>
-            <li><span>Total Score</span><strong id="summaryScore">0</strong></li>
-            <li><span>Completed Labs</span><strong id="summaryScenarios">0</strong></li>
+            <li>
+              <span data-i18n="agent">Agent</span>
+              <strong id="summaryUser">Guest</strong>
+            </li>
+            <li>
+              <span data-i18n="rank_label">Rank</span>
+              <strong id="summaryRank">—</strong>
+            </li>
+            <li>
+              <span data-i18n="total_score_label">Total Score</span>
+              <strong id="summaryScore">0</strong>
+            </li>
+            <li>
+              <span data-i18n="labs_completed_label">Labs Completed</span>
+              <strong id="summaryScenarios">0</strong>
+            </li>
           </ul>
         </div>
       </aside>
     </section>
   </main>
 
+  <button
+    id="ai-mentor"
+    class="btn btn-primary"
+    title="AI Cyber Mentor"
+    style="position: fixed; right: 28px; bottom: 28px; z-index: 1000; border-radius: 999px; width: 58px; height: 58px; padding: 0; font-size: 1.35rem;"
+  >
+    🤖
+  </button>
+
+  <div id="aiMentorModal" class="modal-overlay hidden">
+    <div class="modal-content ai-mentor-modal">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin: 0 0 4px 0;" data-i18n="ai_mentor_title">
+            AI Cybersecurity Mentor
+          </h3>
+          <p
+            style="margin: 0; font-size: 0.8rem; color: var(--text-muted);"
+            id="mentorLevelInfo"
+            data-i18n="mentor_subtitle"
+          >
+            Your personalized guide
+          </p>
+        </div>
+        <button id="closeAIMentor" class="modal-close">&times;</button>
+      </div>
+
+      <div class="mentor-chat">
+        <div id="chatMessages" class="chat-messages"></div>
+
+        <div class="chat-input-area">
+          <input
+            type="text"
+            id="mentorQuestion"
+            data-i18n-placeholder="mentor_placeholder"
+            placeholder="Ask a cybersecurity question..."
+            class="chat-input"
+          />
+          <button id="sendQuestion" class="btn btn-primary btn-sm" data-i18n="send">
+            Send
+          </button>
+        </div>
+
+        <div class="quick-questions">
+          <p data-i18n="quick_questions">Quick questions:</p>
+          <div class="quick-tags">
+            <span class="quick-tag" data-question="What is phishing?">What is phishing?</span>
+            <span class="quick-tag" data-question="How does SQL injection work?">SQL injection</span>
+            <span class="quick-tag" data-question="Explain privilege escalation">Privilege escalation</span>
+            <span class="quick-tag" data-question="How do network scanners work?">Network scanning</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+  <script type="module" src="/js/components/securityLogs.js"></script>
   <script type="module" src="/js/app.js"></script>
 
   <script>
-    // Mirror dashboard values visually without changing app.js structure
-    const syncMirrors = () => {
-      const score = document.getElementById("userScore")?.textContent || "0";
-      const rank = document.getElementById("userRank")?.textContent || "-";
-      const scenarios = document.getElementById("userScenarios")?.textContent || "0";
+    function syncMirrors() {
+      const scoreEl = document.getElementById("userScore");
+      const rankEl = document.getElementById("userRank");
+      const scenariosEl = document.getElementById("userScenarios");
+      
+      const score = scoreEl?.textContent || "0";
+      const rank = rankEl?.textContent || "—";
+      const scenarios = scenariosEl?.textContent || "0";
       const user = document.getElementById("userLabel")?.textContent || "Guest";
 
-      const scoreMirror = document.getElementById("userScoreMirror");
-      const rankMirror = document.getElementById("userRankMirror");
-      const scenariosMirror = document.getElementById("userScenariosMirror");
-      const summaryUser = document.getElementById("summaryUser");
-      const summaryRank = document.getElementById("summaryRank");
-      const summaryScore = document.getElementById("summaryScore");
-      const summaryScenarios = document.getElementById("summaryScenarios");
-      const userLevel = document.getElementById("userLevel");
+      if (scoreEl && scoreEl.textContent.trim() !== "" && scoreEl.textContent !== "\u00A0") {
+        scoreEl.classList.remove("skeleton");
+      }
+      if (rankEl && rankEl.textContent.trim() !== "" && rankEl.textContent !== "\u00A0") {
+        rankEl.classList.remove("skeleton");
+      }
+      if (scenariosEl && scenariosEl.textContent.trim() !== "" && scenariosEl.textContent !== "\u00A0") {
+        scenariosEl.classList.remove("skeleton");
+      }
 
-      if (scoreMirror) scoreMirror.textContent = score;
-      if (rankMirror) rankMirror.textContent = rank;
-      if (scenariosMirror) scenariosMirror.textContent = scenarios;
-      if (summaryUser) summaryUser.textContent = user;
-      if (summaryRank) summaryRank.textContent = rank;
-      if (summaryScore) summaryScore.textContent = score;
-      if (summaryScenarios) summaryScenarios.textContent = scenarios;
+      const set = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = val;
+          if (val.trim() !== "" && val !== "\u00A0") {
+            el.classList.remove("skeleton");
+          }
+        }
+      };
 
-      const numericScore = parseInt(score, 10) || 0;
-      const level = Math.floor(numericScore / 300) + 1;
-      if (userLevel) userLevel.textContent = `L${level}`;
-    };
+      set("userScoreMirror", score);
+      set("userRankMirror", rank);
+      set("userScenariosMirror", scenarios);
+      set("summaryUser", user);
+      set("summaryRank", rank);
+      set("summaryScore", score);
+      set("summaryScenarios", scenarios);
 
-    const observer = new MutationObserver(syncMirrors);
-    window.addEventListener("load", () => {
+      const level = Math.floor((parseInt(score, 10) || 0) / 300) + 1;
+      set("userLevel", `L${level}`);
+    }
+
+    function appendMessage(from, text) {
+      const chatMessages = document.getElementById("chatMessages");
+      const msg = document.createElement("div");
+      msg.className = `message ${from}-message`;
+      msg.innerHTML = `
+        <div class="message-avatar">${from === "ai" ? "🤖" : "👤"}</div>
+        <div class="message-content"><p>${text}</p></div>
+      `;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function refreshNav() {
+      if (!window.authService || !window.navBar) return;
+
+      const username = authService.username;
+      const navUser = document.getElementById("navUsername");
+      if (navUser && username) navUser.textContent = username.toUpperCase();
+
+      try {
+        const profile = await authService.getProfile();
+        if (profile) {
+          const xp = profile.xp ?? profile.totalScore ?? 0;
+          const lvl = profile.level ?? (Math.floor(xp / 300) + 1);
+
+          const xpNav = document.getElementById("navXp");
+          const xpLabel = window.i18n?.t("navbar.xp_short") || "XP";
+          if (xpNav) xpNav.textContent = `${xpLabel}: ${xp}`;
+
+          const levelNav = document.getElementById("navLevel");
+          if (levelNav) levelNav.textContent = `L${lvl}`;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (window.securityLogs && typeof window.securityLogs.init === "function") {
+        window.securityLogs.init();
+      }
+
+      if (typeof ModernNavBar !== "undefined" && !window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      if (!window.authService || !authService.isAuthenticated()) {
+        window.location.href = "/";
+        return;
+      }
+
+      const username = authService.username || "Agent";
+      const userLabelEl = document.getElementById("userLabel");
+      if (userLabelEl) userLabelEl.textContent = username;
+
+      if (window.navBar && typeof window.navBar.updateUserStats === "function") {
+        window.navBar.updateUserStats();
+      }
+
+      try {
+        const profile = await authService.getProfile();
+
+        if (profile) {
+          const xp = profile.xp ?? profile.totalScore ?? 0;
+          const userScoreEl = document.getElementById("userScore");
+          if (userScoreEl) userScoreEl.textContent = xp;
+          
+          const userScenariosEl = document.getElementById("userScenarios");
+          if (userScenariosEl) userScenariosEl.textContent =
+            profile.completedScenarios || 0;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("/api/leaderboard", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          const userRank = data.data.findIndex((u) => u.username === username) + 1;
+          if (userRank > 0) {
+            const userRankEl = document.getElementById("userRank");
+            if (userRankEl) userRankEl.textContent = `#${userRank}`;
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       syncMirrors();
+      await refreshNav();
 
-      const targets = [
-        document.getElementById("userScore"),
-        document.getElementById("userRank"),
-        document.getElementById("userScenarios"),
-        document.getElementById("userLabel"),
-      ].filter(Boolean);
+      const targets = ["userScore", "userRank", "userScenarios", "userLabel"]
+        .map((id) => document.getElementById(id))
+        .filter(Boolean);
 
-      targets.forEach((target) => {
-        observer.observe(target, { childList: true, subtree: true, characterData: true });
+      const obs = new MutationObserver(syncMirrors);
+      targets.forEach((t) =>
+        obs.observe(t, { childList: true, subtree: true, characterData: true })
+      );
+
+      const aiBtn = document.getElementById("ai-mentor");
+      const aiModal = document.getElementById("aiMentorModal");
+      const closeAIMentor = document.getElementById("closeAIMentor");
+      const mentorQuestion = document.getElementById("mentorQuestion");
+      const sendQuestion = document.getElementById("sendQuestion");
+      const quickTags = document.querySelectorAll(".quick-tag");
+      const chatMessages = document.getElementById("chatMessages");
+
+      aiBtn.addEventListener("click", () => {
+        aiModal.classList.remove("hidden");
+        chatMessages.innerHTML = "";
+        appendMessage(
+          "ai",
+          window.i18n?.t("mentor_hello") ||
+            "Hello! I'm your AI cybersecurity mentor. Ask me anything."
+        );
+      });
+
+      closeAIMentor.addEventListener("click", () => {
+        aiModal.classList.add("hidden");
+      });
+
+      aiModal.addEventListener("click", (e) => {
+        if (e.target === aiModal) {
+          aiModal.classList.add("hidden");
+        }
+      });
+
+      async function sendMentorQuestion() {
+        const q = mentorQuestion.value.trim();
+        if (!q) return;
+
+        appendMessage("user", q);
+        mentorQuestion.value = "";
+
+        try {
+          const token = localStorage.getItem("authToken");
+          const res = await fetch("/api/ai/mentor", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({
+              question: q,
+              context: "dashboard"
+            }),
+          });
+
+          const data = await res.json();
+
+          if (data.success && data.data) {
+            appendMessage(
+              "ai",
+              data.data.explanation ||
+                window.i18n?.t("mentor_no_answer") ||
+                "Sorry, I have no answer."
+            );
+          } else {
+            appendMessage(
+              "ai",
+              data.message ||
+                window.i18n?.t("mentor_unavailable") ||
+                "AI Mentor is currently unavailable."
+            );
+          }
+        } catch (e) {
+          appendMessage(
+            "ai",
+            window.i18n?.t("mentor_network_error") ||
+              "Network error while contacting AI."
+          );
+        }
+      }
+
+      sendQuestion.addEventListener("click", sendMentorQuestion);
+
+      mentorQuestion.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          sendMentorQuestion();
+        }
+      });
+
+      quickTags.forEach((tag) => {
+        tag.addEventListener("click", () => {
+          mentorQuestion.value = tag.getAttribute("data-question");
+          mentorQuestion.focus();
+        });
       });
     });
   </script>

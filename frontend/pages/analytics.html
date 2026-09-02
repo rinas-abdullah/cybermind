@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wathaq | وثاق — Analytics</title>
+  
+  <script src="/js/theme.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+</head>
+<body>
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <main class="training-shell">
+    <section class="hero-panel">
+      <div class="hero-left" data-anim="1">
+        <span class="eyebrow" data-i18n="analytics.hero_eyebrow">Performance Analytics</span>
+        <h1 class="hero-title" data-i18n="analytics.hero_title">Learning Analytics</h1>
+        <p class="hero-subtitle" data-i18n="analytics.hero_subtitle">Comprehensive analytics dashboard for your cybersecurity training progress. Track performance metrics, completion rates, time spent, skill development, and comparative analysis with peers and global benchmarks.</p>
+
+        <div class="hero-actions">
+          <button class="btn btn-primary" id="refreshAnalyticsBtn" data-i18n="analytics.refresh">Refresh Data</button>
+          <button class="btn btn-secondary" id="exportAnalyticsBtn" data-i18n="analytics.export">Export Report</button>
+          <button class="btn btn-ghost" id="customReportBtn" data-i18n="analytics.customReport">Custom Report</button>
+        </div>
+
+        <div class="hero-meta">
+          <div class="meta-chip">
+            <span class="meta-label">Time Range</span>
+            <span class="meta-value" id="timeRange">Last 30 Days</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Data Points</span>
+            <span class="meta-value" id="dataPoints">0</span>
+          </div>
+          <div class="meta-chip">
+            <span class="meta-label">Last Updated</span>
+            <span class="meta-value" id="lastUpdated">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right" data-anim="2">
+        <div class="glow-card">
+          <div class="hero-card-header">
+            <span class="status-dot"></span>
+            <span>Analytics Summary</span>
+          </div>
+
+          <div class="system-grid">
+            <div class="system-item">
+              <span class="system-label">Total Score</span>
+              <strong id="totalScore">0</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Avg. Performance</span>
+              <strong id="avgPerformance">0%</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Scenarios Completed</span>
+              <strong id="scenariosCompleted">0</strong>
+            </div>
+            <div class="system-item">
+              <span class="system-label">Time Invested</span>
+              <strong id="timeInvested">0h</strong>
+            </div>
+          </div>
+
+          <div class="mini-progress">
+            <div class="mini-progress-top">
+              <span>Progress to Next Level</span>
+              <span style="color: var(--accent-primary); font-weight: 700;" id="progressToNext">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="analytics-container">
+      <!-- Key Metrics -->
+      <section class="analytics-section" data-anim="3">
+        <h2>Key Performance Metrics</h2>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-content">
+              <h3 id="accuracyMetric">0%</h3>
+              <p>Accuracy Rate</p>
+              <span class="metric-trend" id="accuracyTrend">—</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+              <h3 id="speedMetric">0s</h3>
+              <p>Avg. Response Time</p>
+              <span class="metric-trend" id="speedTrend">—</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">📚</div>
+            <div class="metric-content">
+              <h3 id="completionMetric">0%</h3>
+              <p>Course Completion</p>
+              <span class="metric-trend" id="completionTrend">—</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">🏆</div>
+            <div class="metric-content">
+              <h3 id="rankMetric">—</h3>
+              <p>Global Rank</p>
+              <span class="metric-trend" id="rankTrend">—</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="analytics-section" data-anim="4">
+        <h2>Performance Trends</h2>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>Score Progression</h3>
+            <canvas id="scoreChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Time Spent by Category</h3>
+            <canvas id="timeChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Skill Development</h3>
+            <canvas id="skillChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h3>Weekly Activity</h3>
+            <canvas id="activityChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detailed Analytics -->
+      <section class="analytics-section" data-anim="5">
+        <h2>Detailed Breakdown</h2>
+        <div class="breakdown-grid">
+          <div class="breakdown-card">
+            <h3>Category Performance</h3>
+            <div class="category-list" id="categoryPerformance">
+              <div class="loading-state">Loading category data...</div>
+            </div>
+          </div>
+
+          <div class="breakdown-card">
+            <h3>Difficulty Analysis</h3>
+            <div class="difficulty-stats" id="difficultyAnalysis">
+              <div class="loading-state">Loading difficulty data...</div>
+            </div>
+          </div>
+
+          <div class="breakdown-card">
+            <h3>Learning Streaks</h3>
+            <div class="streak-info" id="learningStreaks">
+              <div class="loading-state">Loading streak data...</div>
+            </div>
+          </div>
+
+          <div class="breakdown-card">
+            <h3>Comparative Analysis</h3>
+            <div class="comparison-data" id="comparativeAnalysis">
+              <div class="loading-state">Loading comparison data...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommendations -->
+      <section class="analytics-section" data-anim="6">
+        <h2>AI Recommendations</h2>
+        <div class="recommendations-grid" id="aiRecommendations">
+          <div class="loading-state">Loading AI recommendations...</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize navbar
+      if (!window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      const refreshAnalyticsBtn = document.getElementById('refreshAnalyticsBtn');
+      const exportAnalyticsBtn = document.getElementById('exportAnalyticsBtn');
+      const customReportBtn = document.getElementById('customReportBtn');
+
+      let scoreChart, timeChart, skillChart, activityChart;
+
+      // Load analytics data
+      loadAnalytics();
+
+      refreshAnalyticsBtn.addEventListener('click', function() {
+        loadAnalytics();
+      });
+
+      exportAnalyticsBtn.addEventListener('click', function() {
+        exportAnalytics();
+      });
+
+      customReportBtn.addEventListener('click', function() {
+        createCustomReport();
+      });
+
+      async function loadAnalytics() {
+        try {
+          const userId = getCurrentUserId();
+          if (!userId) {
+            showError('User not authenticated');
+            return;
+          }
+
+          const response = await fetch(`/api/analytics/user/${userId}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const analytics = await response.json();
+          displayAnalytics(analytics);
+
+        } catch (error) {
+          console.error('Analytics load error:', error);
+          showError('Failed to load analytics data');
+        }
+      }
+
+      function displayAnalytics(data) {
+        // Update header stats
+        document.getElementById('timeRange').textContent = data.timeRange || 'Last 30 Days';
+        document.getElementById('dataPoints').textContent = data.dataPoints || 0;
+        document.getElementById('lastUpdated').textContent = data.lastUpdated ? new Date(data.lastUpdated).toLocaleString() : 'Never';
+        document.getElementById('totalScore').textContent = data.totalScore || 0;
+        document.getElementById('avgPerformance').textContent = data.avgPerformance ? `${data.avgPerformance}%` : '0%';
+        document.getElementById('scenariosCompleted').textContent = data.scenariosCompleted || 0;
+        document.getElementById('timeInvested').textContent = data.timeInvested ? `${data.timeInvested}h` : '0h';
+        document.getElementById('progressToNext').textContent = data.progressToNext ? `${data.progressToNext}%` : '0%';
+        document.getElementById('progressBar').style.width = `${data.progressToNext || 0}%`;
+
+        // Update key metrics
+        updateKeyMetrics(data.keyMetrics);
+
+        // Initialize/update charts
+        initializeCharts(data.charts);
+
+        // Display detailed breakdowns
+        displayCategoryPerformance(data.categoryPerformance);
+        displayDifficultyAnalysis(data.difficultyAnalysis);
+        displayLearningStreaks(data.learningStreaks);
+        displayComparativeAnalysis(data.comparativeAnalysis);
+        displayAIRecommendations(data.aiRecommendations);
+      }
+
+      function updateKeyMetrics(metrics) {
+        document.getElementById('accuracyMetric').textContent = metrics?.accuracy ? `${metrics.accuracy}%` : '0%';
+        document.getElementById('speedMetric').textContent = metrics?.avgResponseTime ? `${metrics.avgResponseTime}s` : '0s';
+        document.getElementById('completionMetric').textContent = metrics?.completionRate ? `${metrics.completionRate}%` : '0%';
+        document.getElementById('rankMetric').textContent = metrics?.globalRank || '—';
+
+        // Update trends
+        updateTrend('accuracyTrend', metrics?.accuracyTrend);
+        updateTrend('speedTrend', metrics?.speedTrend);
+        updateTrend('completionTrend', metrics?.completionTrend);
+        updateTrend('rankTrend', metrics?.rankTrend);
+      }
+
+      function updateTrend(elementId, trend) {
+        const element = document.getElementById(elementId);
+        if (!trend) {
+          element.textContent = '—';
+          element.className = 'metric-trend';
+          return;
+        }
+
+        element.textContent = trend.value;
+        element.className = `metric-trend ${trend.direction}`;
+      }
+
+      function initializeCharts(chartData) {
+        // Destroy existing charts
+        if (scoreChart) scoreChart.destroy();
+        if (timeChart) timeChart.destroy();
+        if (skillChart) skillChart.destroy();
+        if (activityChart) activityChart.destroy();
+
+        // Score progression chart
+        const scoreCtx = document.getElementById('scoreChart').getContext('2d');
+        scoreChart = new Chart(scoreCtx, {
+          type: 'line',
+          data: {
+            labels: chartData?.scoreProgression?.labels || [],
+            datasets: [{
+              label: 'Score',
+              data: chartData?.scoreProgression?.data || [],
+              borderColor: 'var(--accent-primary)',
+              backgroundColor: 'rgba(159, 239, 0, 0.1)',
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'var(--border-dim)' }
+              },
+              x: {
+                grid: { color: 'var(--border-dim)' }
+              }
+            }
+          }
+        });
+
+        // Time spent chart
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        timeChart = new Chart(timeCtx, {
+          type: 'doughnut',
+          data: {
+            labels: chartData?.timeByCategory?.labels || [],
+            datasets: [{
+              data: chartData?.timeByCategory?.data || [],
+              backgroundColor: [
+                'var(--accent-primary)',
+                'var(--accent-blue)',
+                'var(--accent-cyan)',
+                'var(--accent-purple)'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' }
+            }
+          }
+        });
+
+        // Skill development chart
+        const skillCtx = document.getElementById('skillChart').getContext('2d');
+        skillChart = new Chart(skillCtx, {
+          type: 'radar',
+          data: {
+            labels: chartData?.skillDevelopment?.labels || [],
+            datasets: [{
+              label: 'Current Level',
+              data: chartData?.skillDevelopment?.data || [],
+              borderColor: 'var(--accent-primary)',
+              backgroundColor: 'rgba(159, 239, 0, 0.1)'
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              r: {
+                beginAtZero: true,
+                grid: { color: 'var(--border-dim)' }
+              }
+            }
+          }
+        });
+
+        // Weekly activity chart
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        activityChart = new Chart(activityCtx, {
+          type: 'bar',
+          data: {
+            labels: chartData?.weeklyActivity?.labels || [],
+            datasets: [{
+              label: 'Hours',
+              data: chartData?.weeklyActivity?.data || [],
+              backgroundColor: 'var(--accent-blue)',
+              borderColor: 'var(--accent-cyan)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'var(--border-dim)' }
+              },
+              x: {
+                grid: { color: 'var(--border-dim)' }
+              }
+            }
+          }
+        });
+      }
+
+      function displayCategoryPerformance(data) {
+        const container = document.getElementById('categoryPerformance');
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="no-data">No category data available</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(cat => `
+          <div class="category-item">
+            <div class="category-name">${cat.name}</div>
+            <div class="category-metrics">
+              <span>Score: ${cat.score}%</span>
+              <span>Completed: ${cat.completed}</span>
+              <span>Time: ${cat.timeSpent}h</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function displayDifficultyAnalysis(data) {
+        const container = document.getElementById('difficultyAnalysis');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No difficulty data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="difficulty-grid">
+            <div class="difficulty-item">
+              <span class="difficulty-label">Beginner</span>
+              <span class="difficulty-score">${data.beginner || 0}%</span>
+            </div>
+            <div class="difficulty-item">
+              <span class="difficulty-label">Intermediate</span>
+              <span class="difficulty-score">${data.intermediate || 0}%</span>
+            </div>
+            <div class="difficulty-item">
+              <span class="difficulty-label">Advanced</span>
+              <span class="difficulty-score">${data.advanced || 0}%</span>
+            </div>
+            <div class="difficulty-item">
+              <span class="difficulty-label">Expert</span>
+              <span class="difficulty-score">${data.expert || 0}%</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function displayLearningStreaks(data) {
+        const container = document.getElementById('learningStreaks');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No streak data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="streak-stats">
+            <div class="streak-item">
+              <span class="streak-label">Current Streak</span>
+              <span class="streak-value">${data.currentStreak || 0} days</span>
+            </div>
+            <div class="streak-item">
+              <span class="streak-label">Longest Streak</span>
+              <span class="streak-value">${data.longestStreak || 0} days</span>
+            </div>
+            <div class="streak-item">
+              <span class="streak-label">Total Active Days</span>
+              <span class="streak-value">${data.totalActiveDays || 0} days</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function displayComparativeAnalysis(data) {
+        const container = document.getElementById('comparativeAnalysis');
+        if (!data) {
+          container.innerHTML = '<div class="no-data">No comparison data available</div>';
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="comparison-stats">
+            <div class="comparison-item">
+              <span class="comparison-label">Global Percentile</span>
+              <span class="comparison-value">${data.globalPercentile || 0}%</span>
+            </div>
+            <div class="comparison-item">
+              <span class="comparison-label">Peer Group Rank</span>
+              <span class="comparison-value">${data.peerRank || '—'}</span>
+            </div>
+            <div class="comparison-item">
+              <span class="comparison-label">Above Average In</span>
+              <span class="comparison-value">${data.aboveAverageIn || 'None'}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      function displayAIRecommendations(data) {
+        const container = document.getElementById('aiRecommendations');
+        if (!data || data.length === 0) {
+          container.innerHTML = '<div class="no-data">No AI recommendations available</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(rec => `
+          <div class="recommendation-card">
+            <div class="rec-header">
+              <span class="rec-type">${rec.type}</span>
+              <span class="rec-priority ${rec.priority}">${rec.priority}</span>
+            </div>
+            <div class="rec-content">
+              <h4>${rec.title}</h4>
+              <p>${rec.description}</p>
+            </div>
+            <div class="rec-action">
+              <button class="btn btn-sm" onclick="handleRecommendation('${rec.id}')">Take Action</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function exportAnalytics() {
+        alert('Export functionality would be implemented here');
+      }
+
+      function createCustomReport() {
+        alert('Custom report functionality would be implemented here');
+      }
+
+      function handleRecommendation(recId) {
+        alert(`Handling recommendation: ${recId}`);
+      }
+
+      function getCurrentUserId() {
+        return 'current-user-id'; // Placeholder
+      }
+
+      function showError(message) {
+        console.error(message);
+        alert(message);
+      }
+    });
+  </script>
+
+  <style>
+    .analytics-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+      display: grid;
+      gap: 40px;
+    }
+
+    .analytics-section h2 {
+      margin: 0 0 24px 0;
+      color: var(--accent-primary);
+      font-size: 1.5rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .metric-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+    }
+
+    .metric-icon {
+      font-size: 2rem;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+    }
+
+    .metric-content h3 {
+      margin: 0 0 4px 0;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+    }
+
+    .metric-content p {
+      margin: 0 0 8px 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .metric-trend {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    .metric-trend.up { background: rgba(159, 239, 0, 0.2); color: var(--accent-primary); }
+    .metric-trend.down { background: rgba(255, 92, 122, 0.2); color: var(--accent-red); }
+    .metric-trend.stable { background: rgba(69, 166, 255, 0.2); color: var(--accent-blue); }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-panel);
+    }
+
+    .chart-card h3 {
+      margin: 0 0 20px 0;
+      color: var(--accent-primary);
+      font-size: 1.1rem;
+    }
+
+    .chart-card canvas {
+      max-height: 300px;
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .breakdown-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-panel);
+    }
+
+    .breakdown-card h3 {
+      margin: 0 0 20px 0;
+      color: var(--accent-primary);
+      font-size: 1.1rem;
+    }
+
+    .category-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .category-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .category-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .category-metrics {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .difficulty-grid, .streak-stats, .comparison-stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .difficulty-item, .streak-item, .comparison-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .difficulty-label, .streak-label, .comparison-label {
+      color: var(--text-muted);
+    }
+
+    .difficulty-score, .streak-value, .comparison-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .recommendations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+
+    .recommendation-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-panel);
+    }
+
+    .rec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .rec-type {
+      font-weight: 600;
+      color: var(--accent-primary);
+    }
+
+    .rec-priority {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .rec-priority.high { background: rgba(255, 92, 122, 0.2); color: var(--accent-red); }
+    .rec-priority.medium { background: rgba(255, 214, 77, 0.2); color: var(--accent-gold); }
+    .rec-priority.low { background: rgba(159, 239, 0, 0.2); color: var(--accent-primary); }
+
+    .rec-content h4 {
+      margin: 0 0 8px 0;
+      color: var(--text-primary);
+    }
+
+    .rec-content p {
+      margin: 0 0 16px 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .rec-action {
+      text-align: center;
+    }
+
+    .loading-state, .no-data {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 768px) {
+      .analytics-container {
+        padding: 0 16px 60px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .breakdown-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .recommendations-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+
+      .category-item {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .category-metrics {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
+  </style>
+</body>
+</html>

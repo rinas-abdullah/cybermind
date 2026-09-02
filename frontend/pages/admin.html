@@ -1,118 +1,1146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - CyberMind</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="admin.page_title">Admin Dashboard - Wathaq | وثاق</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+
+  <!-- ==================================================================
+       Wathaq Admin — Premium Command Center (page-scoped styles)
+       ================================================================== -->
+  <style>
+    /* ------------------------------------------------------------------
+       Design tokens
+       ------------------------------------------------------------------ */
+    .admin-cyber {
+      --ac-bg-deep: #030712;
+      --ac-bg-mid: #0a0f1c;
+      --ac-panel: rgba(12, 18, 36, 0.72);
+      --ac-panel-solid: #0d1428;
+      --ac-border: rgba(120, 200, 255, 0.12);
+      --ac-border-strong: rgba(0, 229, 176, 0.22);
+      --ac-accent: #00e5b0;
+      --ac-accent-dim: rgba(0, 229, 176, 0.14);
+      --ac-blue: #45a6ff;
+      --ac-blue-dim: rgba(69, 166, 255, 0.12);
+      --ac-purple: #8b5cf6;
+      --ac-purple-dim: rgba(139, 92, 246, 0.12);
+      --ac-text: #f0f4ff;
+      --ac-muted: #8b9dc4;
+      --ac-radius-xl: 24px;
+      --ac-radius-lg: 18px;
+      --ac-radius-md: 12px;
+      --ac-shadow-1: 0 4px 24px rgba(0, 0, 0, 0.35);
+      --ac-shadow-2: 0 20px 50px rgba(0, 0, 0, 0.45);
+      --ac-glow-mint: 0 0 40px rgba(0, 229, 176, 0.08);
+      --ac-font: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+    }
+
+    /* ------------------------------------------------------------------
+       Page shell & layered background
+       ------------------------------------------------------------------ */
+    .admin-cyber.admin-shell {
+      position: relative;
+      isolation: isolate;
+      min-height: 100vh;
+      padding: 0 1.25rem 4rem;
+      max-width: 1440px;
+      margin: 0 auto;
+      font-family: var(--ac-font);
+      color: var(--ac-text);
+      background: transparent;
+    }
+
+    .admin-cyber__bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(69, 166, 255, 0.14), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 30%, rgba(139, 92, 246, 0.1), transparent 50%),
+        radial-gradient(ellipse 50% 35% at 0% 70%, rgba(0, 229, 176, 0.08), transparent 45%),
+        linear-gradient(180deg, var(--ac-bg-deep) 0%, var(--ac-bg-mid) 45%, #050810 100%);
+    }
+
+    .admin-cyber__bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(120, 180, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 180, 255, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent);
+    }
+
+    /* ------------------------------------------------------------------
+       Hero — command center
+       ------------------------------------------------------------------ */
+    .admin-hero {
+      position: relative;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 4vw, 2.75rem);
+      border-radius: var(--ac-radius-xl);
+      border: 1px solid var(--ac-border);
+      background:
+        linear-gradient(135deg, rgba(13, 20, 40, 0.95) 0%, rgba(8, 14, 28, 0.88) 100%);
+      box-shadow: var(--ac-shadow-2), var(--ac-glow-mint);
+      overflow: hidden;
+    }
+
+    .admin-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(ellipse 100% 80% at 80% 0%, rgba(0, 229, 176, 0.07), transparent 55%);
+      pointer-events: none;
+    }
+
+    .admin-hero__grid {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.25;
+      background-image:
+        linear-gradient(rgba(0, 229, 176, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69, 166, 255, 0.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      mask-image: linear-gradient(180deg, black 0%, transparent 85%);
+    }
+
+    .admin-hero__layout {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(1.75rem, 3vw, 2.5rem);
+      align-items: center;
+    }
+
+    @media (min-width: 960px) {
+      .admin-hero__layout {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+    }
+
+    .admin-hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      margin-bottom: 1rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ac-accent);
+      background: var(--ac-accent-dim);
+      border: 1px solid rgba(0, 229, 176, 0.28);
+      border-radius: 999px;
+    }
+
+    .admin-hero__eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ac-accent);
+      box-shadow: 0 0 10px var(--ac-accent);
+      animation: ac-pulse 2.2s ease-in-out infinite;
+    }
+
+    @keyframes ac-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.55; transform: scale(0.85); }
+    }
+
+    .admin-hero__title {
+      margin: 0 0 0.85rem;
+      font-size: clamp(1.85rem, 4.2vw, 2.65rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      background: linear-gradient(120deg, #fff 0%, #c8e8ff 45%, var(--ac-accent) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .admin-hero__sub {
+      margin: 0 0 1.5rem;
+      max-width: 36rem;
+      font-size: 1rem;
+      line-height: 1.65;
+      color: var(--ac-muted);
+    }
+
+    .admin-hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .admin-hero__btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      border-radius: var(--ac-radius-md);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .admin-hero__btn--primary {
+      color: #021014;
+      background: linear-gradient(135deg, var(--ac-accent) 0%, #00c9a0 100%);
+      box-shadow: 0 4px 24px rgba(0, 229, 176, 0.25);
+    }
+
+    .admin-hero__btn--primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0, 229, 176, 0.35);
+    }
+
+    .admin-hero__btn--ghost {
+      color: var(--ac-text);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--ac-border);
+    }
+
+    .admin-hero__btn--ghost:hover {
+      border-color: rgba(69, 166, 255, 0.35);
+      background: var(--ac-blue-dim);
+      transform: translateY(-2px);
+    }
+
+    /* Hero snapshot metrics */
+    .admin-hero__snap {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.85rem;
+    }
+
+    @media (min-width: 520px) and (max-width: 959px) {
+      .admin-hero__snap {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    .admin-hero__snap-card {
+      padding: 1rem 1.1rem;
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid var(--ac-border);
+      background: rgba(6, 12, 24, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .admin-hero__snap-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(0, 229, 176, 0.2);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .admin-hero__snap-card:nth-child(1) { border-top: 2px solid rgba(0, 229, 176, 0.45); }
+    .admin-hero__snap-card:nth-child(2) { border-top: 2px solid rgba(69, 166, 255, 0.45); }
+    .admin-hero__snap-card:nth-child(3) { border-top: 2px solid rgba(139, 92, 246, 0.45); }
+    .admin-hero__snap-card:nth-child(4) { border-top: 2px solid rgba(0, 229, 176, 0.3); }
+
+    .admin-hero__snap-label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ac-muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .admin-hero__snap-value {
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--ac-text);
+      line-height: 1.2;
+    }
+
+    /* ------------------------------------------------------------------
+       Top stats row
+       ------------------------------------------------------------------ */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (min-width: 640px) {
+      .admin-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 1100px) {
+      .admin-stats { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .admin-stat-card {
+      position: relative;
+      padding: 1.25rem 1.35rem;
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid var(--ac-border);
+      background: linear-gradient(165deg, rgba(16, 24, 48, 0.75) 0%, rgba(8, 14, 28, 0.85) 100%);
+      box-shadow: var(--ac-shadow-1);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      overflow: hidden;
+    }
+
+    .admin-stat-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40% -60% -40%;
+      height: 80%;
+      background: radial-gradient(circle, var(--ac-card-glow, rgba(0, 229, 176, 0.06)) 0%, transparent 65%);
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .admin-stat-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--ac-border-strong);
+      box-shadow: var(--ac-shadow-2), 0 0 0 1px rgba(0, 229, 176, 0.06);
+    }
+
+    .admin-stat-card--mint { --ac-card-glow: rgba(0, 229, 176, 0.12); }
+    .admin-stat-card--blue { --ac-card-glow: rgba(69, 166, 255, 0.12); }
+    .admin-stat-card--violet { --ac-card-glow: rgba(139, 92, 246, 0.12); }
+    .admin-stat-card--teal { --ac-card-glow: rgba(0, 212, 200, 0.1); }
+
+    .admin-stat-card__top {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .admin-stat-card__badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ac-muted);
+    }
+
+    .admin-stat-card__icon {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--ac-radius-md);
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ac-border);
+    }
+
+    .admin-stat-card__title {
+      position: relative;
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--ac-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .admin-stat-card__value {
+      position: relative;
+      font-size: clamp(1.85rem, 3vw, 2.35rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      color: var(--ac-text);
+      margin-bottom: 0.45rem;
+    }
+
+    .admin-stat-card__note {
+      position: relative;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--ac-muted);
+    }
+
+    /* ------------------------------------------------------------------
+       Dashboard grid
+       ------------------------------------------------------------------ */
+    .admin-dash-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (min-width: 1080px) {
+      .admin-dash-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+        gap: 1.75rem;
+      }
+    }
+
+    .admin-dash-main,
+    .admin-dash-side {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Unified card */
+    .admin-card {
+      position: relative;
+      border-radius: var(--ac-radius-xl);
+      border: 1px solid var(--ac-border);
+      background: linear-gradient(160deg, rgba(14, 22, 42, 0.82) 0%, rgba(8, 12, 24, 0.92) 100%);
+      box-shadow: var(--ac-shadow-1);
+      padding: clamp(1.25rem, 2.5vw, 1.65rem);
+      overflow: hidden;
+    }
+
+    .admin-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      pointer-events: none;
+    }
+
+    .admin-card__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(120, 180, 255, 0.08);
+    }
+
+    .admin-card__kicker {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ac-accent);
+      margin-bottom: 0.35rem;
+    }
+
+    .admin-card__title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--ac-text);
+    }
+
+    .admin-card__tag {
+      flex-shrink: 0;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ac-blue);
+      background: var(--ac-blue-dim);
+      border: 1px solid rgba(69, 166, 255, 0.22);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    /* Chart area */
+    .admin-chart-shell {
+      position: relative;
+      padding: 1.25rem;
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid rgba(120, 180, 255, 0.08);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(69, 166, 255, 0.06), transparent 55%),
+        rgba(4, 8, 18, 0.55);
+      min-height: 260px;
+    }
+
+    .admin-chart-shell canvas {
+      max-height: 280px;
+    }
+
+    /* Institutional intelligence callout */
+    .admin-intel-callout {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1.1rem 1.2rem;
+      margin-bottom: 1.15rem;
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid rgba(139, 92, 246, 0.22);
+      background: linear-gradient(120deg, var(--ac-purple-dim) 0%, rgba(8, 14, 28, 0.6) 100%);
+    }
+
+    .admin-intel-callout__icon {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--ac-radius-md);
+      font-size: 1.35rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .admin-intel-callout h4 {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ac-text);
+    }
+
+    .admin-intel-callout p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: var(--ac-muted);
+    }
+
+    /* Panels (institution, compliance, injectable content) */
+    .admin-panel {
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid rgba(120, 180, 255, 0.1);
+      background: rgba(4, 10, 22, 0.55);
+      padding: 1.15rem 1.25rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--ac-muted);
+    }
+
+    .admin-panel .report-summary p,
+    .admin-panel .compliance-summary p {
+      margin: 0.45rem 0;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid rgba(120, 180, 255, 0.06);
+    }
+
+    .admin-panel .report-summary p:last-child,
+    .admin-panel .compliance-summary p:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .admin-panel strong {
+      color: var(--ac-text);
+      font-weight: 600;
+    }
+
+    #institution-report.admin-panel {
+      min-height: 4rem;
+    }
+
+    /* Refresh button — same ID, premium chrome */
+    #refresh-report.admin-btn-refresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.65rem 1.35rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #021014;
+      background: linear-gradient(135deg, var(--ac-accent) 0%, #00c9a0 100%);
+      border: none;
+      border-radius: var(--ac-radius-md);
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0, 229, 176, 0.22);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #refresh-report.admin-btn-refresh:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0, 229, 176, 0.32);
+    }
+
+    /* User management */
+    .admin-search-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      align-items: stretch;
+    }
+
+    #user-search.admin-search-input {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--ac-text);
+      background: rgba(4, 10, 22, 0.75);
+      border: 1px solid var(--ac-border);
+      border-radius: var(--ac-radius-md);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #user-search.admin-search-input::placeholder {
+      color: rgba(139, 157, 196, 0.65);
+    }
+
+    #user-search.admin-search-input:focus {
+      border-color: rgba(0, 229, 176, 0.45);
+      box-shadow: 0 0 0 3px rgba(0, 229, 176, 0.12);
+    }
+
+    #search-user.admin-btn-search {
+      padding: 0.75rem 1.35rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--ac-text);
+      background: rgba(69, 166, 255, 0.12);
+      border: 1px solid rgba(69, 166, 255, 0.35);
+      border-radius: var(--ac-radius-md);
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    #search-user.admin-btn-search:hover {
+      background: rgba(69, 166, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    #user-details.admin-user-panel {
+      margin-top: 0.5rem;
+      padding: 1.25rem;
+      border-radius: var(--ac-radius-lg);
+      border: 1px solid rgba(0, 229, 176, 0.18);
+      background: linear-gradient(165deg, rgba(0, 229, 176, 0.05) 0%, rgba(6, 12, 24, 0.85) 100%);
+    }
+
+    #user-details.admin-user-panel.hidden {
+      display: none !important;
+    }
+
+    #user-details.admin-user-panel h4 {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ac-text);
+    }
+
+    /* Injected user report (from JS) */
+    .user-report .user-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(120, 180, 255, 0.1);
+    }
+
+    .user-report .user-header h4 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--ac-text);
+    }
+
+    .user-report .user-role {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-radius: 6px;
+      background: var(--ac-purple-dim);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      color: #c4b5fd;
+    }
+
+    .user-report .user-institution {
+      font-size: 0.8rem;
+      color: var(--ac-muted);
+    }
+
+    .user-report .user-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .user-report .stat-item {
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--ac-radius-md);
+      background: rgba(4, 10, 22, 0.6);
+      border: 1px solid var(--ac-border);
+    }
+
+    .user-report .stat-label {
+      display: block;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ac-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .user-report .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ac-accent);
+    }
+
+    .user-report .user-progress,
+    .user-report .user-recommendations {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(120, 180, 255, 0.08);
+    }
+
+    .user-report .user-progress h5,
+    .user-report .user-recommendations h5 {
+      margin: 0 0 0.5rem;
+      font-size: 0.85rem;
+      color: var(--ac-text);
+    }
+
+    .user-report .user-progress p {
+      margin: 0.35rem 0;
+      font-size: 0.85rem;
+      color: var(--ac-muted);
+    }
+
+    .user-report .user-recommendations ul {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--ac-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Top performers */
+    #top-performers .performers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    #top-performers .performer-item {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 1rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: var(--ac-radius-md);
+      border: 1px solid rgba(120, 180, 255, 0.1);
+      background: rgba(4, 10, 22, 0.5);
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    #top-performers .performer-item:hover {
+      border-color: rgba(0, 229, 176, 0.2);
+      background: rgba(0, 229, 176, 0.04);
+    }
+
+    #top-performers .performer-item .rank {
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: var(--ac-accent);
+      min-width: 2rem;
+    }
+
+    #top-performers .performer-item .username {
+      font-weight: 600;
+      color: var(--ac-text);
+      flex: 1 1 120px;
+    }
+
+    #top-performers .performer-item .role {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ac-muted);
+    }
+
+    #top-performers .performer-item .score {
+      font-weight: 700;
+      color: var(--ac-blue);
+      font-size: 0.85rem;
+      margin-left: auto;
+    }
+
+    #top-performers .performer-item .level {
+      font-size: 0.75rem;
+      color: var(--ac-muted);
+    }
+
+    /* Admin snapshot list */
+    .admin-snapshot-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .admin-snapshot-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: var(--ac-radius-md);
+      border: 1px solid rgba(120, 180, 255, 0.08);
+      background: rgba(4, 10, 22, 0.45);
+      font-size: 0.8rem;
+    }
+
+    .admin-snapshot-list li span:first-child {
+      color: var(--ac-muted);
+      font-weight: 500;
+    }
+
+    .admin-snapshot-list li strong {
+      color: var(--ac-text);
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    /* Utility */
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <span>CyberMind</span>
-            </div>
-            <div class="nav-links">
-                <a href="/dashboard">Dashboard</a>
-                <a href="/training">Training</a>
-                <a href="/terminal">Terminal</a>
-                <a href="/leaderboard-page">Leaderboard</a>
-                <a href="/admin" class="active-link">Admin</a>
-            </div>
+  <div class="admin-cyber__bg" aria-hidden="true"></div>
+
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <main class="admin-shell admin-cyber">
+
+    <!-- ========== Hero: command center ========== -->
+    <section class="admin-hero" data-anim="1" aria-labelledby="admin-hero-title">
+      <div class="admin-hero__grid" aria-hidden="true"></div>
+      <div class="admin-hero__layout">
+        <div class="admin-hero__left">
+          <span class="admin-hero__eyebrow" data-i18n="admin.hero_badge">Administrative Control Center</span>
+          <h1 id="admin-hero-title" class="admin-hero__title" data-i18n="admin.hero_title">Platform Command Console</h1>
+          <p class="admin-hero__sub" data-i18n="admin.hero_subtitle">
+            Real-time institutional intelligence, learner posture, and operational analytics
+             for your Wathaq | وثاق training ecosystem — unified in a single secure admin surface.
+          </p>
+          <div class="admin-hero__actions">
+            <button type="button" class="admin-hero__btn admin-hero__btn--primary" id="hero-sync-analytics" aria-label="Refresh all analytics">
+              <span data-i18n="admin.hero_sync">Sync intelligence</span>
+            </button>
+            <a href="#admin-user-management" class="admin-hero__btn admin-hero__btn--ghost" data-i18n="admin.hero_lookup">User lookup</a>
+          </div>
         </div>
-    </nav>
-
-    <main class="container">
-        <div class="admin-header">
-            <h1>Administrative Dashboard</h1>
-            <p class="subtitle">Institutional analytics and management</p>
+        <div class="admin-hero__right">
+          <div class="admin-hero__snap" aria-label="Live platform snapshot">
+            <div class="admin-hero__snap-card">
+              <span class="admin-hero__snap-label" data-i18n="admin.snap_total">Total users</span>
+              <span class="admin-hero__snap-value" id="hero-total-users">—</span>
+            </div>
+            <div class="admin-hero__snap-card">
+              <span class="admin-hero__snap-label" data-i18n="admin.snap_active">Active</span>
+              <span class="admin-hero__snap-value" id="hero-active-users">—</span>
+            </div>
+            <div class="admin-hero__snap-card">
+              <span class="admin-hero__snap-label" data-i18n="admin.snap_completion">Completion</span>
+              <span class="admin-hero__snap-value" id="hero-completion-rate">—</span>
+            </div>
+            <div class="admin-hero__snap-card">
+              <span class="admin-hero__snap-label" data-i18n="admin.snap_avg">Avg score</span>
+              <span class="admin-hero__snap-value" id="hero-avg-score">—</span>
+            </div>
+          </div>
         </div>
+      </div>
+    </section>
 
-        <!-- Quick Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-content">
-                    <h3>Total Users</h3>
-                    <div class="stat-value" id="total-users">-</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔥</div>
-                <div class="stat-content">
-                    <h3>Active Users</h3>
-                    <div class="stat-value" id="active-users">-</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📈</div>
-                <div class="stat-content">
-                    <h3>Completion Rate</h3>
-                    <div class="stat-value" id="completion-rate">-%</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏆</div>
-                <div class="stat-content">
-                    <h3>Average Score</h3>
-                    <div class="stat-value" id="avg-score">-</div>
-                </div>
-            </div>
+    <!-- ========== Top metrics (IDs preserved for adminDashboard.js) ========== -->
+    <section class="admin-stats" data-anim="2" aria-label="Key platform metrics">
+      <article class="admin-stat-card admin-stat-card--mint">
+        <div class="admin-stat-card__top">
+          <span class="admin-stat-card__badge" data-i18n="admin.stat_badge_directory">Directory</span>
+          <div class="admin-stat-card__icon" aria-hidden="true">👥</div>
         </div>
+        <h3 class="admin-stat-card__title" data-i18n="admin.stat_total_users">Total Users</h3>
+        <div class="admin-stat-card__value" id="total-users">—</div>
+        <div class="admin-stat-card__note" data-i18n="admin.stat_total_note">Registered identities across the platform</div>
+      </article>
 
-        <!-- Charts Section -->
-        <div class="charts-section">
-            <div class="chart-container">
-                <h3>User Role Distribution</h3>
-                <canvas id="roleChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <h3>Course Completion Trends</h3>
-                <canvas id="completionChart"></canvas>
-            </div>
+      <article class="admin-stat-card admin-stat-card--blue">
+        <div class="admin-stat-card__top">
+          <span class="admin-stat-card__badge" data-i18n="admin.stat_badge_activity">Activity</span>
+          <div class="admin-stat-card__icon" aria-hidden="true">⚡</div>
         </div>
+        <h3 class="admin-stat-card__title" data-i18n="admin.stat_active_users">Active Users</h3>
+        <div class="admin-stat-card__value" id="active-users">—</div>
+        <div class="admin-stat-card__note" data-i18n="admin.stat_active_note">Engaged in the current reporting cycle</div>
+      </article>
 
-        <!-- Detailed Reports -->
-        <div class="reports-section">
-            <div class="report-panel">
-                <h3>Institution Report</h3>
-                <div class="report-content" id="institution-report">
-                    <p>Loading institution analytics...</p>
-                </div>
-                <button class="btn-primary" id="refresh-report">Refresh Report</button>
-            </div>
-
-            <div class="report-panel">
-                <h3>Top Performers</h3>
-                <div class="report-content" id="top-performers">
-                    <p>Loading top performers...</p>
-                </div>
-            </div>
-
-            <div class="report-panel">
-                <h3>Compliance Overview</h3>
-                <div class="report-content" id="compliance-report">
-                    <p>Loading compliance data...</p>
-                </div>
-            </div>
+      <article class="admin-stat-card admin-stat-card--violet">
+        <div class="admin-stat-card__top">
+          <span class="admin-stat-card__badge" data-i18n="admin.stat_badge_progress">Progress</span>
+          <div class="admin-stat-card__icon" aria-hidden="true">📈</div>
         </div>
+        <h3 class="admin-stat-card__title" data-i18n="admin.stat_completion">Completion Rate</h3>
+        <div class="admin-stat-card__value" id="completion-rate">—</div>
+        <div class="admin-stat-card__note" data-i18n="admin.stat_completion_note">Scenario & path completion performance</div>
+      </article>
 
-        <!-- User Management -->
-        <div class="user-management">
-            <h3>User Management</h3>
-            <div class="user-search">
-                <input type="text" id="user-search" placeholder="Search users by username...">
-                <button class="btn-secondary" id="search-user">Search</button>
-            </div>
-            <div class="user-details" id="user-details" style="display: none;">
-                <h4>User Report</h4>
-                <div id="user-report-content"></div>
-            </div>
+      <article class="admin-stat-card admin-stat-card--teal">
+        <div class="admin-stat-card__top">
+          <span class="admin-stat-card__badge" data-i18n="admin.stat_badge_performance">Performance</span>
+          <div class="admin-stat-card__icon" aria-hidden="true">🎯</div>
         </div>
-    </div>
+        <h3 class="admin-stat-card__title" data-i18n="admin.stat_avg_score">Average Score</h3>
+        <div class="admin-stat-card__value" id="avg-score">—</div>
+        <div class="admin-stat-card__note" data-i18n="admin.stat_avg_note">Mean learner score across assessments</div>
+      </article>
+    </section>
 
-    <script src="../js/utils/api.js"></script>
-    <script src="../js/components/adminDashboard.js"></script>
+    <!-- ========== Main + side grid ========== -->
+    <section class="admin-dash-grid">
+      <div class="admin-dash-main">
+
+        <section class="admin-card" data-anim="3">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.chart_kicker_analytics">Analytics</div>
+              <h2 class="admin-card__title" data-i18n="admin.chart_roles">User Role Distribution</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.chart_tag_live_overview">Live Overview</span>
+          </div>
+          <div class="admin-chart-shell">
+            <canvas id="roleChart" aria-label="User role distribution chart"></canvas>
+          </div>
+        </section>
+
+        <section class="admin-card" data-anim="4">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.chart_kicker_trends">Trends</div>
+              <h2 class="admin-card__title" data-i18n="admin.chart_completion">Course Completion Trends</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.chart_tag_progress_tracking">Progress Tracking</span>
+          </div>
+          <div class="admin-chart-shell">
+            <canvas id="completionChart" aria-label="Course completion trends chart"></canvas>
+          </div>
+        </section>
+
+        <section class="admin-card" id="admin-institution-report" data-anim="5">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.card_kicker_institution">Institution</div>
+              <h2 class="admin-card__title" data-i18n="admin.institution_title">Institution Report</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.card_tag_operational_summary">Operational Summary</span>
+          </div>
+
+          <div class="admin-intel-callout">
+            <div class="admin-intel-callout__icon" aria-hidden="true">◆</div>
+            <div>
+              <h4 data-i18n="admin.intel_title">Institutional Intelligence</h4>
+              <p data-i18n="admin.intel_desc">
+                Executive-grade visibility into cohort engagement, completion velocity,
+                and score distribution — use this panel to brief stakeholders and tune training policy.
+              </p>
+            </div>
+          </div>
+
+          <div class="admin-panel" id="institution-report">
+            <p data-i18n="admin.institution_loading">Loading institution analytics…</p>
+          </div>
+
+          <button type="button" class="admin-btn-refresh" id="refresh-report" data-i18n="admin.refresh_report">
+            Refresh report
+          </button>
+        </section>
+
+        <section class="admin-card" id="admin-user-management" data-anim="6">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.card_kicker_directory">Directory</div>
+              <h2 class="admin-card__title" data-i18n="admin.user_mgmt_title">User Management</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.card_tag_lookup_review">Lookup &amp; Review</span>
+          </div>
+
+          <div class="admin-search-row">
+            <input
+              type="text"
+              id="user-search"
+              class="admin-search-input"
+              data-i18n-placeholder="admin.ph_user_search"
+              placeholder="Search by username…"
+              autocomplete="off"
+              aria-label="Search users by username"
+            />
+            <button type="button" class="admin-btn-search" id="search-user" data-i18n="admin.btn_search">Search</button>
+          </div>
+
+          <div class="admin-user-panel hidden" id="user-details">
+            <h4 data-i18n="admin.user_report_title">User intelligence report</h4>
+            <div id="user-report-content"></div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="admin-dash-side" aria-label="Intelligence modules">
+
+        <section class="admin-card" data-anim="7">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.card_kicker_ranking">Ranking</div>
+              <h2 class="admin-card__title" data-i18n="top_performers">Top Performers</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.card_tag_leaderboard_insight">Leaderboard Insight</span>
+          </div>
+          <div class="admin-panel" id="top-performers">
+            <p data-i18n="admin.top_perf_loading">Loading top performers…</p>
+          </div>
+        </section>
+
+        <section class="admin-card" data-anim="8">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.card_kicker_compliance">Compliance</div>
+              <h2 class="admin-card__title" data-i18n="admin.compliance_title">Compliance Overview</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.card_tag_security_standards">Security Standards</span>
+          </div>
+          <div class="admin-panel" id="compliance-report">
+            <p data-i18n="admin.compliance_loading">Loading compliance data…</p>
+          </div>
+        </section>
+
+        <section class="admin-card" data-anim="9">
+          <div class="admin-card__head">
+            <div>
+              <div class="admin-card__kicker" data-i18n="admin.card_kicker_system">System State</div>
+              <h2 class="admin-card__title" data-i18n="admin.admin_snapshot_title">Admin Snapshot</h2>
+            </div>
+            <span class="admin-card__tag" data-i18n="admin.card_tag_realtime">Realtime</span>
+          </div>
+          <ul class="admin-snapshot-list">
+            <li>
+              <span data-i18n="admin.snapshot_access">Access level</span>
+              <strong data-i18n="admin.snapshot_access_val">Administrator</strong>
+            </li>
+            <li>
+              <span data-i18n="admin.snapshot_visibility">Visibility</span>
+              <strong data-i18n="admin.snapshot_visibility_val">Full platform</strong>
+            </li>
+            <li>
+              <span data-i18n="admin.snapshot_scope">Analytics scope</span>
+              <strong data-i18n="admin.snapshot_scope_val">Institution-wide</strong>
+            </li>
+            <li>
+              <span data-i18n="admin.snapshot_mode">Console mode</span>
+              <strong data-i18n="admin.snapshot_mode_val">Secure</strong>
+            </li>
+          </ul>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="/js/components/adminDashboard.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!window.navBar && typeof ModernNavBar !== "undefined") {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+
+      if (
+        typeof authService === "undefined" ||
+        !authService.isAuthenticated()
+      ) {
+        window.location.href = "/";
+        return;
+      }
+
+      if (typeof authService.isAdmin === "function" && !authService.isAdmin()) {
+        alert(
+          window.i18n?.t("messages.access_denied_admin") ||
+            "Access denied. This page is for administrators only."
+        );
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      if (
+        window.navBar &&
+        typeof window.navBar.updateUserStats === "function"
+      ) {
+        window.navBar.updateUserStats();
+      }
+
+      var heroSync = document.getElementById("hero-sync-analytics");
+      var refreshBtn = document.getElementById("refresh-report");
+      if (heroSync && refreshBtn) {
+        heroSync.addEventListener("click", function () {
+          refreshBtn.click();
+        });
+      }
+
+      const userDetails = document.getElementById("user-details");
+      const userReportContent = document.getElementById("user-report-content");
+
+      const observer = new MutationObserver(() => {
+        const hasContent =
+          userReportContent &&
+          userReportContent.textContent &&
+          userReportContent.textContent.trim().length > 0;
+
+        if (hasContent) {
+          userDetails.classList.remove("hidden");
+        }
+      });
+
+      if (userReportContent) {
+        observer.observe(userReportContent, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+      }
+    });
+  </script>
 </body>
 </html>

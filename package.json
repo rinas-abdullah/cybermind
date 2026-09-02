@@ -5,25 +5,46 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "echo \"No linter configured\" && exit 1"
+    "dev": "nodemon backend/server.js",
+    "test-db": "node test-db.js",
+    "build": "node build.js",
+    "build:prod": "cross-env NODE_ENV=production node build.js",
+    "ci:verify": "node --check backend/server.js && node --check backend/config/environment.js && node --check backend/db.js && node --check build.js && node build.js && npm test",
+    "serve:dist": "cd dist && npm install && npm start",
+    "test": "node --test test/constants.test.js test/environment.test.js",
+    "lint": "echo \"No linter configured\""
   },
-  "keywords": ["cybersecurity", "training", "express", "nodejs"],
+  "keywords": [
+    "cybersecurity",
+    "training",
+    "express",
+    "nodejs"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^5.1.0"
+    "dotenv": "^17.3.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^6.8.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "openai": "^6.28.0",
+    "pino": "^8.14.0",
+    "zod": "^4.4.3",
+    "pg": "^8.20.0"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": ""
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.14"
   }
 }
