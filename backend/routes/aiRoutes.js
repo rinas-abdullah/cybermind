@@ -183,7 +183,7 @@ router.get(
       return notFoundResponse(res, "User");
     }
 
-    const logs = getUserLogs(user.id);
+    const logs = await getUserLogs(user.id);
     return successResponse(res, logs, `Retrieved ${logs.length} conversation logs for ${username}`);
   })
 );

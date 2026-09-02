@@ -1,9 +1,11 @@
 const bcrypt = require("bcrypt");
 const db = require("../db");
+const demoAuthService = require("../services/demoAuthService");
 const { issueToken } = require("../middleware/auth");
 const { VALIDATION_RULES, USER_ROLES } = require("../config/constants");
 
 const SALT_ROUNDS = 12;
+const IS_IN_MEMORY = db.DB_TYPE === db.DATABASE_TYPES.IN_MEMORY;
 
 function normalizeEmail(email) {
   return String(email || "").trim().toLowerCase();
@@ -67,6 +69,10 @@ function validateRegistrationInput({ username, email, password }) {
     errors.push("Password must include at least one number");
   }
 
+  if (VALIDATION_RULES.PASSWORD.REQUIRE_SPECIAL_CHAR && !/[^A-Za-z0-9]/.test(password)) {
+    errors.push("Password must include at least one special character");
+  }
+
   return errors;
 }
 
@@ -88,6 +94,39 @@ async function register(req, res) {
         success: false,
         message: validationErrors[0],
         errors: validationErrors,
+      });
+    }
+
+    if (IS_IN_MEMORY) {
+      if (demoAuthService.findUserByEmail(email) || demoAuthService.findUserByUsername(username)) {
+        return res.status(409).json({
+          success: false,
+          message: "User with this email or username already exists",
+        });
+      }
+
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      const user = demoAuthService.createUser({
+        username,
+        email,
+        passwordHash,
+        role: USER_ROLES.LEARNER,
+      });
+
+      const token = issueToken({
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+        institution_id: null,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        data: {
+          user: { id: user.id, username: user.username, email: user.email, institution_id: null },
+          token,
+        },
       });
     }
 
@@ -177,6 +216,42 @@ async function login(req, res) {
       });
     }
 
+    if (IS_IN_MEMORY) {
+      const user = demoAuthService.findUserByEmail(email);
+      const isValidPassword = user ? await bcrypt.compare(password, user.passwordHash) : false;
+
+      if (!user || !isValidPassword) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid credentials",
+        });
+      }
+
+      user.lastLogin = new Date().toISOString();
+
+      const token = issueToken({
+        userId: user.id,
+        username: user.username,
+        role: user.role,
+        institution_id: null,
+      });
+
+      return res.json({
+        success: true,
+        message: "Login successful",
+        data: {
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            institution_id: null,
+          },
+          token,
+        },
+      });
+    }
+
     const userResult = await db.query(
       `SELECT
          u.id,
@@ -251,6 +326,29 @@ async function logout(req, res) {
 async function getProfile(req, res) {
   try {
     const userId = req.user.userId;
+
+    if (IS_IN_MEMORY) {
+      const user = demoAuthService.findUserById(userId);
+      if (!user) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            institution_id: null,
+            institution_name: null,
+            technical_resume: null,
+          },
+        },
+      });
+    }
+
     let userResult;
 
     try {
@@ -343,7 +441,9 @@ async function updateProfile(req, res) {
 
     const { institution_id, bio, interests, skillLevel } = req.body;
 
-    if (institution_id !== undefined) {
+    // Institutions aren't modeled in in-memory mode — skip the persistence
+    // step there rather than crashing on an unsupported db.query() call.
+    if (institution_id !== undefined && !IS_IN_MEMORY) {
       await db.query(
         "UPDATE users SET institution_id = $1, updated_at = NOW() WHERE id = $2",
         [institution_id, req.user.userId]

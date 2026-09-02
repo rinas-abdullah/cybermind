@@ -1,6 +1,11 @@
-// Demo authentication service. In-memory only, not used for real authentication.
+// In-memory user store, used when DB_TYPE=in-memory (no PostgreSQL configured).
+// Backs real registration/login for that mode, plus two seeded demo accounts
+// for quick exploration. When DB_TYPE=postgresql, authController talks to the
+// real `users` table instead and this module is not used for credentials.
+const bcrypt = require("bcrypt");
 
 const ALLOWED_SKILL_LEVELS = new Set(["beginner", "intermediate", "advanced"]);
+const SEEDED_DEMO_PASSWORD = "Risaq@Demo123!";
 
 function normalizeString(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -146,16 +151,19 @@ function toPublicUser(user) {
 }
 
 let demoUsers = [];
+let nextId = 3;
 
 function seedDemoUsers() {
   if (demoUsers.length > 0) return;
+
+  const demoPasswordHash = bcrypt.hashSync(SEEDED_DEMO_PASSWORD, 12);
 
   demoUsers = [
     {
       id: 1,
       username: "admin",
-      email: "admin@raqeem.local",
-      passwordHash: "",
+      email: "admin@risaq.local",
+      passwordHash: demoPasswordHash,
       role: "admin",
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
@@ -175,8 +183,8 @@ function seedDemoUsers() {
     {
       id: 2,
       username: "demo",
-      email: "demo@raqeem.local",
-      passwordHash: "",
+      email: "demo@risaq.local",
+      passwordHash: demoPasswordHash,
       role: "learner",
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
@@ -213,6 +221,31 @@ function findUserByEmail(email) {
   ensureSeeded();
   const normalized = normalizeEmail(email);
   return demoUsers.find((user) => user.email.toLowerCase() === normalized) || null;
+}
+
+function findUserById(id) {
+  ensureSeeded();
+  return demoUsers.find((user) => user.id === Number(id)) || null;
+}
+
+// Registers a real user against the in-memory store — used when DB_TYPE is
+// in-memory, so registration/login work with zero external setup.
+function createUser({ username, email, passwordHash, role = "learner" }) {
+  ensureSeeded();
+
+  const user = {
+    id: nextId++,
+    username: normalizeString(username),
+    email: normalizeEmail(email),
+    passwordHash,
+    role,
+    createdAt: new Date().toISOString(),
+    lastLogin: null,
+    profile: createDefaultProfile(),
+  };
+
+  demoUsers.push(user);
+  return user;
 }
 
 function getAllUsers() {
@@ -265,6 +298,7 @@ function getDemoLeaderboard() {
 }
 
 module.exports = {
+  SEEDED_DEMO_PASSWORD,
   ALLOWED_SKILL_LEVELS,
   createDefaultProfile,
   sanitizeStringArray,
@@ -275,6 +309,8 @@ module.exports = {
   seedDemoUsers,
   findUserByUsername,
   findUserByEmail,
+  findUserById,
+  createUser,
   getAllUsers,
   getLeaderboard,
   getUserProfile,

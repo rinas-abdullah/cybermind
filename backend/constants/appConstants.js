@@ -1,4 +1,4 @@
-// Unified project constants for CyberMind
+// Unified project constants for Risaq
 
 const API_PREFIX = "/api";
 

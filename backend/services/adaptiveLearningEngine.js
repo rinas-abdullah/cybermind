@@ -15,16 +15,23 @@ class AdaptiveLearningEngine {
 
   async adaptDifficulty(userId, scenarioId, sessionId, accuracy, responseTime) {
     try {
-      const scenarioResult = await db.query(
-        "SELECT difficulty_level FROM scenarios WHERE id = $1",
-        [scenarioId]
-      );
+      // scenarioId here is the slug-style id used throughout the attempt-
+      // submission flow (e.g. "network-scanning"), not necessarily a row in
+      // the `scenarios` table (a separate, AI-generated scenario catalog
+      // with numeric ids) — so a lookup miss is expected, not an error.
+      const numericScenarioId = Number(scenarioId);
+      let currentDifficulty = 1;
 
-      if (scenarioResult.rows.length === 0) {
-        throw new Error("Scenario not found");
+      if (Number.isInteger(numericScenarioId)) {
+        const scenarioResult = await db.query(
+          "SELECT difficulty_level FROM scenarios WHERE id = $1",
+          [numericScenarioId]
+        );
+
+        if (scenarioResult.rows.length > 0) {
+          currentDifficulty = Number(scenarioResult.rows[0].difficulty_level) || 1;
+        }
       }
-
-      const currentDifficulty = Number(scenarioResult.rows[0].difficulty_level) || 1;
 
       let adjustment = 0;
       let reason = "";
@@ -44,10 +51,10 @@ class AdaptiveLearningEngine {
 
       const newDifficulty = Math.max(1, Math.min(10, currentDifficulty + adjustment));
 
-      if (adjustment !== 0) {
+      if (adjustment !== 0 && Number.isInteger(numericScenarioId)) {
         await db.query(
           "UPDATE scenarios SET difficulty_level = $1 WHERE id = $2",
-          [newDifficulty, scenarioId]
+          [newDifficulty, numericScenarioId]
         );
       }
 
@@ -96,7 +103,7 @@ class AdaptiveLearningEngine {
         `
           INSERT INTO performance_metrics
           (user_id, scenario_id, session_id, accuracy, avg_response_time, difficulty_adjustment, adaptive_resilience_score, ai_analysis, timestamp)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+          VALUES ($1, $2, $3, $4, make_interval(secs => $5::double precision), $6, $7, $8, CURRENT_TIMESTAMP)
         `,
         [
           userId,
@@ -147,9 +154,14 @@ class AdaptiveLearningEngine {
 
   async getCurrentDifficulty(scenarioId) {
     try {
+      const numericScenarioId = Number(scenarioId);
+      if (!Number.isInteger(numericScenarioId)) {
+        return 1;
+      }
+
       const result = await db.query(
         "SELECT difficulty_level FROM scenarios WHERE id = $1",
-        [scenarioId]
+        [numericScenarioId]
       );
 
       if (result.rows.length === 0) {

@@ -59,7 +59,7 @@ function createSchemaValidator(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body || {});
     if (!result.success) {
-      const errors = result.error.errors.map((error) => {
+      const errors = result.error.issues.map((error) => {
         const path = error.path.length ? error.path.join(".") : "body";
         return `${path}: ${error.message}`;
       });
@@ -100,7 +100,8 @@ const registerSchema = z
       .max(VALIDATION_RULES.PASSWORD.MAX_LENGTH, `Password must be at most ${VALIDATION_RULES.PASSWORD.MAX_LENGTH} characters`)
       .refine((value) => /[A-Z]/.test(value), "Password must include at least one uppercase letter")
       .refine((value) => /[a-z]/.test(value), "Password must include at least one lowercase letter")
-      .refine((value) => /[0-9]/.test(value), "Password must include at least one number"),
+      .refine((value) => /[0-9]/.test(value), "Password must include at least one number")
+      .refine((value) => /[^A-Za-z0-9]/.test(value), "Password must include at least one special character"),
     skillLevel: z
       .string()
       .trim()

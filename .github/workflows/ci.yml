@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: node --check backend/server.js
+      - run: node --check backend/config/environment.js
+      - run: node --check backend/db.js
+      - run: node --check build.js
+
+      - run: node build.js
+        env:
+          NODE_ENV: production
+
+      - run: npm test
+
+      - name: npm audit (informational only)
+        run: npm audit --audit-level=high || true

@@ -1,7 +1,7 @@
 {
-  "name": "cybermind",
-  "version": "1.0.0",
-  "description": "Cybersecurity training platform with Express backend and modern frontend",
+  "name": "risaq",
+  "version": "2.0.0",
+  "description": "رِسَاق (Risaq) — AI-adaptive cybersecurity training platform with an Express backend and a modern frontend",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^5.1.0",
@@ -35,9 +36,9 @@
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.0",
     "openai": "^6.28.0",
+    "pg": "^8.20.0",
     "pino": "^8.14.0",
-    "zod": "^4.4.3",
-    "pg": "^8.20.0"
+    "zod": "^4.4.3"
   },
   "repository": {
     "type": "git",

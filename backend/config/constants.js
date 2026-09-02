@@ -1,8 +1,8 @@
-﻿// cybermind/constants/index.js
-// Unified production-grade constants for CyberMind
+﻿// risaq/constants/index.js
+// Unified production-grade constants for Risaq
 
 const API_PREFIX = "/api";
-const APP_NAME = "CyberMind";
+const APP_NAME = "Risaq";
 
 /**
  * Server / App
@@ -85,7 +85,7 @@ const DATABASE_TYPES = Object.freeze({
  * Security / Auth
  */
 const AUTH_CONFIG = Object.freeze({
-  SESSION_COOKIE_NAME: "cybermind.sid",
+  SESSION_COOKIE_NAME: "risaq.sid",
   ACCESS_TOKEN_EXPIRY: "15m",
   REFRESH_TOKEN_EXPIRY: "7d",
   MAX_LOGIN_ATTEMPTS: 5,
@@ -101,7 +101,7 @@ const RESERVED_USERNAMES = Object.freeze([
   "system",
   "support",
   "security",
-  "cybermind",
+  "risaq",
   "api",
   "null",
   "undefined",

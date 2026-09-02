@@ -239,6 +239,21 @@ async function createTables() {
   try {
     await client.query("BEGIN");
 
+    // Table set and columns are kept in sync by hand with setup_db.sql and
+    // with every db.query() call site across backend/ (services, routes,
+    // utils) — see the comments there before adding a new table reference
+    // without adding it here too.
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS institutions (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        admin_user_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS roles (
         id SERIAL PRIMARY KEY,
@@ -254,7 +269,7 @@ async function createTables() {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role_id INTEGER REFERENCES roles(id) ON DELETE SET NULL,
-        institution_id INTEGER NULL,
+        institution_id INTEGER REFERENCES institutions(id) ON DELETE SET NULL,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -279,6 +294,9 @@ async function createTables() {
       );
     `);
 
+    // Matches data/aiLogs.js's actual insert shape (question/response/
+    // user_level/context with a client-generated UUID) — NOT the older
+    // prompt/tokens_used shape a previous version of this schema had.
     await client.query(`
       CREATE TABLE IF NOT EXISTS ai_logs (
         id UUID PRIMARY KEY,
@@ -293,11 +311,177 @@ async function createTables() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS scenarios (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        difficulty_level INTEGER CHECK (difficulty_level BETWEEN 1 AND 10),
+        ai_prompt TEXT,
+        category VARCHAR(100),
+        created_by INTEGER REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // No route ever creates a row here (there's no session-management flow
+    // yet) — attempts.session_id and performance_metrics.session_id are
+    // free-text client-supplied identifiers, deliberately NOT foreign-keyed
+    // to this table, so submitting an attempt doesn't require a session to
+    // have been created first. Kept for when that flow is built.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        scenario_id INTEGER REFERENCES scenarios(id) ON DELETE CASCADE,
+        start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        end_time TIMESTAMP,
+        score DECIMAL(5,2),
+        status VARCHAR(20) DEFAULT 'active',
+        ai_interactions_count INTEGER DEFAULT 0
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS attempts (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(100) NOT NULL,
+        attempt_number INTEGER NOT NULL,
+        user_response TEXT,
+        is_correct BOOLEAN,
+        response_time INTERVAL,
+        ai_feedback TEXT,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS progress (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        scenario_id INTEGER REFERENCES scenarios(id) ON DELETE CASCADE,
+        completed BOOLEAN DEFAULT FALSE,
+        total_attempts INTEGER DEFAULT 0,
+        best_score DECIMAL(5,2),
+        average_response_time INTERVAL,
+        skills_gained JSONB,
+        last_attempt_at TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, scenario_id)
+      );
+    `);
+
+    // scenario_id/session_id here are the slug-style identifiers used by
+    // attackSimulator/data/progress.js (e.g. "network-scanning"), not the
+    // auto-increment ids in the `scenarios` table (a separate, AI-generated
+    // scenario catalog) — so neither is foreign-keyed.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS performance_metrics (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        scenario_id VARCHAR(100),
+        session_id VARCHAR(100),
+        accuracy DECIMAL(5,2),
+        avg_response_time INTERVAL,
+        difficulty_adjustment INTEGER,
+        adaptive_resilience_score DECIMAL(5,2),
+        ai_analysis TEXT,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS auth_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(500) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        action VARCHAR(100),
+        details JSONB,
+        ip_address INET,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // ===== Path / module / task learning system (backend/services/pathService.js) =====
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS paths (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS modules (
+        id SERIAL PRIMARY KEY,
+        path_id INTEGER NOT NULL REFERENCES paths(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        order_index INTEGER DEFAULT 1
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        module_id INTEGER NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        expected_output TEXT,
+        difficulty_level INTEGER DEFAULT 3 CHECK (difficulty_level BETWEEN 1 AND 10),
+        order_index INTEGER DEFAULT 1
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS task_progress (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        status VARCHAR(20) DEFAULT 'locked',
+        attempts INTEGER DEFAULT 0,
+        last_attempt_at TIMESTAMP,
+        completed_at TIMESTAMP,
+        UNIQUE(user_id, task_id)
+      );
+    `);
+
+    // AI-generated technical résumé/skills summaries (backend/services/aiCoreService.js)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS ai_technical_resumes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        path_id INTEGER REFERENCES paths(id) ON DELETE SET NULL,
+        content TEXT NOT NULL,
+        source VARCHAR(50),
+        generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_progress_user_scenario ON progress(user_id, scenario_id);
+      CREATE INDEX IF NOT EXISTS idx_ai_logs_user_id ON ai_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_modules_path_id ON modules(path_id);
+      CREATE INDEX IF NOT EXISTS idx_tasks_module_id ON tasks(module_id);
+      CREATE INDEX IF NOT EXISTS idx_task_progress_user_id ON task_progress(user_id);
+    `);
+
+    await client.query(`
       INSERT INTO roles (name, permissions) VALUES
       ('admin', '{"read":true,"write":true,"delete":true,"manage_users":true}'),
       ('instructor', '{"read":true,"write":true,"manage_students":true}'),
-      ('learner', '{"read":true,"write":false}'),
-      ('student', '{"read":true,"write":false}')
+      ('learner', '{"read":true,"write":false}')
       ON CONFLICT (name) DO NOTHING;
     `);
 
@@ -327,7 +511,26 @@ async function verifyRequiredTables() {
     }
   }
 
-  const requiredTables = ["roles", "users", "learner_profiles", "ai_logs", "learner_states"];
+  const requiredTables = [
+    "institutions",
+    "roles",
+    "users",
+    "learner_profiles",
+    "learner_states",
+    "ai_logs",
+    "scenarios",
+    "sessions",
+    "attempts",
+    "progress",
+    "performance_metrics",
+    "auth_tokens",
+    "audit_logs",
+    "paths",
+    "modules",
+    "tasks",
+    "task_progress",
+    "ai_technical_resumes",
+  ];
   const result = await pool.query(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1)`,
     [requiredTables]

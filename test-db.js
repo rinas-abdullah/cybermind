@@ -2,14 +2,14 @@
 
 /**
  * Database Testing Script
- * Tests connection and configuration for CyberMind
+ * Tests connection and configuration for Risaq
  */
 
 require("dotenv").config();
 const { config } = require("./backend/config/environment");
 
 async function main() {
-  console.log("🔍 CyberMind Database Configuration Test\n");
+  console.log("🔍 Risaq Database Configuration Test\n");
   console.log("=".repeat(50));
 
   // Display current config

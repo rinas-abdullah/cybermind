@@ -13,34 +13,13 @@ const router = express.Router();
 const db = require("../db");
 
 // ===== MIDDLEWARE =====
-const { requireAuth, requireRole, issueToken } = require("../middleware/auth");
-const {
-  validateRegister,
-  validateLogin,
-  validateScoreUpdate,
-} = require("../middleware/validation");
-
-// ===== CONTROLLERS =====
-const {
-  register,
-  login,
-  logout,
-  getProfile,
-} = require("../controllers/authController");
-
-// ===== DATA =====
-const {
-  getUserProgress,
-  updateUserProgress,
-  completeScenario,
-} = require("../data/progress");
-const { logInteraction, getUserLogs } = require("../data/aiLogs");
+const { requireAuth, requireRole } = require("../middleware/auth");
+const { requirePostgres } = require("../middleware/requirePostgres");
 
 // ===== DEMO AUTH / FALLBACK =====
 const demoAuthService = require("../services/demoAuthService");
 
 // ===== UTILITIES =====
-const { calculateLevel } = require("../utils/userUtils");
 const {
   successResponse,
   errorResponse,
@@ -59,31 +38,17 @@ const {
   getEngagementMetrics,
 } = require("../utils/analytics");
 
-// ===== AI TRAINING ENGINE =====
-const CoreTrainingEngine = require("../services/coreTrainingEngine");
-const trainingEngine = new CoreTrainingEngine();
-
 // ===== RISK SCORING / BEHAVIOR ANALYSIS =====
 const RiskScoringService = require("../services/riskScoringService");
 const BehaviorAnalysisService = require("../services/behaviorAnalysisService");
 const riskScoringService = new RiskScoringService();
 const behaviorAnalysisService = new BehaviorAnalysisService();
 
-// ===== ADAPTIVE LEARNING ENGINE =====
-const AdaptiveLearningEngine = require("../services/adaptiveLearningEngine");
-const adaptiveEngine = new AdaptiveLearningEngine();
-
-// ===== ATTACK SIMULATOR =====
-const AttackSimulator = require("../services/attackSimulator");
-const attackSimulator = new AttackSimulator();
-
 // ===== AI MENTOR =====
-const AIMentorEngine = require("../services/aiMentorEngine");
 const AIMentorService = require("../services/aiMentorService");
 const AdaptiveLearningService = require("../services/adaptiveLearningService");
 const LearnerProfileService = require("../services/ai/learnerProfileService");
 const ScenarioAnalysisService = require("../services/scenarioAnalysisService");
-const aiMentorEngine = new AIMentorEngine();
 const aiMentorService = new AIMentorService();
 const adaptiveLearningService = new AdaptiveLearningService();
 const learnerProfileService = new LearnerProfileService();
@@ -98,10 +63,6 @@ const scenarioAnalysisService = new ScenarioAnalysisService(
 // ===== AI CORE / PATHS =====
 const aiCoreService = require("../services/aiCoreService");
 const pathService = require("../services/pathService");
-
-const MAX_PROMPT_LENGTH = 4000;
-const MAX_SCENARIO_SCORE = 1000;
-const MAX_TIME_SPENT = 24 * 60 * 60;
 
 // ==================================================
 // HELPERS
@@ -149,40 +110,6 @@ function normalizeRole(value) {
   return value.trim().toLowerCase() || "learner";
 }
 
-function sanitizeQuestion(question) {
-  if (typeof question !== "string") return "";
-  return question.trim().slice(0, 3000);
-}
-
-function sanitizeContext(context) {
-  if (typeof context !== "string") return "training";
-  return context.trim().slice(0, 100) || "training";
-}
-
-function sanitizeScenarioId(value) {
-  if (typeof value !== "string") return "";
-  return value.trim().slice(0, 100);
-}
-
-function clampNumber(value, min, max, fallback) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return fallback;
-  return Math.min(Math.max(n, min), max);
-}
-
-function parseJsonString(value, fallback = {}) {
-  if (typeof value !== "string" || !value.trim()) return fallback;
-
-  try {
-    const parsed = JSON.parse(value);
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
-      ? parsed
-      : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 function getAuthUserOrNull(username) {
   if (!username) return null;
   return demoAuthService.findDemoUserByUsername
@@ -200,82 +127,7 @@ function canAccessUsername(requestedUsername, reqUser) {
   return current === requested || role === "admin" || role === "instructor";
 }
 
-function canManageUserProfile(requestedUsername, reqUser) {
-  if (!reqUser || !requestedUsername) return false;
-
-  const requested = String(requestedUsername).toLowerCase();
-  const current = String(reqUser.username || "").toLowerCase();
-  const role = normalizeRole(reqUser.role);
-
-  return current === requested || role === "admin";
-}
-
-function canViewMentorHistory(requestedUsername, reqUser) {
-  return canManageUserProfile(requestedUsername, reqUser);
-}
-
-function buildJwtForUser(user) {
-  return issueToken({
-    userId: user.id,
-    username: user.username,
-    role: user.role,
-  });
-}
-
-async function getRealtimeUserProfile(username) {
-  const safeUsername = normalizeUsername(username);
-  const authUser = getAuthUserOrNull(safeUsername);
-
-  if (!authUser) {
-    return null;
-  }
-
-  let dbUser = null;
-
-  if (db && typeof db.query === "function") {
-    try {
-      const { rows } = await db.query(
-        `
-          SELECT id, username, role
-          FROM users
-          WHERE username = $1
-          LIMIT 1
-        `,
-        [safeUsername]
-      );
-
-      if (Array.isArray(rows) && rows.length > 0) {
-        dbUser = rows[0];
-      }
-    } catch (err) {
-      console.warn("User profile DB fallback failed:", err.message);
-    }
-  }
-
-  const safeProfile =
-    demoAuthService.getDemoUserProfile?.(authUser.username) ||
-    demoAuthService.getUserProfile?.(authUser.username) ||
-    null;
-
-  return {
-    ...(safeProfile || {}),
-    ...(dbUser || {}),
-  };
-}
-
 // getOpenAIClient is imported from ../services/ai/aiProvider at the top of the file
-
-function getAllowedAiModel(requestedModel) {
-  const allowedModels = new Set(["gpt-4.1-mini", "gpt-4o-mini"]);
-  const model =
-    typeof requestedModel === "string" ? requestedModel.trim() : "gpt-4o-mini";
-
-  const targetModel = allowedModels.has(model) ? model : "gpt-4o-mini";
-  if (targetModel === "gpt-4.1-mini") {
-    return "gpt-4o-mini";
-  }
-  return targetModel;
-}
 
 function extractCiaCategoryFromText(text = "") {
   const normalized = String(text).toLowerCase();
@@ -326,7 +178,7 @@ async function getAdminInstitutionStats(institutionId) {
     SELECT s.category,
       ROUND(AVG(pm.accuracy)::numeric, 2) AS average_accuracy
     FROM performance_metrics pm
-    JOIN scenarios s ON s.id = pm.scenario_id
+    JOIN scenarios s ON s.id::text = pm.scenario_id
     JOIN users u ON u.id = pm.user_id
     WHERE u.institution_id = $1
     GROUP BY s.category
@@ -430,7 +282,7 @@ router.get("/health", (req, res) => {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
     },
-    "CyberMind backend is running"
+    "Risaq backend is running"
   );
 });
 
@@ -618,323 +470,26 @@ router.post("/ai/analyze-scenario", requireAuth, (req, res) => {
   }
 });
 
-router.get("/ai/learner-profile/:userId", requireAuth, async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    if (!userId) return errorResponse(res, "User ID is required", 400);
+// Note: GET /ai/learner-profile/:userId, POST /ai/mentor, POST /ai/query,
+// GET /ai/mentor/history/:username, GET /ai/next-scenario/:username, and
+// POST /ai/process-attempt are all handled by aiRoutes.js (mounted above via
+// router.use(aiRoutes)) — they used to be re-defined here too, unreachable
+// and subtly different from the real handlers. Removed rather than fixed.
 
-    const profile = await learnerProfileService.getLearnerProfile(userId);
-    if (!profile) return notFoundResponse(res, "Learner profile");
+// Note: POST /attempts/submit and POST /scenarios/generate are handled by
+// scenarioRoutes.js (mounted above via router.use(scenarioRoutes)) — they
+// used to be re-defined here too, unreachable. Removed.
 
-    return successResponse(res, profile, "Learner profile retrieved");
-  } catch (error) {
-    console.error("Get learner profile error:", error);
-    return errorResponse(res, "Failed to retrieve learner profile", 500);
-  }
-});
-
-// ==================================================
-// ATTEMPTS & ADAPTIVE LEARNING ROUTES
-// ==================================================
-
-router.post("/attempts/submit", requireAuth, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { sessionId, scenarioId, userResponse, isCorrect, responseTime } =
-      req.body;
-
-    if (
-      !sessionId ||
-      !scenarioId ||
-      userResponse === undefined ||
-      isCorrect === undefined ||
-      !responseTime
-    ) {
-      return errorResponse(res, "Missing required fields", 400);
-    }
-
-    const attemptResult = await db.query(
-      `
-      INSERT INTO attempts (session_id, attempt_number, user_response, is_correct, response_time, ai_feedback, timestamp)
-      VALUES (
-        $1,
-        (SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM attempts WHERE session_id = $1),
-        $2, $3, $4, '', CURRENT_TIMESTAMP
-      )
-      RETURNING id, attempt_number
-      `,
-      [sessionId, userResponse, isCorrect, responseTime]
-    );
-
-    const attempt = attemptResult.rows[0];
-    const accuracy = isCorrect ? 100 : 0;
-
-    const adaptation = await adaptiveEngine.adaptDifficulty(
-      userId,
-      scenarioId,
-      sessionId,
-      accuracy,
-      responseTime
-    );
-
-    return successResponse(
-      res,
-      {
-        attempt,
-        adaptation,
-      },
-      "Attempt submitted and difficulty adapted"
-    );
-  } catch (error) {
-    console.error("Submit attempt error:", error);
-    return errorResponse(res, "Failed to submit attempt", 500);
-  }
-});
-
-// ==================================================
-// SCENARIO GENERATION WITH ADAPTIVE DIFFICULTY
-// ==================================================
-
-router.post("/scenarios/generate", requireAuth, async (req, res) => {
-  try {
-    const { scenarioId, basePrompt } = req.body;
-
-    if (!scenarioId || !basePrompt) {
-      return errorResponse(res, "Scenario ID and base prompt are required", 400);
-    }
-
-    const adaptivePrompt = await trainingEngine.generateAdaptivePrompt(
-      scenarioId,
-      basePrompt
-    );
-
-    return successResponse(
-      res,
-      {
-        adaptivePrompt,
-        scenarioId,
-      },
-      "Adaptive prompt generated"
-    );
-  } catch (error) {
-    console.error("Generate scenario error:", error);
-    return errorResponse(res, "Failed to generate scenario", 500);
-  }
-});
-
-// ==================================================
-// AI TRAINING ENGINE ROUTES
-// ==================================================
-
-router.post("/ai/mentor", requireAuth, async (req, res) => {
-  try {
-    const question = sanitizeQuestion(req.body?.question);
-    const context = sanitizeContext(req.body?.context);
-
-    if (!question) {
-      return errorResponse(res, "Question is required", 400);
-    }
-
-    const username = req.user.username;
-    const authUser = getAuthUserOrNull(username);
-
-    if (!authUser) {
-      return errorResponse(res, "User not found", 404);
-    }
-
-    const userLevel = authUser.profile?.level || authUser.level || 1;
-    const userId = authUser.id;
-
-    const mentorResponse = await aiMentorEngine.generateResponse(
-      question,
-      userLevel,
-      context
-    );
-
-    const markdownResponse = aiMentorEngine.formatAsMarkdown(mentorResponse);
-
-    const logEntry = await logInteraction(
-      userId,
-      username,
-      question,
-      markdownResponse,
-      userLevel,
-      context
-    );
-
-    return successResponse(
-      res,
-      {
-        question,
-        explanation: mentorResponse.explanation,
-        examples: mentorResponse.examples,
-        prevention: mentorResponse.prevention,
-        hint: mentorResponse.hint,
-        topic: mentorResponse.topic,
-        difficulty: mentorResponse.difficulty,
-        userLevel,
-        context,
-        logId: logEntry.id,
-        timestamp: logEntry.timestamp,
-      },
-      "AI mentor response generated"
-    );
-  } catch (error) {
-    console.error("AI Mentor Error:", error);
-    return errorResponse(res, "Failed to generate mentor response", 500);
-  }
-});
-
-router.post("/ai/query", requireAuth, async (req, res) => {
-  try {
-    const prompt =
-      typeof req.body?.prompt === "string" ? req.body.prompt.trim() : "";
-    const model = getAllowedAiModel(req.body?.model);
-
-    if (!prompt) {
-      return errorResponse(res, "Prompt is required", 400);
-    }
-
-    if (prompt.length > MAX_PROMPT_LENGTH) {
-      return errorResponse(res, "Prompt is too long", 400);
-    }
-
-    const client = getOpenAIClient();
-    if (!client) {
-      return errorResponse(res, "AI provider not configured", 500);
-    }
-
-    const result = await client.chat.completions.create({
-      model,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    return successResponse(
-      res,
-      {
-        model,
-        output: result.choices?.[0]?.message?.content || "",
-      },
-      "AI response generated"
-    );
-  } catch (error) {
-    console.error("AI query failed:", error);
-    return errorResponse(res, "AI request failed", 500);
-  }
-});
-
-router.get("/ai/mentor/history/:username", requireAuth, (req, res) => {
-  try {
-    const username = normalizeUsername(req.params.username);
-
-    if (!canViewMentorHistory(username, req.user)) {
-      return errorResponse(res, "Forbidden", 403);
-    }
-
-    const user = getAuthUserOrNull(username);
-    if (!user) {
-      return errorResponse(res, "User not found", 404);
-    }
-
-    const logs = getUserLogs(user.id);
-
-    return successResponse(
-      res,
-      logs,
-      `Retrieved ${logs.length} conversation logs for ${username}`
-    );
-  } catch (error) {
-    console.error("Get History Error:", error);
-    return errorResponse(res, "Failed to retrieve conversation history", 500);
-  }
-});
-
-router.get("/ai/next-scenario/:username", requireAuth, async (req, res) => {
-  try {
-    const username = normalizeUsername(req.params.username);
-
-    if (!canAccessUsername(username, req.user)) {
-      return errorResponse(res, "Forbidden", 403);
-    }
-
-    const behavioralData = parseJsonString(req.query?.behavioralData, {});
-    const authUser = getAuthUserOrNull(username);
-    const userId = authUser?.id || 0;
-
-    const scenariosList = attackSimulator.getAllScenarios
-      ? attackSimulator.getAllScenarios()
-      : [];
-
-    try {
-      const scenario = await trainingEngine.selectNextScenario(
-        userId,
-        scenariosList,
-        behavioralData
-      );
-
-      return successResponse(res, scenario, "Adaptive scenario selected");
-    } catch (error) {
-      console.warn("Adaptive selection failed:", error.message);
-
-      if (scenariosList.length > 0) {
-        return successResponse(res, scenariosList[0], "Fallback scenario returned");
-      }
-
-      return errorResponse(res, "No scenarios available", 404);
-    }
-  } catch (error) {
-    console.error("Next scenario error:", error);
-    return errorResponse(res, "Failed to select next scenario", 500);
-  }
-});
-
-router.post("/ai/process-attempt", requireAuth, async (req, res) => {
-  try {
-    const username = req.user.username;
-    const scenarioId = sanitizeScenarioId(req.body?.scenarioId);
-
-    if (!scenarioId) {
-      return errorResponse(res, "Scenario ID is required", 400);
-    }
-
-    const score = clampNumber(req.body?.score, 0, MAX_SCENARIO_SCORE, 0);
-    const timeSpent = clampNumber(req.body?.timeSpent, 0, MAX_TIME_SPENT, 0);
-
-    const incorrectAnswers = Array.isArray(req.body?.incorrectAnswers)
-      ? req.body.incorrectAnswers.slice(0, 50)
-      : [];
-
-    const behavioralData =
-      req.body?.behavioralData &&
-      typeof req.body.behavioralData === "object" &&
-      !Array.isArray(req.body.behavioralData)
-        ? req.body.behavioralData
-        : {};
-
-    const authUser = getAuthUserOrNull(username);
-    const userId = authUser?.id || 0;
-
-    const result = await trainingEngine.processScenarioAttempt(userId, scenarioId, {
-      score,
-      timeSpent,
-      incorrectAnswers,
-      behavioralData,
-    });
-
-    await completeScenario(username, scenarioId, score, timeSpent);
-
-    return successResponse(res, result, "Scenario processed");
-  } catch (error) {
-    console.error("Process attempt error:", error);
-    return errorResponse(res, "Failed to process scenario attempt", 500);
-  }
-});
+// Note: POST /ai/mentor, POST /ai/query, GET /ai/mentor/history/:username,
+// GET /ai/next-scenario/:username, and POST /ai/process-attempt used to be
+// re-defined here too (unreachable duplicates of aiRoutes.js — see note
+// above). Removed.
 
 // ==================================================
 // PATH / MODULE / TASK ROUTES
 // ==================================================
 
-router.post("/admin/paths", requireAuth, requireRole("admin"), async (req, res) => {
+router.post("/admin/paths", requireAuth, requireRole("admin"), requirePostgres, async (req, res) => {
   try {
     const { name, description } = req.body;
     if (!name || !name.trim()) {
@@ -949,7 +504,7 @@ router.post("/admin/paths", requireAuth, requireRole("admin"), async (req, res) 
   }
 });
 
-router.post("/admin/modules", requireAuth, requireRole("admin"), async (req, res) => {
+router.post("/admin/modules", requireAuth, requireRole("admin"), requirePostgres, async (req, res) => {
   try {
     const { pathId, name, description, orderIndex } = req.body;
     if (!pathId || !name || !name.trim()) {
@@ -970,7 +525,7 @@ router.post("/admin/modules", requireAuth, requireRole("admin"), async (req, res
   }
 });
 
-router.post("/admin/tasks", requireAuth, requireRole("admin"), async (req, res) => {
+router.post("/admin/tasks", requireAuth, requireRole("admin"), requirePostgres, async (req, res) => {
   try {
     const { moduleId, name, description, expectedOutput, difficultyLevel, orderIndex } =
       req.body;
@@ -994,7 +549,7 @@ router.post("/admin/tasks", requireAuth, requireRole("admin"), async (req, res) 
   }
 });
 
-router.get("/paths", requireAuth, async (req, res) => {
+router.get("/paths", requireAuth, requirePostgres, async (req, res) => {
   try {
     const paths = await pathService.getPaths();
     return successResponse(res, paths, "Paths fetched");
@@ -1004,7 +559,7 @@ router.get("/paths", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/paths/:pathId", requireAuth, async (req, res) => {
+router.get("/paths/:pathId", requireAuth, requirePostgres, async (req, res) => {
   try {
     const pathId = Number(req.params.pathId);
     if (!pathId) return errorResponse(res, "Invalid path id", 400);
@@ -1019,7 +574,7 @@ router.get("/paths/:pathId", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/tasks/:taskId/action", requireAuth, async (req, res) => {
+router.post("/tasks/:taskId/action", requireAuth, requirePostgres, async (req, res) => {
   try {
     const taskId = Number(req.params.taskId);
     const userAction = (req.body?.action || "").toString();
@@ -1063,7 +618,7 @@ router.post("/tasks/:taskId/action", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/tasks/:taskId/submit", requireAuth, async (req, res) => {
+router.post("/tasks/:taskId/submit", requireAuth, requirePostgres, async (req, res) => {
   try {
     const taskId = Number(req.params.taskId);
     if (!taskId) return errorResponse(res, "Invalid task id", 400);
@@ -1149,7 +704,7 @@ router.post("/ai/generate-scenario", requireAuth, async (req, res) => {
   }
 });
 
-router.get("/admin/ai-group-report", requireAuth, requireRole("admin"), async (req, res) => {
+router.get("/admin/ai-group-report", requireAuth, requireRole("admin"), requirePostgres, async (req, res) => {
   try {
     const institutionId = req.user?.institution_id;
     if (!institutionId) {
@@ -1164,7 +719,7 @@ router.get("/admin/ai-group-report", requireAuth, requireRole("admin"), async (r
   }
 });
 
-router.get("/ai/technical-resume", requireAuth, async (req, res) => {
+router.get("/ai/technical-resume", requireAuth, requirePostgres, async (req, res) => {
   try {
     const resume = await aiCoreService.getLatestTechnicalResume(req.user.userId);
     if (!resume) {
@@ -1198,7 +753,7 @@ router.get("/analytics/institution", requireAuth, requireRole("admin", "instruct
     const institution =
       typeof req.query?.institution === "string"
         ? req.query.institution.trim()
-        : "CyberMind University";
+        : "Risaq University";
 
     const report = generateInstitutionReport(institution);
     return successResponse(res, report, "Institution report generated");
@@ -1244,7 +799,7 @@ router.get("/analytics/engagement", requireAuth, requireRole("admin", "instructo
   }
 });
 
-router.get("/admin/stats", requireAuth, requireRole("admin"), async (req, res) => {
+router.get("/admin/stats", requireAuth, requireRole("admin"), requirePostgres, async (req, res) => {
   try {
     const requestingInstitutionId = req.user?.institution_id;
 

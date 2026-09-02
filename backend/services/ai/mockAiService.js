@@ -1,5 +1,5 @@
 /**
- * Mock OpenAI Service for Raqeem
+ * Mock OpenAI Service for Risaq
  * Provides high-fidelity, context-aware bilingual (EN/AR) simulations of elite AI responses
  * conforming to SANS, CISSP, and MITRE ATT&CK standards when offline or no API Key is active.
  */
@@ -23,7 +23,7 @@ class MockOpenAI {
     console.log(`[MockOpenAI] Processing request using high-fidelity cybersecurity simulation engine.`);
 
     // Route requests to appropriate handlers based on prompt clues
-    if (systemMessage.includes("You are Raqeem AI Mentor") || systemMessage.includes("You are Wathaq AI Mentor") || systemMessage.includes("You are CyberMind AI Mentor") || systemMessage.includes("Feynman Technique") || systemMessage.includes("Socratic")) {
+    if (systemMessage.includes("You are Risaq AI Mentor") || systemMessage.includes("Feynman Technique") || systemMessage.includes("Socratic")) {
       return this.wrapResponse(await this.handleMentorRequest(userMessage));
     }
 
@@ -152,6 +152,20 @@ class MockOpenAI {
           "حظر ظهور الترويسات والبانرات التعريفية للخدمات لمنع المهاجمين من استنتاج إصدارات الأنظمة بسهولة."
         ];
         responseObj.hint = "البوابات المفتوحة هي المدخل الأساسي لأي نظام. ما هو دور جدار الحماية في التحكم بما يمر عبر هذه الأبواب وكيف تفرق بين فحص SYN وفحص TCP Connect؟";
+      } else if (cleanQ.includes("malware") || cleanQ.includes("خبيث") || cleanQ.includes("فيروس") || cleanQ.includes("طروادة") || cleanQ.includes("trojan") || cleanQ.includes("ransomware") || cleanQ.includes("فدية")) {
+        responseObj.topic = "أساسيات البرمجيات الخبيثة وآليات الاستمرارية (Malware & Persistence)";
+        responseObj.explanation = "البرمجيات الخبيثة هي برامج مصممة عمداً للإضرار بالسرية أو السلامة أو التوفر. بعد التنفيذ الأولي، تحتاج البرمجية للاستمرار عبر إعادة التشغيل (Persistence) لتكون مفيدة للمهاجم — عبر تعديلات السجل، المهام المجدولة، أو تثبيت خدمات جديدة.";
+        responseObj.examples = [
+          "مفاتيح تشغيل السجل: إضافة قيمة تحت `HKCU\\...\\Run` ليتم تشغيل البرمجية تلقائياً عند كل تسجيل دخول.",
+          "عملية أم مشبوهة: حصان طروادة مرفق برسالة بريد يظهر كعملية فرعية لبرنامج Word بدلاً من مستكشف الملفات.",
+          "استغلال أدوات النظام الموثوقة (LOLBins): استخدام أدوات مثل PowerShell أو `rundll32.exe` لتنفيذ كود خبيث دون كتابة ملف مشبوه على القرص."
+        ];
+        responseObj.prevention = [
+          "إبقاء قواعد بيانات توقيعات EDR محدّثة وتفعيل الحماية السحابية لاكتشاف العينات الجديدة.",
+          "نشر أدوات EDR تنبّه فوراً عند إضافة مدخلات تشغيل تلقائي أو مهام مجدولة جديدة.",
+          "تطبيق مبدأ الصلاحية الأقل — معظم آليات الاستمرارية تحتاج صلاحيات مسؤول محلي."
+        ];
+        responseObj.hint = "لو أنهيت هذه العملية الآن، هل ستعود بعد إعادة التشغيل؟ أين تبحث لمعرفة كيف تعيد تشغيل نفسها؟";
       } else {
         responseObj.topic = "أسس وأصول الدفاع السيبراني التكتيكي";
         responseObj.explanation = "يتطلب أمن المعلومات بناء استراتيجيات دفاعية شاملة تعتمد على مبدأ الدفاع متعدد الطبقات (Defense in Depth) ومبدأ الثقة المعدومة (Zero Trust). الدفاع السيبراني لا يعتمد على حماية ثغرة واحدة بل على بناء جدران عازلة ومسارات مراقبة مستمرة للحد من آثار الاختراقات الأمنية.";
@@ -225,6 +239,20 @@ class MockOpenAI {
           "Modify daemon settings to disable verbose service banners, hiding running engine versions."
         ];
         responseObj.hint = "Consider the TCP handshake. What packets are exchanged during a SYN scan vs. a standard TCP Connect scan?";
+      } else if (cleanQ.includes("malware") || cleanQ.includes("trojan") || cleanQ.includes("virus") || cleanQ.includes("ransomware") || cleanQ.includes("persistence")) {
+        responseObj.topic = "Malware Fundamentals & Persistence Mechanisms";
+        responseObj.explanation = "Malware is software deliberately built to compromise confidentiality, integrity, or availability. After initial execution, it needs to survive a reboot to be useful to an attacker — this is persistence, typically achieved through registry modifications, scheduled tasks, or new service installations.";
+        responseObj.examples = [
+          "Registry Run Keys: Adding a value under `HKCU\\...\\Run` so the payload launches automatically at every user logon.",
+          "Suspicious Parent Process: A trojan dropped as an email attachment shows up as a child process of Word rather than explorer.exe.",
+          "Living-off-the-Land (LOLBins): Using signed, built-in tools (PowerShell, `rundll32.exe`) to execute attacker logic without writing a suspicious file to disk."
+        ];
+        responseObj.prevention = [
+          "Keep EDR signature databases current and enable cloud-delivered protection for zero-day samples.",
+          "Deploy EDR tooling that alerts on new autorun entries, scheduled tasks, and service installations in real time.",
+          "Apply the principle of least privilege — most persistence mechanisms require local admin rights."
+        ];
+        responseObj.hint = "If you killed this process right now, would it come back after a reboot? Where would you look to find out how it re-launches itself?";
       } else {
         responseObj.topic = "Core Defensive Cybersecurity Architecture";
         responseObj.explanation = "Defensive architecture relies on layered resilience. By combining the Zero Trust framework (never trust, always verify) and robust Defense in Depth, organizations build redundant layers of technical, administrative, and physical controls to limit attacker movement.";
@@ -344,9 +372,9 @@ class MockOpenAI {
   async handleGeneralQuery(userPrompt) {
     const isArabic = this.detectLanguage(userPrompt) === "ar";
     if (isArabic) {
-      return "مرحباً! أنا مرشد الأمن السيبراني التكتيكي من منصة رقيم | Raqeem. كيف يمكنني مساعدتك اليوم في استكشاف ثغرات الويب، فحص الشبكات، أو إعداد جدران الحماية؟";
+      return "مرحباً! أنا مرشد الأمن السيبراني التكتيكي من منصة رِسَاق | Risaq. كيف يمكنني مساعدتك اليوم في استكشاف ثغرات الويب، فحص الشبكات، أو إعداد جدران الحماية؟";
     } else {
-      return "Hello! I am your Raqeem AI Assistant (رقيم). I can guide you through hands-on terminal commands, SQL injection mitigations, and network protection setups. What cybersecurity domain would you like to explore today?";
+      return "Hello! I am your Risaq AI Assistant (رِسَاق). I can guide you through hands-on terminal commands, SQL injection mitigations, and network protection setups. What cybersecurity domain would you like to explore today?";
     }
   }
 }

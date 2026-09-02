@@ -1,7 +1,7 @@
 {
   "themes": {
     "dark": {
-      "name": "CyberMind Dark",
+      "name": "Risaq Dark",
       "description": "Dark cybersecurity-themed interface",
       "colors": {
         "bg-primary": "#030810",
@@ -27,7 +27,7 @@
       }
     },
     "light": {
-      "name": "CyberMind Light",
+      "name": "Risaq Light",
       "description": "Light, professional cybersecurity interface",
       "colors": {
         "bg-primary": "#ffffff",

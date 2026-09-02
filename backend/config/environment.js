@@ -87,7 +87,7 @@ const dbType = validateEnum(
 
 const siteUrl = getString(process.env.SITE_URL, "");
 const siteOrigin = siteUrlToOrigin(siteUrl);
-const localDomain = getString(process.env.LOCAL_DOMAIN, "cybermind.local");
+const localDomain = getString(process.env.LOCAL_DOMAIN, "risaq.local");
 const serverPort = getNumber(process.env.PORT, 3001);
 
 const corsOriginsFromEnv = parseCsv(process.env.CORS_ORIGIN);
