@@ -118,6 +118,13 @@
                 <span class="lab-diff intermediate">Intermediate</span>
               </div>
             </button>
+            <button class="lab-select-btn" onclick="switchLab(5)">
+              <span class="lab-num">05</span>
+              <div class="lab-meta">
+                <span class="lab-name">Adaptive Adversary</span>
+                <span class="lab-diff advanced">AI-Adaptive</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -210,11 +217,40 @@
           "ls": "iptables_logs",
           "iptables -A INPUT -s 192.168.1.100 -j DROP": "[sudo] executing firewall rule...\nUpdating netfilter policy rule table...\nRule added: DROP packets from 192.168.1.100 to INPUT chain.\nAttack successfully contained! Flag released: FLAG{firewall_sentinel_771}"
         }
+      },
+      5: {
+        name: "Adaptive Adversary Simulation",
+        difficulty: "AI-Adaptive",
+        objective: "A live adversary is actively probing your systems. Unlike the other labs, there is no fixed script — the attacker tracks every defense you deploy and picks a genuinely different next move in response. Type <code class='neon-code'>help</code> to see available defensive commands. Contain every avenue of attack to win.",
+        isAdversary: true,
       }
     };
 
     let activeLabId = 1;
     let completedLabs = JSON.parse(localStorage.getItem("cybermind_completed_labs") || "[]");
+
+    // State for the live backend-driven adversary lab (lab 5) — everything
+    // else on this page is a static, hardcoded command dictionary; this one
+    // actually calls /api/adversary/* so the attacker's behavior depends on
+    // what the trainee does, not a fixed script.
+    let adversarySessionId = null;
+    let adversaryCurrentMove = null;
+    let adversaryContained = false;
+
+    const DEFENSE_COMMANDS = {
+      "close-port": "close_port",
+      "enable-mfa": "enable_mfa",
+      "enable-email-filtering": "email_filtering",
+      "enable-av": "enable_av",
+      "enable-edr": "edr_behavioral",
+      "disable-scheduled-tasks": "disable_scheduled_tasks",
+      "disconnect-internet": "disconnect_internet",
+      "isolate-host": "isolate_host",
+      "segment-network": "network_segmentation",
+      "enable-credential-guard": "credential_guard",
+      "enable-dns-filtering": "dns_filtering",
+      "enable-dlp": "dlp",
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
       // Initialize nav
@@ -258,12 +294,62 @@
 
       renderActiveLab();
       clearTerminal();
+
+      if (LABS[id].isAdversary) {
+        startAdversarySession();
+      }
+    }
+
+    async function adversaryApi(method, path, body) {
+      const token = localStorage.getItem("authToken");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const response = await fetch(`/api${path}`, {
+        method,
+        headers,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.message || `HTTP ${response.status}`);
+      }
+      return data;
+    }
+
+    function renderAdversaryMove(move) {
+      const isArabic = document.documentElement.lang === "ar";
+      appendLine(
+        `[INCOMING] ${move.category.toUpperCase()} — ${move.mitre}`,
+        "terminal-error-line"
+      );
+      appendLine(isArabic ? move.narrative.ar : move.narrative.en, "terminal-data-line");
+    }
+
+    async function startAdversarySession() {
+      adversarySessionId = null;
+      adversaryCurrentMove = null;
+      adversaryContained = false;
+
+      appendLine("Connecting to live adversary simulation...", "terminal-hint-line");
+
+      try {
+        const res = await adversaryApi("POST", "/adversary/start");
+        adversarySessionId = res.data.sessionId;
+        adversaryCurrentMove = res.data.move;
+        renderAdversaryMove(adversaryCurrentMove);
+        appendLine("Type 'help' to see the defensive commands you can deploy.", "terminal-hint-line");
+      } catch (err) {
+        appendLine(`Failed to start adversary session: ${err.message}`, "terminal-error-line");
+      }
     }
 
     function renderActiveLab() {
       const lab = LABS[activeLabId];
       document.getElementById("terminalTitle").textContent = `agent@risaq:~/lab0${activeLabId} — bash — 80×24`;
       document.getElementById("labObjectiveText").innerHTML = lab.objective;
+      document.getElementById("labXPReward").textContent = lab.isAdversary ? "+100 XP on containment" : "+50 XP Reward";
 
       // Update completion status
       const isCompleted = completedLabs.includes(activeLabId);
@@ -332,6 +418,11 @@
       // Check state-machine dictionary for active lab
       const lab = LABS[activeLabId];
 
+      if (lab.isAdversary) {
+        handleAdversaryCommand(cleanString, lowerString);
+        return;
+      }
+
       if (lowerString === "hint") {
         appendLine(`💡 [AI-GUIDED HINT]: ${lab.hint}`, "terminal-hint-line");
         return;
@@ -395,53 +486,112 @@
     async function validateFlagValue(flagVal) {
       const lab = LABS[activeLabId];
       if (flagVal === lab.flag) {
-        // Success!
         if (completedLabs.includes(activeLabId)) {
           appendLine(`[ALERT] Flag is correct, but you already completed this lab scenario!`, "terminal-hint-line");
           return;
         }
 
-        // Save progress locally and post to backend!
-        try {
-          const token = localStorage.getItem("authToken");
-          const headers = {
-            "Content-Type": "application/json"
-          };
-          if (token) {
-            headers["Authorization"] = `Bearer ${token}`;
-          }
-
-          const response = await fetch("/api/update-score", {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify({ amount: 50 })
-          });
-
-          if (!response.ok) {
-            console.error("Failed to post score to DB:", response.statusText);
-          } else {
-            const data = await response.json();
-            console.log("Score update success:", data);
-            // Refresh nav values
-            if (window.navBar && typeof window.navBar.updateUserStats === "function") {
-              window.navBar.updateUserStats();
-            }
-          }
-        } catch (err) {
-          console.error("Score network error:", err);
-        }
-
-        // Register completed
-        completedLabs.push(activeLabId);
-        localStorage.setItem("cybermind_completed_labs", JSON.stringify(completedLabs));
-
-        // Open beautiful notification
-        showCelebration(`Outstanding work! You successfully cracked ${lab.name} and retrieved the flag! +50 XP has been allocated to your profile.`);
-        
-        renderActiveLab();
-        updateSidebarBadges();
+        await completeLab(50, `Outstanding work! You successfully cracked ${lab.name} and retrieved the flag! +50 XP has been allocated to your profile.`);
       } else {
         appendLine(`[FAILED] Invalid flag value submitted. Check capitalization or review command audit output!`, "terminal-error-line");
+      }
+    }
+
+    // Shared by the flag-based labs (1-4) and the adversary lab (5, on
+    // containment) — posts XP to the backend, marks the active lab
+    // completed, and shows the celebration overlay.
+    async function completeLab(xpAmount, celebrationMessage) {
+      try {
+        const token = localStorage.getItem("authToken");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
+
+        const response = await fetch("/api/update-score", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ amount: xpAmount }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to post score to DB:", response.statusText);
+        } else if (window.navBar && typeof window.navBar.updateUserStats === "function") {
+          window.navBar.updateUserStats();
+        }
+      } catch (err) {
+        console.error("Score network error:", err);
+      }
+
+      completedLabs.push(activeLabId);
+      localStorage.setItem("cybermind_completed_labs", JSON.stringify(completedLabs));
+
+      showCelebration(celebrationMessage);
+      renderActiveLab();
+      updateSidebarBadges();
+    }
+
+    async function handleAdversaryCommand(cleanString, lowerString) {
+      if (lowerString === "help") {
+        const commandList = Object.keys(DEFENSE_COMMANDS).map((c) => `  ${c}`).join("<br>");
+        appendLine(
+          `Available defensive commands:<br>${commandList}<br><br>Type 'status' to see the adversary's current move again.`,
+          "terminal-data-line"
+        );
+        return;
+      }
+
+      if (lowerString === "status") {
+        if (adversaryContained) {
+          appendLine("[CONTAINED] No active adversary — every avenue of attack has been closed off.", "terminal-success-line");
+        } else if (adversaryCurrentMove) {
+          renderAdversaryMove(adversaryCurrentMove);
+        } else {
+          appendLine("No active session. Try switching away from this lab and back to restart it.", "terminal-error-line");
+        }
+        return;
+      }
+
+      if (adversaryContained) {
+        appendLine("The adversary has already been fully contained in this session. Switch labs and back to run it again.", "terminal-hint-line");
+        return;
+      }
+
+      const defenseId = DEFENSE_COMMANDS[lowerString];
+      if (!defenseId) {
+        appendLine(`Unknown command: ${cleanString}. Type 'help' for the list of defensive commands.`, "terminal-error-line");
+        return;
+      }
+
+      if (!adversarySessionId) {
+        appendLine("No active adversary session. Switch away from this lab and back to start one.", "terminal-error-line");
+        return;
+      }
+
+      try {
+        const res = await adversaryApi("POST", "/adversary/defend", {
+          sessionId: adversarySessionId,
+          defenseId,
+        });
+        const result = res.data;
+
+        if (!result.neutralized) {
+          appendLine(`Defense deployed, but it doesn't stop the adversary's current approach.`, "terminal-hint-line");
+          return;
+        }
+
+        if (result.contained) {
+          adversaryContained = true;
+          appendLine("[CONTAINED] That was the adversary's last viable move — every avenue of attack is now blocked!", "terminal-success-line");
+          if (!completedLabs.includes(activeLabId)) {
+            await completeLab(100, "Outstanding work! You fully contained the adaptive adversary. +100 XP has been allocated to your profile.");
+          }
+          return;
+        }
+
+        adversaryCurrentMove = result.move;
+        appendLine("Defense successful — the adversary pivots to a new approach.", "terminal-success-line");
+        renderAdversaryMove(adversaryCurrentMove);
+      } catch (err) {
+        appendLine(`Defense action failed: ${err.message}`, "terminal-error-line");
       }
     }
 
