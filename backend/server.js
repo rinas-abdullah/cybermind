@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const path = require("path");
 // ===== CONFIGURATION & UTILITIES =====
 const envModule = require("./config/environment");
@@ -68,7 +69,24 @@ app.use(
     credentials: config.cors?.credentials,
   })
 );
-app.use(helmet());
+// Default Helmet CSP blocks inline <script> with no nonce/hash — every page
+// in frontend/pages/ has at least one inline bootstrap script (dashboard
+// score sync, admin analytics init, etc.), so the default silently broke
+// them all. Explicitly allow 'unsafe-inline' plus the CDN hosts actually
+// used (Chart.js from jsdelivr, Google Fonts) instead of disabling CSP.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
+      },
+    },
+  })
+);
+app.use(compression());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
@@ -76,9 +94,17 @@ app.use(sanitizeRequest);
 app.use(logger.requestLogger.bind(logger));
 
 // ===== STATIC FILE SERVING =====
+// HTML shells (index.html, frontend/pages/*.html) are left at the default
+// (no caching) so a redeploy is visible immediately; CSS/JS assets get a
+// short cache window since they're the bulk of repeat-visit payload weight.
+// Order matters: the /css and /js handlers must run before the catch-all
+// rootPath one below, or express.static(rootPath) matches those files first
+// (rootPath already contains css/ and js/) and its default no-cache headers
+// win instead of STATIC_ASSET_OPTIONS.
+const STATIC_ASSET_OPTIONS = { maxAge: "1h" };
+app.use("/css", express.static(path.join(rootPath, "css"), STATIC_ASSET_OPTIONS));
+app.use("/js", express.static(path.join(rootPath, "js"), STATIC_ASSET_OPTIONS));
 app.use(express.static(rootPath));
-app.use("/css", express.static(path.join(rootPath, "css")));
-app.use("/js", express.static(path.join(rootPath, "js")));
 app.use("/frontend", express.static(path.join(rootPath, "frontend")));
 
 // ===== API ROUTES =====
@@ -232,7 +258,7 @@ async function startServer() {
             `\n⚠️  Using port ${tryPort} because ${preferredPort} was busy. Set PORT=${tryPort} in .env to make this explicit.\n`
           );
         }
-        logger.info("CyberMind server started successfully", {
+        logger.info("Risaq server started successfully", {
           port: tryPort,
           host,
           environment: config.server?.nodeEnv || "development",

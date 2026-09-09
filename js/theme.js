@@ -1,5 +1,5 @@
 /**
- * Theme Settings for CyberMind
+ * Theme Settings for Risaq
  * Manages dark/light theme switching and color customization
  */
 

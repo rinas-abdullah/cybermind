@@ -1,5 +1,6 @@
 const express = require("express");
 const { requireAuth } = require("../middleware/auth");
+const { requirePostgres } = require("../middleware/requirePostgres");
 const {
   validateScenarioGenerate,
   validateScenarioAttempt,
@@ -8,7 +9,8 @@ const { asyncHandler } = require("../middleware/errorHandler");
 const { successResponse, errorResponse } = require("../utils/responseUtils");
 const attackSimulator = require("../services/attackSimulator");
 const CoreTrainingEngine = require("../services/coreTrainingEngine");
-const adaptiveEngine = require("../services/adaptiveLearningEngine");
+const AdaptiveLearningEngine = require("../services/adaptiveLearningEngine");
+const adaptiveEngine = new AdaptiveLearningEngine();
 const db = require("../db");
 
 const trainingEngine = new CoreTrainingEngine();
@@ -72,6 +74,7 @@ router.post(
 router.post(
   "/attempts/submit",
   requireAuth,
+  requirePostgres,
   validateScenarioAttempt,
   asyncHandler(async (req, res) => {
     const userId = req.user.userId;
@@ -81,9 +84,9 @@ router.post(
       `
       INSERT INTO attempts (session_id, attempt_number, user_response, is_correct, response_time, ai_feedback, timestamp)
       VALUES (
-        $1,
-        (SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM attempts WHERE session_id = $1),
-        $2, $3, $4, '', CURRENT_TIMESTAMP
+        $1::VARCHAR(100),
+        (SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM attempts WHERE session_id = $1::VARCHAR(100)),
+        $2, $3, make_interval(secs => $4::double precision), '', CURRENT_TIMESTAMP
       )
       RETURNING id, attempt_number
       `,

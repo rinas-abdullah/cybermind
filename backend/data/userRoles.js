@@ -30,7 +30,7 @@ const userRoles = [
   {
     username: "admin",
     role: "admin",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     assignedAt: new Date().toISOString(),
     assignedBy: "system",
     permissions: [...ROLE_PERMISSIONS.admin],
@@ -38,7 +38,7 @@ const userRoles = [
   {
     username: "CyberFox",
     role: "instructor",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     assignedAt: new Date().toISOString(),
     assignedBy: "admin",
     permissions: [...ROLE_PERMISSIONS.instructor],
@@ -46,7 +46,7 @@ const userRoles = [
   {
     username: "guest",
     role: "learner",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     assignedAt: new Date().toISOString(),
     assignedBy: "admin",
     permissions: [...ROLE_PERMISSIONS.learner],
@@ -54,7 +54,7 @@ const userRoles = [
   {
     username: "NetRunner",
     role: "learner",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     assignedAt: new Date().toISOString(),
     assignedBy: "admin",
     permissions: [...ROLE_PERMISSIONS.learner],
@@ -147,7 +147,7 @@ function assignRole(
   username,
   role,
   assignedBy,
-  institution = "CyberMind University"
+  institution = "Risaq University"
 ) {
   const normalizedUsername = normalizeUsername(username);
   const normalizedRole = normalizeRole(role);
@@ -169,7 +169,7 @@ function assignRole(
   const roleAssignment = {
     username: normalizedUsername,
     role: normalizedRole,
-    institution: normalizedInstitution || "CyberMind University",
+    institution: normalizedInstitution || "Risaq University",
     assignedAt: new Date().toISOString(),
     assignedBy: normalizedAssignedBy || "system",
     permissions: getPermissionsForRole(normalizedRole),

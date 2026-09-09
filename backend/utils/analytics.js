@@ -24,7 +24,7 @@ function findUser(username) {
   return users.find((u) => u.username === username) || null;
 }
 
-function generateInstitutionReport(institution = "CyberMind University") {
+function generateInstitutionReport(institution = "Risaq University") {
   const institutionUsers = getUsersByInstitution(institution);
   const courses = getCoursesByInstitution(institution);
 
@@ -214,7 +214,7 @@ function generateUserReport(username) {
   return report;
 }
 
-function generateComplianceReport(institution = "CyberMind University") {
+function generateComplianceReport(institution = "Risaq University") {
   const institutionUsers = getUsersByInstitution(institution);
 
   const report = {

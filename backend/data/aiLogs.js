@@ -76,7 +76,37 @@ async function logInteraction(
   return { ...entry };
 }
 
-function getUserLogs(userId) {
+function fromDbRow(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    username: row.username,
+    question: row.question,
+    response: row.response,
+    userLevel: row.user_level,
+    context: row.context,
+    timestamp: row.timestamp instanceof Date ? row.timestamp.toISOString() : row.timestamp,
+  };
+}
+
+// Reads history from PostgreSQL when available so it survives a restart
+// (writes already went there — see logInteraction — but reads used to
+// always hit the in-memory array only, silently discarding persisted
+// history). Falls back to the in-memory array for in-memory mode, or if the
+// DB read fails.
+async function getUserLogs(userId) {
+  if (db?.DB_TYPE === db?.DATABASE_TYPES?.POSTGRESQL) {
+    try {
+      const { rows } = await db.query(
+        `SELECT * FROM ai_logs WHERE user_id = $1 ORDER BY timestamp ASC`,
+        [userId]
+      );
+      return rows.map(fromDbRow);
+    } catch (error) {
+      console.warn("[aiLogs] Database read failed, falling back to in-memory:", error.message);
+    }
+  }
+
   return aiLogs
     .filter((log) => String(log.userId) === String(userId))
     .map((log) => ({ ...log }));

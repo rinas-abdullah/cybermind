@@ -15,7 +15,11 @@ async function getAuthUserOrNull(username) {
   if (db && typeof db.query === "function") {
     try {
       const { rows } = await db.query(
-        `SELECT id, username, role, institution_id FROM users WHERE username = $1 LIMIT 1`,
+        `SELECT u.id, u.username, r.name AS role, u.institution_id
+         FROM users u
+         JOIN roles r ON u.role_id = r.id
+         WHERE u.username = $1
+         LIMIT 1`,
         [safeUsername]
       );
       if (Array.isArray(rows) && rows.length > 0) {

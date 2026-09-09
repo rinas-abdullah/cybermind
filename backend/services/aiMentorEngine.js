@@ -299,6 +299,102 @@ class AIMentorEngine {
             hint: "تتطلب سياسة الـ CSP القائمة على الـ Nonce وجود رمز تشفيري عشوائي فريد لكل وسم `<script>`. إذا وجد المهاجم ثغرة XSS مخزنة، فكيف يمكنه تجاوز هذا القيد دون معرفة الرمز الحالي؟"
           }
         }
+      },
+      malware: {
+        en: {
+          beginner: {
+            topic: "Malware Fundamentals & Static Indicators",
+            explanation: "Malware is software deliberately built to compromise confidentiality, integrity, or availability — droppers, trojans, and worms all fall under this umbrella. Before analyzing behavior, defenders check static indicators of compromise (IOCs): file hashes, digital signatures, and where in the process tree a binary appeared.",
+            examples: [
+              "Unsigned Executable: A binary with no valid code-signing certificate running from a user-writable directory like Downloads or Temp.",
+              "Suspicious Parent Process: A trojan dropped as an attachment shows up as a child process of Word or Outlook rather than explorer.exe.",
+              "Known-Bad Hash: The file's SHA-256 hash matches a signature already published on a threat intelligence feed (e.g., VirusTotal)."
+            ],
+            prevention: [
+              "Keep endpoint antivirus/EDR signature databases current and enable cloud-delivered protection for zero-day samples.",
+              "Apply the principle of least privilege — most droppers require local admin rights to persist.",
+              "Verify code-signing certificates before executing unfamiliar binaries, especially from email attachments."
+            ],
+            hint: "Look at the process tree, not just the file itself. What parent process launched this executable, and is that a normal launch path for that kind of file?"
+          },
+          intermediate: {
+            topic: "Persistence Mechanisms & Behavioral Analysis",
+            explanation: "Once executed, malware needs to survive a reboot to be useful to an attacker — this is persistence. Intermediate analysis shifts from 'is this file bad' to 'what is this process doing': registry modifications, scheduled tasks, and new services are the classic footholds.",
+            examples: [
+              "Registry Run Keys: Adding a value under `HKCU\\...\\Run` so the payload launches automatically at every user logon.",
+              "Scheduled Task Abuse: Creating a task that re-launches the payload every few minutes, surviving both reboot and manual process kills.",
+              "Service Installation: Registering a malicious binary as a Windows service to gain SYSTEM-level persistence and auto-start behavior."
+            ],
+            prevention: [
+              "Deploy EDR tooling that alerts on new autorun entries, scheduled tasks, and service installations in real time.",
+              "Use application allow-listing (e.g., Windows Defender Application Control) to block execution of unrecognized binaries outright.",
+              "Regularly audit `Run`/`RunOnce` registry keys, the Task Scheduler library, and the services list for unexplained entries."
+            ],
+            hint: "If you killed this process right now, would it come back after a reboot? Where would you look to find out how it re-launches itself?"
+          },
+          advanced: {
+            topic: "Evasion Techniques & Memory-Resident Payloads",
+            explanation: "Advanced malware avoids ever writing a suspicious file to disk at all. Process injection, reflective DLL loading, and living-off-the-land binaries (LOLBins) let an attacker run code inside a trusted, already-running process — defeating file-hash-based detection entirely.",
+            examples: [
+              "Process Hollowing: Launching a legitimate process suspended, replacing its memory image with malicious code, then resuming execution under the trusted process's name.",
+              "Reflective DLL Injection: Loading a DLL directly into a target process's memory from a network buffer, never touching disk as a standalone file.",
+              "LOLBin Abuse: Using signed, built-in system tools (e.g., `rundll32.exe`, `mshta.exe`, PowerShell) to execute attacker logic, since the binary itself is trusted."
+            ],
+            prevention: [
+              "Deploy memory-scanning EDR capable of detecting injected code regions, not just file-based signatures.",
+              "Enable PowerShell Script Block Logging and Constrained Language Mode to reduce the blast radius of living-off-the-land abuse.",
+              "Monitor for anomalous child processes spawned by trusted system binaries — that mismatch is often the only visible signal."
+            ],
+            hint: "If the malicious code never touches disk, file-hash detection is useless. What would you have to monitor instead — memory, process behavior, or something else?"
+          }
+        },
+        ar: {
+          beginner: {
+            topic: "أساسيات البرمجيات الخبيثة والمؤشرات الثابتة",
+            explanation: "البرمجيات الخبيثة هي برامج مصممة عمداً للإضرار بالسرية أو السلامة أو التوفر — وتشمل أحصنة طروادة والديدان وبرامج التنزيل الخبيثة. قبل تحليل السلوك، يتحقق المحللون من المؤشرات الثابتة (IOCs): بصمة الملف (Hash)، التوقيع الرقمي، وموقع الملف داخل شجرة العمليات.",
+            examples: [
+              "ملف تنفيذي غير موقّع: ملف بلا شهادة توقيع رقمي صالحة يعمل من مجلد قابل للكتابة مثل التنزيلات أو الملفات المؤقتة.",
+              "عملية أم مشبوهة: حصان طروادة مرفق برسالة بريد يظهر كعملية فرعية لبرنامج Word أو Outlook بدلاً من مستكشف الملفات.",
+              "بصمة معروفة كخبيثة: بصمة SHA-256 للملف تتطابق مع بصمة منشورة مسبقاً في قواعد بيانات الاستخبارات الأمنية."
+            ],
+            prevention: [
+              "إبقاء قواعد بيانات توقيعات مضاد الفيروسات/EDR محدّثة وتفعيل الحماية السحابية لاكتشاف العينات الجديدة.",
+              "تطبيق مبدأ الصلاحية الأقل — معظم برامج التنزيل الخبيثة تحتاج صلاحيات مسؤول محلي للاستمرار.",
+              "التحقق من شهادات التوقيع الرقمي قبل تشغيل أي ملف تنفيذي غير مألوف، خصوصاً من مرفقات البريد."
+            ],
+            hint: "انظر إلى شجرة العمليات وليس الملف فقط. ما العملية الأم التي شغّلت هذا الملف، وهل هذا مسار تشغيل طبيعي لهذا النوع من الملفات؟"
+          },
+          intermediate: {
+            topic: "آليات الاستمرارية والتحليل السلوكي",
+            explanation: "بعد التنفيذ، تحتاج البرمجية الخبيثة للاستمرار بعد إعادة التشغيل لتكون مفيدة للمهاجم — وهذا ما يسمى الاستمرارية (Persistence). التحليل المتوسط ينتقل من سؤال «هل هذا الملف خبيث؟» إلى «ماذا تفعل هذه العملية؟»: تعديلات السجل، المهام المجدولة، والخدمات الجديدة هي أكثر نقاط الاستمرارية شيوعاً.",
+            examples: [
+              "مفاتيح تشغيل السجل: إضافة قيمة تحت `HKCU\\...\\Run` ليتم تشغيل البرمجية تلقائياً عند كل تسجيل دخول.",
+              "استغلال المهام المجدولة: إنشاء مهمة تعيد تشغيل البرمجية كل بضع دقائق، فتنجو من إعادة التشغيل وحتى من إنهاء العملية يدوياً.",
+              "تثبيت كخدمة: تسجيل ملف تنفيذي خبيث كخدمة ويندوز للحصول على استمرارية بصلاحيات النظام (SYSTEM)."
+            ],
+            prevention: [
+              "نشر أدوات EDR تنبّه فوراً عند إضافة مدخلات تشغيل تلقائي أو مهام مجدولة أو خدمات جديدة.",
+              "استخدام القوائم البيضاء للتطبيقات (مثل Windows Defender Application Control) لمنع تشغيل أي ملف غير معروف كلياً.",
+              "مراجعة دورية لمفاتيح `Run`/`RunOnce` في السجل، ومكتبة جدولة المهام، وقائمة الخدمات بحثاً عن أي إضافات غير مبرَّرة."
+            ],
+            hint: "لو أنهيت هذه العملية الآن، هل ستعود بعد إعادة التشغيل؟ أين تبحث لمعرفة كيف تعيد تشغيل نفسها؟"
+          },
+          advanced: {
+            topic: "تقنيات التهرب والحمولات المقيمة في الذاكرة",
+            explanation: "تتجنب البرمجيات الخبيثة المتقدمة كتابة أي ملف مشبوه على القرص من الأساس. حقن العمليات، وتحميل مكتبات DLL انعكاسياً، واستغلال أدوات النظام الموثوقة (LOLBins) تتيح للمهاجم تشغيل الكود داخل عملية موثوقة تعمل بالفعل — متجاوزاً الكشف المعتمد على بصمة الملف تماماً.",
+            examples: [
+              "تفريغ العملية (Process Hollowing): تشغيل عملية شرعية بحالة معلّقة، ثم استبدال صورتها في الذاكرة بكود خبيث، ثم استئناف التشغيل تحت اسم العملية الموثوقة.",
+              "حقن DLL الانعكاسي: تحميل مكتبة DLL مباشرة في ذاكرة العملية المستهدفة من مخزن شبكي، دون أن تلمس القرص كملف مستقل أبداً.",
+              "استغلال أدوات النظام الموثوقة: استخدام أدوات موقّعة مدمجة في النظام (مثل `rundll32.exe` أو `mshta.exe` أو PowerShell) لتنفيذ كود المهاجم، لأن الأداة نفسها موثوقة."
+            ],
+            prevention: [
+              "نشر حلول EDR قادرة على فحص الذاكرة واكتشاف مناطق الكود المحقون، وليس فقط التوقيعات المعتمدة على الملفات.",
+              "تفعيل تسجيل كتل أوامر PowerShell (Script Block Logging) ووضع اللغة المقيّدة لتقليل أثر استغلال أدوات النظام الموثوقة.",
+              "مراقبة العمليات الفرعية غير المعتادة المنبثقة من أدوات النظام الموثوقة — فهذا التناقض غالباً هو المؤشر الوحيد الظاهر."
+            ],
+            hint: "إذا كان الكود الخبيث لا يلمس القرص إطلاقاً، فالكشف عبر بصمة الملف عديم الفائدة. ما الذي يجب مراقبته بدلاً من ذلك؟"
+          }
+        }
       }
     };
   }
@@ -390,10 +486,11 @@ class AIMentorEngine {
     );
 
     for (const topic of topics) {
-      if (lower.includes(topic.toLowerCase()) || 
+      if (lower.includes(topic.toLowerCase()) ||
           (topic === "phishing" && (lower.includes("احتيال") || lower.includes("اصطياد"))) ||
           (topic === "sql injection" && (lower.includes("حقن") || lower.includes("استعلام"))) ||
-          (topic === "xss" && (lower.includes("حقن نص") || lower.includes("cross")))) {
+          (topic === "xss" && (lower.includes("حقن نص") || lower.includes("cross"))) ||
+          (topic === "malware" && (lower.includes("خبيث") || lower.includes("فيروس") || lower.includes("طروادة") || lower.includes("trojan") || lower.includes("virus") || lower.includes("ransomware")))) {
         return topic;
       }
     }
@@ -460,7 +557,7 @@ class AIMentorEngine {
           "Harden configurations and reduce attack surfaces.",
           "Implement layered Defense in Depth architecture."
         ],
-        hint: "Try asking about specific cyber operations domains: phishing, SQL injection, XSS, or network discovery commands (nmap) to unlock Socratic tactical guidance.",
+        hint: "Try asking about specific cyber operations domains: phishing, SQL injection, XSS, malware, or network discovery commands (nmap) to unlock Socratic tactical guidance.",
         topic: "Foundational Cyber Defense Principles",
         difficulty
       },
@@ -500,7 +597,7 @@ class AIMentorEngine {
     if (this.openai) {
       try {
         const systemPrompt = `
-You are Raqeem AI Mentor (رقيم), a highly rigorous SANS-certified cybersecurity instructor and Incident Commander.
+You are Risaq AI Mentor (رِسَاق), a highly rigorous SANS-certified cybersecurity instructor and Incident Commander.
 Adhere strictly to the Socratic Cybersecurity Training Methodology:
 - Do NOT provide generic chatbot pleasantries ("Sure!", "I hope this helps!", "As an AI...").
 - Act as an elite, tactical, cyber-native tutor who speaks to cybersecurity practitioners with professional terminology (e.g., MITRE ATT&CK techniques, protocol boundaries, memory segments).

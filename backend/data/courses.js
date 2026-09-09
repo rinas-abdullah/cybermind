@@ -6,7 +6,7 @@ const courses = [
     title: "Basic Cybersecurity Fundamentals",
     description:
       "Introduction to cybersecurity concepts, threats, and basic defense strategies",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     instructor: "CyberFox",
     difficulty: 1,
     estimatedDuration: 120,
@@ -26,7 +26,7 @@ const courses = [
     title: "Network Security and Defense",
     description:
       "Advanced network security concepts including firewalls, intrusion detection, and secure protocols",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     instructor: "CyberFox",
     difficulty: 3,
     estimatedDuration: 240,
@@ -46,7 +46,7 @@ const courses = [
     title: "Web Application Security",
     description:
       "Secure web application development and common vulnerability assessment",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     instructor: "admin",
     difficulty: 2,
     estimatedDuration: 180,
@@ -66,7 +66,7 @@ const courses = [
     title: "Advanced Exploitation Techniques",
     description:
       "Advanced penetration testing and exploitation methodologies for security professionals",
-    institution: "CyberMind University",
+    institution: "Risaq University",
     instructor: "admin",
     difficulty: 4,
     estimatedDuration: 300,
@@ -284,7 +284,7 @@ function createCourse(courseData = {}) {
     id: generateCourseId(),
     title,
     description: normalizeText(courseData.description || "", 1000),
-    institution: normalizeText(courseData.institution || "CyberMind University", 120),
+    institution: normalizeText(courseData.institution || "Risaq University", 120),
     instructor: normalizeText(courseData.instructor || "admin", 80),
     difficulty: normalizeDifficulty(courseData.difficulty),
     estimatedDuration: normalizeDuration(courseData.estimatedDuration),
