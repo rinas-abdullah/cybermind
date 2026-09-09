@@ -467,6 +467,24 @@ async function createTables() {
       );
     `);
 
+    // Raw per-lab interaction signals (backend/services/behavioralFingerprintEngine.js
+    // aggregates these into a learner's behavioral fingerprint). lab_id is a
+    // free-text client-supplied identifier (terminal.html's numeric lab slots
+    // today, but not restricted to them), same pattern as attempts.session_id.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lab_behavior_events (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        lab_id VARCHAR(100) NOT NULL,
+        duration_ms INTEGER NOT NULL,
+        hints_used INTEGER DEFAULT 0,
+        wrong_attempts INTEGER DEFAULT 0,
+        command_count INTEGER DEFAULT 0,
+        unique_command_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
@@ -475,6 +493,7 @@ async function createTables() {
       CREATE INDEX IF NOT EXISTS idx_modules_path_id ON modules(path_id);
       CREATE INDEX IF NOT EXISTS idx_tasks_module_id ON tasks(module_id);
       CREATE INDEX IF NOT EXISTS idx_task_progress_user_id ON task_progress(user_id);
+      CREATE INDEX IF NOT EXISTS idx_lab_behavior_events_user_id ON lab_behavior_events(user_id);
     `);
 
     await client.query(`
@@ -530,6 +549,7 @@ async function verifyRequiredTables() {
     "tasks",
     "task_progress",
     "ai_technical_resumes",
+    "lab_behavior_events",
   ];
   const result = await pool.query(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1)`,

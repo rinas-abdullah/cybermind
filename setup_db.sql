@@ -208,6 +208,20 @@ CREATE TABLE IF NOT EXISTS ai_technical_resumes (
     generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Raw per-lab interaction signals (backend/services/behavioralFingerprintEngine.js
+-- aggregates these into a learner's behavioral fingerprint).
+CREATE TABLE IF NOT EXISTS lab_behavior_events (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    lab_id VARCHAR(100) NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    hints_used INTEGER DEFAULT 0,
+    wrong_attempts INTEGER DEFAULT 0,
+    command_count INTEGER DEFAULT 0,
+    unique_command_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
@@ -216,6 +230,7 @@ CREATE INDEX IF NOT EXISTS idx_ai_logs_user_id ON ai_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_modules_path_id ON modules(path_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_module_id ON tasks(module_id);
 CREATE INDEX IF NOT EXISTS idx_task_progress_user_id ON task_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_lab_behavior_events_user_id ON lab_behavior_events(user_id);
 
 -- Insert default roles
 INSERT INTO roles (name, permissions) VALUES

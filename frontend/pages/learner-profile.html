@@ -180,8 +180,12 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const profile = await response.json();
-          displayProfile(profile);
+          // successResponse() wraps the real payload under `.data` — reading
+          // the raw body as the profile meant every field below always fell
+          // through to displayProfile()'s hardcoded fallback values.
+          const body = await response.json();
+          displayProfile(body.data || {});
+          loadBehavioralFingerprint(headers);
 
         } catch (error) {
           console.error('Profile load error:', error);
@@ -422,6 +426,62 @@
             <h4>Key Insights</h4>
             <p>${behavior.insights || 'No behavioral insights available'}</p>
           </div>
+          <div id="fingerprintSection" class="fingerprint-section">
+            <div class="fingerprint-loading">Loading behavioral fingerprint...</div>
+          </div>
+        `;
+      }
+
+      async function loadBehavioralFingerprint(headers) {
+        const section = document.getElementById('fingerprintSection');
+        if (!section) return;
+
+        try {
+          const response = await fetch('/api/behavior/fingerprint', { headers: headers });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const body = await response.json();
+          displayFingerprint(body.data || {});
+        } catch (error) {
+          console.error('Fingerprint load error:', error);
+          section.innerHTML = '<p class="fingerprint-error">Could not load behavioral fingerprint.</p>';
+        }
+      }
+
+      function displayFingerprint(fingerprint) {
+        const section = document.getElementById('fingerprintSection');
+        if (!section) return;
+
+        if (fingerprint.insufficientData) {
+          section.innerHTML = `
+            <h4>Behavioral Fingerprint</h4>
+            <p class="fingerprint-empty">${fingerprint.message || 'Complete at least one lab to generate your behavioral fingerprint.'}</p>
+          `;
+          return;
+        }
+
+        const lang = (window.i18n && window.i18n.getCurrentLanguage && window.i18n.getCurrentLanguage() === 'ar') ? 'ar' : 'en';
+        const archetype = fingerprint.archetype?.[lang] || fingerprint.archetype?.en || {};
+        const axesHtml = (fingerprint.axes || []).map(axis => `
+          <div class="fingerprint-axis">
+            <div class="fingerprint-axis-header">
+              <span>${axis.label?.[lang] || axis.axis}</span>
+              <span>${axis.value}/100</span>
+            </div>
+            <div class="fingerprint-bar-track">
+              <div class="fingerprint-bar-fill" style="width: ${axis.value}%"></div>
+            </div>
+          </div>
+        `).join('');
+
+        section.innerHTML = `
+          <h4>Behavioral Fingerprint <span class="fingerprint-sample">(${fingerprint.sampleSize} lab${fingerprint.sampleSize === 1 ? '' : 's'})</span></h4>
+          <div class="fingerprint-axes">${axesHtml}</div>
+          <div class="fingerprint-archetype">
+            <span class="fingerprint-archetype-name">${archetype.name || ''}</span>
+            <p>${archetype.narrative || ''}</p>
+          </div>
         `;
       }
 
@@ -650,6 +710,70 @@
     .behavior-insights h4 {
       margin: 0 0 12px 0;
       color: var(--accent-primary);
+    }
+
+    .fingerprint-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-dim);
+    }
+
+    .fingerprint-section h4 {
+      margin: 0 0 16px 0;
+      color: var(--accent-primary);
+    }
+
+    .fingerprint-sample {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 0.85rem;
+    }
+
+    .fingerprint-axes {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .fingerprint-axis-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .fingerprint-bar-track {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      overflow: hidden;
+    }
+
+    .fingerprint-bar-fill {
+      height: 100%;
+      background: var(--accent-primary);
+      border-radius: 4px;
+    }
+
+    .fingerprint-archetype {
+      padding: 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-md);
+    }
+
+    .fingerprint-archetype-name {
+      display: block;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .fingerprint-empty,
+    .fingerprint-error {
+      color: var(--text-muted);
     }
 
     .recommendations-list {

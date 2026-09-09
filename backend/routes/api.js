@@ -6,6 +6,7 @@ const aiRoutes = require("./aiRoutes");
 const scenarioRoutes = require("./scenarioRoutes");
 const progressRoutes = require("./progressRoutes");
 const leaderboardRoutes = require("./leaderboardRoutes");
+const behaviorRoutes = require("./behaviorRoutes");
 const adversaryRoutes = require("./adversaryRoutes");
 
 const router = express.Router();
@@ -306,6 +307,7 @@ router.use(aiRoutes);
 router.use(scenarioRoutes);
 router.use(progressRoutes);
 router.use(leaderboardRoutes);
+router.use(behaviorRoutes);
 router.use(adversaryRoutes);
 
 // ==================================================

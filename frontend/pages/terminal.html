@@ -229,6 +229,17 @@
     let activeLabId = 1;
     let completedLabs = JSON.parse(localStorage.getItem("cybermind_completed_labs") || "[]");
 
+    // Behavioral fingerprint instrumentation — lightweight per-lab counters,
+    // reset on every switchLab() and sent as one summary event when the lab
+    // is solved (see recordBehaviorAttempt()). Abandoned/incomplete attempts
+    // aren't recorded — there's no reliable "gave up" signal to hang an event
+    // off of, so the fingerprint is built only from completed labs.
+    let labStartTime = Date.now();
+    let labCommandCount = 0;
+    let labUniqueCommands = new Set();
+    let labHintsUsed = 0;
+    let labWrongAttempts = 0;
+
     // State for the live backend-driven adversary lab (lab 5) — everything
     // else on this page is a static, hardcoded command dictionary; this one
     // actually calls /api/adversary/* so the attacker's behavior depends on
@@ -291,6 +302,12 @@
           btn.classList.remove("active");
         }
       });
+
+      labStartTime = Date.now();
+      labCommandCount = 0;
+      labUniqueCommands = new Set();
+      labHintsUsed = 0;
+      labWrongAttempts = 0;
 
       renderActiveLab();
       clearTerminal();
@@ -399,9 +416,12 @@
 
     function executeTerminalCommand(cmdString) {
       appendLine(`agent@risaq:~$ ${cmdString}`, "terminal-input-echo");
-      
+
       const cleanString = cmdString.trim();
       const lowerString = cleanString.toLowerCase();
+
+      labCommandCount++;
+      labUniqueCommands.add(lowerString);
 
       // Intercept direct flag submissions in terminal
       if (lowerString.startsWith("submit ")) {
@@ -424,6 +444,7 @@
       }
 
       if (lowerString === "hint") {
+        labHintsUsed++;
         appendLine(`💡 [AI-GUIDED HINT]: ${lab.hint}`, "terminal-hint-line");
         return;
       }
@@ -493,13 +514,43 @@
 
         await completeLab(50, `Outstanding work! You successfully cracked ${lab.name} and retrieved the flag! +50 XP has been allocated to your profile.`);
       } else {
+        labWrongAttempts++;
         appendLine(`[FAILED] Invalid flag value submitted. Check capitalization or review command audit output!`, "terminal-error-line");
+      }
+    }
+
+    // Fires once, right when a lab is solved — summarizes this attempt for
+    // the behavioral fingerprint engine. Best-effort: a failure here should
+    // never block the completion flow it's called from.
+    async function recordBehaviorAttempt() {
+      try {
+        const token = localStorage.getItem("authToken");
+        const headers = { "Content-Type": "application/json" };
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        await fetch("/api/behavior/lab-attempt", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({
+            labId: activeLabId,
+            durationMs: Date.now() - labStartTime,
+            hintsUsed: labHintsUsed,
+            wrongAttempts: labWrongAttempts,
+            commandCount: labCommandCount,
+            uniqueCommandCount: labUniqueCommands.size
+          })
+        });
+      } catch (err) {
+        console.error("Behavior event network error:", err);
       }
     }
 
     // Shared by the flag-based labs (1-4) and the adversary lab (5, on
     // containment) — posts XP to the backend, marks the active lab
-    // completed, and shows the celebration overlay.
+    // completed, records this attempt's behavioral fingerprint signals,
+    // and shows the celebration overlay.
     async function completeLab(xpAmount, celebrationMessage) {
       try {
         const token = localStorage.getItem("authToken");
@@ -520,6 +571,8 @@
       } catch (err) {
         console.error("Score network error:", err);
       }
+
+      await recordBehaviorAttempt();
 
       completedLabs.push(activeLabId);
       localStorage.setItem("cybermind_completed_labs", JSON.stringify(completedLabs));

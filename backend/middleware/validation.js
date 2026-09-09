@@ -191,6 +191,17 @@ const scenarioAttemptSchema = z
   })
   .strict();
 
+const labBehaviorEventSchema = z
+  .object({
+    labId: z.union([z.string().trim().min(1).max(100), z.number().int()]),
+    durationMs: z.number().int().min(0).max(4 * 60 * 60 * 1000),
+    hintsUsed: z.number().int().min(0).max(1000),
+    wrongAttempts: z.number().int().min(0).max(1000),
+    commandCount: z.number().int().min(0).max(1000),
+    uniqueCommandCount: z.number().int().min(0).max(1000),
+  })
+  .strict();
+
 const adversaryDefendSchema = z
   .object({
     sessionId: z.string().trim().min(1).max(100),
@@ -221,5 +232,6 @@ module.exports = {
   validateProgressCompletion: createSchemaValidator(progressCompletionSchema),
   validateScenarioGenerate: createSchemaValidator(scenarioGenerateSchema),
   validateScenarioAttempt: createSchemaValidator(scenarioAttemptSchema),
+  validateLabBehaviorEvent: createSchemaValidator(labBehaviorEventSchema),
   validateAdversaryDefend: createSchemaValidator(adversaryDefendSchema),
 };
