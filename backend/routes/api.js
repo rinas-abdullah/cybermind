@@ -6,6 +6,7 @@ const aiRoutes = require("./aiRoutes");
 const scenarioRoutes = require("./scenarioRoutes");
 const progressRoutes = require("./progressRoutes");
 const leaderboardRoutes = require("./leaderboardRoutes");
+const behaviorRoutes = require("./behaviorRoutes");
 
 const router = express.Router();
 
@@ -305,6 +306,7 @@ router.use(aiRoutes);
 router.use(scenarioRoutes);
 router.use(progressRoutes);
 router.use(leaderboardRoutes);
+router.use(behaviorRoutes);
 
 // ==================================================
 // RISK SCORING & BEHAVIOR ANALYSIS ROUTES
