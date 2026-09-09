@@ -80,7 +80,16 @@ window.__CYBERMIND_TRANSLATIONS = {
     dashboard: "Security Dashboard",
     leaderboard: "Leaderboard",
     training: "Training",
-    terminal: "Terminal",
+    terminal: {
+      kicker: "Guided AI Labs",
+      title: "Cyber Terminal Sandbox",
+      desc: "Hone your defensive and offensive skills in our premium state-machine sandbox. Complete labs to unlock achievements and earn real XP.",
+      labCompleted: "LAB COMPLETED!",
+      status: "Sandbox Active",
+      labSelector: "Lab Selector",
+      activeObjective: "Active Objective",
+      submitFlag: "Submit Captured Flag"
+    },
 
     start_training: "Start Training",
     completed_scenarios: "Completed Scenarios",
@@ -426,7 +435,16 @@ window.__CYBERMIND_TRANSLATIONS = {
     dashboard: "لوحة الأمان",
     leaderboard: "لوحة المتصدرين",
     training: "التدريب",
-    terminal: "الطرفية",
+    terminal: {
+      kicker: "مختبرات ذكاء اصطناعي موجّهة",
+      title: "صندوق رمل الطرفية السيبرانية",
+      desc: "اصقل مهاراتك الدفاعية والهجومية في بيئة محاكاة متقدمة قائمة على الحالات. أكمل المختبرات لفتح الإنجازات وكسب نقاط خبرة حقيقية.",
+      labCompleted: "تم إكمال المختبر!",
+      status: "الصندوق الرملي نشط",
+      labSelector: "اختيار المختبر",
+      activeObjective: "الهدف الحالي",
+      submitFlag: "إرسال العلم الملتقط"
+    },
 
     start_training: "ابدأ التدريب",
     completed_scenarios: "السيناريوهات المكتملة",

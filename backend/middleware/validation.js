@@ -202,6 +202,13 @@ const labBehaviorEventSchema = z
   })
   .strict();
 
+const adversaryDefendSchema = z
+  .object({
+    sessionId: z.string().trim().min(1).max(100),
+    defenseId: z.string().trim().min(1).max(100),
+  })
+  .strict();
+
 /**
  * General request normalization middleware
  * Trims strings, limits nesting, removes dangerous keys.
@@ -226,4 +233,5 @@ module.exports = {
   validateScenarioGenerate: createSchemaValidator(scenarioGenerateSchema),
   validateScenarioAttempt: createSchemaValidator(scenarioAttemptSchema),
   validateLabBehaviorEvent: createSchemaValidator(labBehaviorEventSchema),
+  validateAdversaryDefend: createSchemaValidator(adversaryDefendSchema),
 };

@@ -72,14 +72,19 @@ app.use(
 // Default Helmet CSP blocks inline <script> with no nonce/hash — every page
 // in frontend/pages/ has at least one inline bootstrap script (dashboard
 // score sync, admin analytics init, etc.), so the default silently broke
-// them all. Explicitly allow 'unsafe-inline' plus the CDN hosts actually
-// used (Chart.js from jsdelivr, Google Fonts) instead of disabling CSP.
+// them all. It separately defaults script-src-attr to 'none', which blocks
+// every inline onclick="..." handler (switchLab(), submitFlagFromInput(),
+// etc. — used throughout these pages) even once script-src itself allows
+// unsafe-inline; that needs its own override. Also allow the CDN hosts
+// actually used (Chart.js from jsdelivr, Google Fonts) instead of
+// disabling CSP outright.
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
         "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        "script-src-attr": ["'unsafe-inline'"],
         "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
       },
