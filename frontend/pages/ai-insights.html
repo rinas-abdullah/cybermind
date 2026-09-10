@@ -241,8 +241,8 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const insights = await response.json();
-          displayInsights(insights);
+          const body = await response.json();
+          displayInsights(body.data || {});
 
         } catch (error) {
           console.error('Insights load error:', error);
@@ -272,8 +272,8 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const newInsights = await response.json();
-          displayInsights(newInsights);
+          const newInsightsBody = await response.json();
+          displayInsights(newInsightsBody.data || {});
 
         } catch (error) {
           console.error('Generate insights error:', error);
