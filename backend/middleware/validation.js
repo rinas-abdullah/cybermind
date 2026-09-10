@@ -209,6 +209,15 @@ const adversaryDefendSchema = z
   })
   .strict();
 
+const pressureAttemptSchema = z
+  .object({
+    labId: z.union([z.string().trim().min(1).max(100), z.number().int()]),
+    timeLimitMs: z.number().int().min(1).max(60 * 60 * 1000),
+    completed: z.boolean(),
+    remainingMs: z.number().int().min(0).max(60 * 60 * 1000).nullable().optional(),
+  })
+  .strict();
+
 /**
  * General request normalization middleware
  * Trims strings, limits nesting, removes dangerous keys.
@@ -234,4 +243,5 @@ module.exports = {
   validateScenarioAttempt: createSchemaValidator(scenarioAttemptSchema),
   validateLabBehaviorEvent: createSchemaValidator(labBehaviorEventSchema),
   validateAdversaryDefend: createSchemaValidator(adversaryDefendSchema),
+  validatePressureAttempt: createSchemaValidator(pressureAttemptSchema),
 };
