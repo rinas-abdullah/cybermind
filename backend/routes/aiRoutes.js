@@ -202,4 +202,42 @@ router.get(
   })
 );
 
+// js/app.js's loadAIDashboardData() has called this exact path since the
+// dashboard was built, but the route never existed (always 404'd, silently
+// swallowed by its own try/catch) — it just re-shapes the same learner
+// profile data already served above into what updateDashboardWithAIData()/
+// addAIInsightsCard() expect.
+router.get(
+  "/ai/dashboard/:username",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const username = normalizeUsername(req.params.username);
+    if (!username) return errorResponse(res, "Username is required", 400);
+
+    if (!canAccessUsername(username, req.user)) {
+      return errorResponse(res, "Forbidden", 403);
+    }
+
+    const user = await getAuthUserOrNull(username);
+    if (!user) return notFoundResponse(res, "User");
+
+    const profile = await learnerProfileService.getLearnerProfile(user.id);
+    if (!profile) return notFoundResponse(res, "Learner profile");
+
+    const dashboardData = {
+      profile: {
+        knowledgeLevel: profile.knowledgeLevel,
+        riskPersona: profile.riskPersona,
+        completedScenarios: profile.completedScenarios,
+      },
+      recommendations: {
+        focusAreas: profile.recommendedFocusAreas,
+      },
+      skillMemory: (profile.weakSkills || []).map((skillName) => ({ skillName })),
+    };
+
+    return successResponse(res, dashboardData, "AI dashboard data retrieved");
+  })
+);
+
 module.exports = router;

@@ -68,7 +68,7 @@
         <span>Score</span>
       </div>
 
-      <div id="leaderboardContainer">
+      <div id="leaderboardTableContainer">
         <div
           style="
             padding: 24px;
@@ -174,7 +174,7 @@
     }
 
     function buildTable(players) {
-      const container = document.getElementById("leaderboardContainer");
+      const container = document.getElementById("leaderboardTableContainer");
       if (!container) return;
 
       if (!players.length) {
@@ -223,7 +223,7 @@
       search.addEventListener("input", function () {
         const q = this.value.toLowerCase().trim();
 
-        document.querySelectorAll("#leaderboardContainer .lb-row").forEach((row) => {
+        document.querySelectorAll("#leaderboardTableContainer .lb-row").forEach((row) => {
           const name =
             row.querySelector(".lb-username")?.textContent.toLowerCase() || "";
 

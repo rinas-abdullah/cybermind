@@ -234,13 +234,21 @@
             return;
           }
 
-          const response = await fetch(`/api/analytics/user/${userId}`);
+          const token = localStorage.getItem("authToken");
+          const headers = {};
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`/api/analytics/user/${encodeURIComponent(userId)}`, {
+            headers: headers
+          });
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const analytics = await response.json();
-          displayAnalytics(analytics);
+          const body = await response.json();
+          displayAnalytics(body.data || {});
 
         } catch (error) {
           console.error('Analytics load error:', error);
@@ -552,7 +560,7 @@
       }
 
       function getCurrentUserId() {
-        return 'current-user-id'; // Placeholder
+        return localStorage.getItem("username") || (window.authService && authService.username) || null;
       }
 
       function showError(message) {
