@@ -485,6 +485,21 @@ async function createTables() {
       );
     `);
 
+    // One row per timed lab run started with Pressure Mode enabled
+    // (backend/routes/pressureRoutes.js). lab_id follows the same free-text
+    // convention as lab_behavior_events.lab_id.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pressure_attempts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        lab_id VARCHAR(100) NOT NULL,
+        time_limit_ms INTEGER NOT NULL,
+        completed BOOLEAN NOT NULL,
+        remaining_ms INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
@@ -494,6 +509,7 @@ async function createTables() {
       CREATE INDEX IF NOT EXISTS idx_tasks_module_id ON tasks(module_id);
       CREATE INDEX IF NOT EXISTS idx_task_progress_user_id ON task_progress(user_id);
       CREATE INDEX IF NOT EXISTS idx_lab_behavior_events_user_id ON lab_behavior_events(user_id);
+      CREATE INDEX IF NOT EXISTS idx_pressure_attempts_user_id ON pressure_attempts(user_id);
     `);
 
     await client.query(`
@@ -550,6 +566,7 @@ async function verifyRequiredTables() {
     "task_progress",
     "ai_technical_resumes",
     "lab_behavior_events",
+    "pressure_attempts",
   ];
   const result = await pool.query(
     `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = ANY($1)`,
