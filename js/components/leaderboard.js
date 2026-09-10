@@ -43,25 +43,15 @@ export function showLeaderboard() {
 
       updateUserRank(normalized);
 
-      const top3 = normalized.slice(0, 3);
-      const rest = normalized.slice(3);
-
-      const topHtml = `
-        <div class="lb-top">
-          ${top3.map((user) => renderTopCard(user)).join("")}
-        </div>
-      `;
-
-      const listHtml = `
-        <div class="lb-list-card">
-          ${rest.map((user) => renderRow(user)).join("")}
-        </div>
-      `;
-
-      container.innerHTML = topHtml + listHtml;
+      // Reuses the same .lb-row structure/CSS as the full leaderboard page
+      // (frontend/pages/leaderboard.html's buildTable()) instead of the
+      // separate .lb-top-card/.lb-top-header/... classes this used to
+      // render with — those were never given CSS rules, so the top-3
+      // entries rendered as unstyled, oversized blocks.
+      container.innerHTML = normalized.map((user) => renderRow(user)).join("");
 
       setTimeout(() => {
-        container.querySelectorAll(".lb-top-card, .lb-row").forEach(animateEntry);
+        container.querySelectorAll(".lb-row").forEach(animateEntry);
       }, 40);
     })
     .catch((err) => {
@@ -87,33 +77,6 @@ function updateUserRank(leaderboardData) {
   userRankElement.textContent = userIndex !== -1 ? `#${userIndex + 1}` : "—";
 }
 
-function renderTopCard(user) {
-  const initials = getInitials(user.username);
-  const tier = getTier(user.points);
-  const hexTag = getHexTag(user.rank);
-
-  return `
-    <div class="lb-top-card">
-      <div class="lb-top-header">
-        <div class="lb-avatar-large">${initials}</div>
-
-        <div class="lb-top-meta">
-          <div class="lb-username">${escapeHtml(user.username)}</div>
-          <div class="lb-tag">${hexTag} ${tier}</div>
-          <div class="lb-streak">🔥 Top Agent</div>
-        </div>
-
-        <div class="lb-rank-number">${user.rank}</div>
-      </div>
-
-      <div class="lb-top-footer">
-        <span class="lb-points-label">Points</span>
-        <span class="lb-points-big">${user.points}</span>
-      </div>
-    </div>
-  `;
-}
-
 function renderRow(user) {
   const initials = getInitials(user.username);
   const tier = getTier(user.points);
@@ -121,19 +84,19 @@ function renderRow(user) {
 
   return `
     <div class="lb-row">
-      <div class="lb-row-left">
-        <span class="lb-row-rank">${user.rank}</span>
+      <div class="lb-rank-num ${user.rank <= 3 ? "top" : ""}">${user.rank}</div>
 
+      <div class="lb-row-left">
         <div class="lb-avatar-small">${initials}</div>
 
         <div class="lb-row-text">
-          <div class="lb-username">${escapeHtml(user.username)}</div>
-          <div class="lb-tag-small">${hexTag} ${tier}</div>
-          <div class="lb-streak-small">⚡ Active</div>
+          <span class="lb-username">${escapeHtml(user.username)}</span>
+          <span class="lb-tag-small">${hexTag} ${tier}</span>
         </div>
       </div>
 
-      <div class="lb-row-points">${user.points} Points</div>
+      <span class="lb-streak">${user.rank <= 3 ? "🔥" : "⚡"}</span>
+      <span class="lb-row-points">${user.points.toLocaleString()}</span>
     </div>
   `;
 }

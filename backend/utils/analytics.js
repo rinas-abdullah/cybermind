@@ -181,11 +181,23 @@ function generateUserReport(username) {
 
   const institution = userRole?.institution || "Unknown";
 
+  const completedScenarios = safeArray(progress?.completedScenarios);
+
   const report = {
     username,
     role: userRole?.role || "student",
     institution,
     generatedAt: new Date().toISOString(),
+    // Top-level fields frontend/pages/analytics.html reads directly for its
+    // header stat row — mapped from the same underlying data as currentStats/
+    // progress below, not fabricated. The page's deeper sections (charts,
+    // category/difficulty breakdowns, comparative analysis, AI
+    // recommendations) expect a much richer shape that was never actually
+    // built on the backend; they render their own empty-state fallbacks
+    // rather than crash, since every field access there is optional-chained.
+    lastUpdated: new Date().toISOString(),
+    totalScore: safeNumber(user.points, 0),
+    scenariosCompleted: completedScenarios.length,
     currentStats: {
       level: safeNumber(user.level, 0),
       totalScore: safeNumber(user.points, 0),
@@ -193,7 +205,7 @@ function generateUserReport(username) {
       achievements: safeArray(progress?.achievements),
     },
     progress: {
-      completedScenarios: safeArray(progress?.completedScenarios),
+      completedScenarios,
       currentScenario: progress?.currentScenario || null,
       adaptiveDifficulty: safeNumber(progress?.adaptiveDifficulty, 1),
     },

@@ -497,38 +497,33 @@ function renderSkillPaths(completedCount = 0) {
         <div class="empty-state-header">
           <div class="empty-state-icon">📡</div>
           <div>
-            <h3 class="empty-state-title" data-i18n="empty_state_title">${isArabic ? 'مرحباً بك في مركز العمليات السيبرانية' : 'Welcome to the Cyber Operations Center'}</h3>
-            <p class="empty-state-subtitle" data-i18n="empty_state_subtitle">${isArabic ? 'ابدأ رحلتك التدريبية الآن لتطوير مهاراتك وحماية الأنظمة الرقمية.' : 'Initialize your tactical training path to strengthen digital defenses and advance your tier.'}</p>
+            <h3 class="empty-state-title">${isArabic ? 'مرحباً بك في مركز العمليات السيبرانية' : 'Welcome to the Cyber Operations Center'}</h3>
+            <p class="empty-state-subtitle">${isArabic ? 'ابدأ رحلتك التدريبية الآن لتطوير مهاراتك وحماية الأنظمة الرقمية.' : 'Initialize your tactical training path to strengthen digital defenses and advance your tier.'}</p>
           </div>
         </div>
-        
+
         <div class="empty-state-ai-card">
           <div class="empty-state-ai-avatar">🤖</div>
           <div class="empty-state-ai-text">
-            <h4 data-i18n="empty_state_ai_title">
+            <h4>
               ${isArabic ? 'توصية المرشد الذكي لقسم التدريب' : 'AI Mentor Tactical Recommendation'}
               <span class="badge badge-teal" style="font-size: 0.65rem; margin-left: 8px;">${isArabic ? 'نشط' : 'Active'}</span>
             </h4>
-            <p data-i18n="empty_state_ai_body">${isArabic ? 'بناءً على تقييم ملفك، نوصي ببدء معمل "أساسيات الويب" (Web Fundamentals). هذا المسار يحتوي على ثغرات XSS وحقن SQL لتدريبك على المبادئ الأساسية للمخترق الأخلاقي والمدافع.' : 'Based on initial profiling, we highly recommend starting with the "Web Fundamentals" lab. This path features interactive SQLi and XSS scenarios tailored to build core offensive and defensive skills.'}</p>
+            <p>${isArabic ? 'بناءً على تقييم ملفك، نوصي ببدء معمل "أساسيات الويب" (Web Fundamentals). هذا المسار يحتوي على ثغرات XSS وحقن SQL لتدريبك على المبادئ الأساسية للمخترق الأخلاقي والمدافع.' : 'Based on initial profiling, we highly recommend starting with the "Web Fundamentals" lab. This path features interactive SQLi and XSS scenarios tailored to build core offensive and defensive skills.'}</p>
           </div>
         </div>
-        
+
         <div class="empty-state-actions">
-          <a href="/practice" class="btn btn-primary" data-i18n="launch_first_lab">
+          <a href="/practice" class="btn btn-primary">
             🚀 ${isArabic ? 'إطلاق المسار الأول مباشرة' : 'Launch First Scenario'}
           </a>
-          <a href="/terminal" class="btn btn-secondary" data-i18n="explore_digital_lab">
+          <a href="/terminal" class="btn btn-secondary">
             💻 ${isArabic ? 'استكشاف المعمل الرقمي (Terminal)' : 'Explore Digital Terminal Lab'}
           </a>
         </div>
       `;
-      
+
       roomsGrid.insertAdjacentElement('beforebegin', banner);
-      
-      // Update i18n translations if loaded
-      if (window.i18n && typeof window.i18n.translatePage === 'function') {
-        window.i18n.translatePage();
-      }
     }
   } else {
     if (existingEmptyState) {
