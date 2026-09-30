@@ -250,6 +250,7 @@
 
     /* team */
     .team{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    @media (max-width:1100px) and (min-width:901px){.team{grid-template-columns:1fr 1fr}}
     .member{background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:26px;display:flex;gap:18px;align-items:flex-start}
     .avatar{width:56px;height:56px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;background:var(--ink-3);color:var(--gold);border:1px solid var(--line-2)}
     .member b{display:block;font-size:17px}
@@ -344,7 +345,7 @@
         <div class="kpi rv"><b>118</b><span data-k="proof.k1">distinct attack paths generated. No two defenders face the same fight.</span></div>
         <div class="kpi rv"><b>3.6×</b><span data-k="proof.k2">more actions for a guessing defender to contain (25.3 vs 7.0).</span></div>
         <div class="kpi rv"><b>85%</b><span data-k="proof.k3">of random defenses fail. The range rewards skill, not luck.</span></div>
-        <div class="kpi rv"><b>&lt;5µs</b><span data-k="proof.k4">per adversary decision, across 10 MITRE ATT&amp;CK techniques.</span></div>
+        <div class="kpi rv"><b>&lt;10µs</b><span data-k="proof.k4">per adversary decision, across 10 MITRE ATT&amp;CK techniques.</span></div>
       </div>
       <div class="proof-src" data-k-html="proof.src">From 15,000 simulated defense sessions with a fixed seed. Reproduce it: <code>node scripts/eval-adversary.js</code></div>
     </div>
@@ -378,8 +379,8 @@
       <div class="loop" role="tablist" aria-label="Loop stations">
         <button class="station active" role="tab" aria-selected="true" data-i="0"><span class="idx">01</span><h3 data-k="st.0.t">AI Adversary</h3><p data-k="st.0.s">Plans the attack and targets weak points.</p><span class="status s-live" data-k="status.live">Live</span></button>
         <button class="station" role="tab" aria-selected="false" data-i="1"><span class="idx">02</span><h3 data-k="st.1.t">Engagement</h3><p data-k="st.1.s">Live terminal, time pressure, interruptions.</p><span class="status s-live" data-k="status.live">Live</span></button>
-        <button class="station" role="tab" aria-selected="false" data-i="2"><span class="idx">03</span><h3 data-k="st.2.t">Forensics</h3><p data-k="st.2.s">Rebuild the attack timeline from evidence.</p><span class="status s-next" data-k="status.next">Building</span></button>
-        <button class="station" role="tab" aria-selected="false" data-i="3"><span class="idx">04</span><h3 data-k="st.3.t">Measurement</h3><p data-k="st.3.s">Behavioral fingerprint and readiness index.</p><span class="status s-live" data-k="status.partial">Fingerprint live</span></button>
+        <button class="station" role="tab" aria-selected="false" data-i="2"><span class="idx">03</span><h3 data-k="st.2.t">Forensics</h3><p data-k="st.2.s">Rebuild the attack timeline from evidence.</p><span class="status s-live" data-k="status.live">Live</span></button>
+        <button class="station" role="tab" aria-selected="false" data-i="3"><span class="idx">04</span><h3 data-k="st.3.t">Measurement</h3><p data-k="st.3.s">Behavioral fingerprint and readiness index.</p><span class="status s-live" data-k="status.live">Live</span></button>
         <button class="station" role="tab" aria-selected="false" data-i="4"><span class="idx">05</span><h3 data-k="st.4.t">Incident Converter</h3><p data-k="st.4.s">Real incidents become new scenarios.</p><span class="status s-road" data-k="status.road">Roadmap</span></button>
       </div>
       <div class="loop-back rv">
@@ -447,18 +448,9 @@
   <!-- READINESS -->
   <section id="readiness" style="padding-top:40px">
     <div class="wrap ready">
-      <div class="dash rv" aria-label="Readiness dashboard preview">
-        <span class="preview" data-k="r.preview">Preview · in development</span>
-        <h4 data-k="r.team">Team readiness · SOC Alpha</h4>
-        <div class="gauge"><b>72</b><span>/ 100</span></div>
-        <div class="bars">
-          <div class="bar"><span data-k="r.b1">Initial access</span><span class="t"><i style="width:88%"></i></span><em>88</em></div>
-          <div class="bar"><span data-k="r.b2">Execution</span><span class="t"><i style="width:76%"></i></span><em>76</em></div>
-          <div class="bar"><span data-k="r.b3">Persistence</span><span class="t"><i style="width:71%"></i></span><em>71</em></div>
-          <div class="bar weak"><span data-k="r.b4">Credential access</span><span class="t"><i style="width:41%"></i></span><em>41</em></div>
-          <div class="bar"><span data-k="r.b5">Exfiltration</span><span class="t"><i style="width:69%"></i></span><em>69</em></div>
-        </div>
-        <div class="hint" data-k="r.hint">Next round: the adversary will open with credential dumping (T1003).</div>
+      <div class="shot rv" style="align-self:center">
+        <figure style="height:auto"><img src="/frontend/assets/landing/readiness.webp" alt="Rasd Readiness Index page: 77 out of 100, weakest stage defense evasion, component breakdown" loading="lazy" width="2240" height="1320"></figure>
+        <div class="cap"><span class="real-tag">● <span data-k="live.real">Live capture</span></span><p data-k="r.cap">The Readiness Index page in the running platform: five server-observed signals, the weakest stage, and the adversary's next target.</p></div>
       </div>
       <div>
         <div class="sec-head rv" style="margin-bottom:0">
@@ -510,8 +502,8 @@
         <h2 data-k="rd.title">Built, building, next.</h2>
       </div>
       <div class="road">
-        <div class="rcol rv"><span class="status s-live" data-k="rd.1s">Shipped</span><h3 style="margin-top:14px" data-k="rd.1t">Working core</h3><ul><li data-k="rd.1a">Guardian adversary engine</li><li data-k="rd.1b">Pressure Mode</li><li data-k="rd.1c">Behavioral fingerprint</li><li data-k="rd.1d">5 terminal labs, AR/EN, roles</li></ul></div>
-        <div class="rcol rv"><span class="status s-next" data-k="rd.2s">Before SAIF 2026</span><h3 style="margin-top:14px" data-k="rd.2t">Closing the loop</h3><ul><li data-k="rd.2a">LLM layer over the guardian</li><li data-k="rd.2b">Forensics mode and incident report</li><li data-k="rd.2c">Readiness Index and leader view</li><li data-k="rd.2d">Human pilot with before/after measurement</li></ul></div>
+        <div class="rcol rv"><span class="status s-live" data-k="rd.1s">Shipped</span><h3 style="margin-top:14px" data-k="rd.1t">Working core</h3><ul><li data-k="rd.1a">Guardian engine, Pressure Mode, fingerprint</li><li data-k="rd.1b">Server-side labs, flags and XP</li><li data-k="rd.1c">5 terminal labs, AR/EN, roles</li><li data-k="rd.1d">14 automated tests</li></ul></div>
+        <div class="rcol rv"><span class="status s-live" data-k="rd.2s">Shipped · loop closed</span><h3 style="margin-top:14px" data-k="rd.2t">Closing the loop</h3><ul><li data-k="rd.2a">Weak-point targeting and LLM layer</li><li data-k="rd.2b">Forensics mode and after-action report</li><li data-k="rd.2c">Readiness Index and team view</li><li data-k="rd.2d">Next: human pilot with before/after measurement</li></ul></div>
         <div class="rcol rv"><span class="status s-road" data-k="rd.3s">Next</span><h3 style="margin-top:14px" data-k="rd.3t">Scale</h3><ul><li data-k="rd.3a">Incident Converter</li><li data-k="rd.3b">Team drills and leadership crisis exercises</li><li data-k="rd.3c">Critical-infrastructure scenarios</li><li data-k="rd.3d">Digital twin of each organization</li></ul></div>
       </div>
     </div>
@@ -528,6 +520,9 @@
         <div class="member rv"><span class="avatar">R</span><div><b data-k="t.1n">Rinas Abdullah Murayr</b><span class="role" data-k="t.1r">Technical Lead · Cybersecurity &amp; AI Architect</span><p data-k="t.1">Built the platform, the guardian engine, Pressure Mode and the behavioral fingerprint. Cybersecurity, King Abdulaziz University.</p></div></div>
         <div class="member rv"><span class="avatar">L</span><div><b data-k="t.2n">Layan Aldhafeeri</b><span class="role" data-k="t.2r">Agentic AI Engineer</span><p data-k="t.2">Leads the language-model layer that drives the adversary, and the Incident Converter.</p></div></div>
         <div class="member rv"><span class="avatar">R</span><div><b data-k="t.3n">Remas Muhmmad Mslwf</b><span class="role" data-k="t.3r">Project &amp; Content Lead</span><p data-k="t.3">Leads coordination, research and scenario content, and turns complex concepts into clear training.</p></div></div>
+        <div class="member rv"><span class="avatar">S</span><div><b data-k="t.4n">Shatha Alsubaie</b><span class="role" data-k="t.4r">Software &amp; AI Developer</span><p data-k="t.4">Programming, AI and drone technology; Mawhiba member. Works on features and readiness-data analysis.</p></div></div>
+        <div class="member rv"><span class="avatar">R</span><div><b data-k="t.5n">Raneem Mohammed Almuqbil</b><span class="role" data-k="t.5r">Pilot &amp; Partnerships Coordinator</span><p data-k="t.5">Tuwaiq Club member and College of Computer Science organizing committee. Runs the trainee pilot and outreach.</p></div></div>
+        <div class="member rv"><span class="avatar">L</span><div><b data-k="t.6n">Lamis Yahya Zain</b><span class="role" data-k="t.6r">Pitch &amp; Communications Lead</span><p data-k="t.6">IT graduate, cybersecurity track, and IT systems coordinator. Presenter, podcaster and Lujjah ambassador; leads how Rasd is presented to judges and partners.</p></div></div>
       </div>
     </div>
   </section>
@@ -596,8 +591,8 @@
       "r.l1t":"اعرف أضعف مرحلة","r.l1":"اعرف أي جزء من سلسلة الهجوم يخسره فريقك، قبل أن يكتشفه المهاجم.","r.l2t":"درّب حيث يلزم","r.l2":"تعود الفجوة مباشرة إلى الخصم، فيستهدفها في الجولة التالية.","r.l3t":"مربوط بأدوار حقيقية","r.l3":"متوافق مع الإطار السعودي لكوادر الأمن السيبراني (SCyWF).",
       "a.kicker":"صُمّمت لـ","a.title":"كل من عليه أن يجيب: «هل نحن جاهزون؟»","a.1t":"فرق الأمن","a.1":"فرق العمليات الأمنية والاستجابة التي تحتاج قراءة دورية موضوعية لجاهزيتها.","a.1o":"مؤشر الفريق، تمارين الأزمة، استضافة داخلية","a.2t":"الأكاديميات والجامعات","a.2":"مختبرات عملية بالعربية والإنجليزية، مع تقرير جاهزية لكل دفعة.","a.2o":"ترخيص بالمقعد، لوحة المدرّب","a.3t":"مراكز التدريب","a.3":"محتوى عملي يتجدّد، ونتائج تعرضها على عملائك.","a.3o":"تقارير بهويتك، مكتبة سيناريوهات","a.4t":"التوظيف","a.4":"شاهد كيف يتصرّف المرشّح تحت الضغط قبل المقابلة.","a.4o":"مواجهة مؤقّتة واحدة لكل مرشّح",
       "s.1t":"بياناتك تبقى عندك","s.1":"تُنشر داخل بنيتك دون اتصال خارجي إلزامي، وتُجهَّل سجلات الحوادث قبل تحويلها.","s.2t":"نتائج لا تُزوَّر","s.2":"يُحسب التقدّم والنقاط في الخادم، ولا يُؤخذ أي منهما من المتصفح.","s.3t":"العربية أولًا","s.3":"كل مختبر وتلميح وتقرير بالعربية والإنجليزية، لكفاءات المنطقة.",
-      "rd.kicker":"أين نقف","rd.title":"أُنجز، يُبنى، التالي.","rd.1s":"أُنجز","rd.1t":"نواة تعمل","rd.1a":"المحرّك الحارس للخصم","rd.1b":"وضع الضغط","rd.1c":"البصمة السلوكية","rd.1d":"5 مختبرات طرفية، عربي وإنجليزي، أدوار","rd.2s":"قبل سيف 2026","rd.2t":"إغلاق الحلقة","rd.2a":"طبقة النموذج اللغوي فوق الحارس","rd.2b":"وضع التحقيق وتقرير الحادثة","rd.2c":"مؤشر الجاهزية ولوحة القيادة","rd.2d":"تجربة مع متدرّبين بقياس قبلي وبعدي","rd.3s":"التالي","rd.3t":"التوسّع","rd.3a":"محوّل الحوادث","rd.3b":"تمارين الفريق وتمارين الأزمة للقيادات","rd.3c":"سيناريوهات البنية التحتية الحرجة","rd.3d":"توأم رقمي لبيئة كل جهة",
-      "t.kicker":"الفريق","t.title":"صُنعت في السعودية بأيدي مدافعين، للمدافعين.","t.1n":"ريناس عبدالله مرير","t.1r":"القائدة التقنية · معمارية الأمن السيبراني والذكاء الاصطناعي","t.1":"بنت المنصة والمحرّك الحارس ووضع الضغط والبصمة السلوكية. أمن سيبراني، جامعة الملك عبدالعزيز.","t.2n":"ليان الظفيري","t.2r":"مهندسة الذكاء الاصطناعي الوكيلي","t.2":"تقود طبقة النموذج اللغوي التي تحرّك الخصم، ومحوّل الحوادث.","t.3n":"ريماس محمد مسلوف","t.3r":"قائدة المشروع والمحتوى","t.3":"تقود التنسيق والبحث ومحتوى السيناريوهات، وتحوّل المفاهيم المعقّدة إلى تدريب واضح.",
+      "rd.kicker":"أين نقف","rd.title":"أُنجز، يُبنى، التالي.","rd.1s":"أُنجز","rd.1t":"نواة تعمل","rd.1a":"المحرّك الحارس ووضع الضغط والبصمة","rd.1b":"المختبرات والأعلام والنقاط في الخادم","rd.1c":"5 مختبرات طرفية، عربي وإنجليزي، أدوار","rd.1d":"14 اختبارًا آليًا","rd.2s":"أُنجز · الحلقة مكتملة","rd.2t":"إغلاق الحلقة","rd.2a":"استهداف نقاط الضعف وطبقة النموذج اللغوي","rd.2b":"وضع التحقيق وتقرير ما بعد الحادثة","rd.2c":"مؤشر الجاهزية ولوحة الفريق","rd.2d":"التالي: تجربة مع متدرّبين بقياس قبلي وبعدي","rd.3s":"التالي","rd.3t":"التوسّع","rd.3a":"محوّل الحوادث","rd.3b":"تمارين الفريق وتمارين الأزمة للقيادات","rd.3c":"سيناريوهات البنية التحتية الحرجة","rd.3d":"توأم رقمي لبيئة كل جهة",
+      "t.kicker":"الفريق","t.title":"صُنعت في السعودية بأيدي مدافعين، للمدافعين.","r.cap":"صفحة مؤشر الجاهزية في المنصة العاملة: خمس إشارات يرصدها الخادم، وأضعف مرحلة، والهدف التالي للخصم.","t.1n":"ريناس عبدالله مرير","t.4n":"شذى السبيعي","t.4r":"مطوّرة برمجيات وذكاء اصطناعي","t.4":"البرمجة والذكاء الاصطناعي وتقنيات الطائرات دون طيار، وعضوة في موهبة. تعمل على تطوير المزايا وتحليل بيانات الجاهزية.","t.5n":"رنيم محمد المقبل","t.5r":"منسّقة التجربة والشراكات","t.5":"عضوة نادي طويق في الجامعة واللجنة المنظّمة في كلية علوم الحاسب. تقود التجربة مع المتدرّبين والتواصل.","t.6n":"لميس يحيى زين","t.6r":"قائدة العرض والتواصل","t.6":"خرّيجة تقنية معلومات بمسار الأمن السيبراني، ومنسّقة أنظمة تقنية. مقدّمة ومتحدّثة ولها تجربة في البودكاست والإعلام، وسفيرة لُجّة. تقود عرض رَصد أمام لجان التحكيم والشركاء.","t.1r":"القائدة التقنية · معمارية الأمن السيبراني والذكاء الاصطناعي","t.1":"بنت المنصة والمحرّك الحارس ووضع الضغط والبصمة السلوكية. أمن سيبراني، جامعة الملك عبدالعزيز.","t.2n":"ليان الظفيري","t.2r":"مهندسة الذكاء الاصطناعي الوكيلي","t.2":"تقود طبقة النموذج اللغوي التي تحرّك الخصم، ومحوّل الحوادث.","t.3n":"ريماس محمد مسلوف","t.3r":"قائدة المشروع والمحتوى","t.3":"تقود التنسيق والبحث ومحتوى السيناريوهات، وتحوّل المفاهيم المعقّدة إلى تدريب واضح.",
       "c.kicker":"متى ما كنت جاهزًا","c.title":"عشر دقائق. خصم واحد. اعرف كيف تصمد.","c.lede":"ادخل مختبر الخصم ووضع الضغط مفعّل، وشاهد بصمتك السلوكية في النهاية.",
       "f.learn":"تعلّم","f.practice":"تدرّب","f.range":"الميدان","f.board":"الصدارة","f.made":"صُنعت في السعودية · 2026"
     }
