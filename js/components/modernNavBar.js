@@ -38,6 +38,7 @@ class ModernNavBar {
     if (path.includes("/learner-profile")) return "profile";
     if (path.includes("/ai-insights")) return "insights";
     if (path.includes("/analytics")) return "analytics";
+    if (path.includes("/readiness")) return "readiness";
     if (path.includes("/auth") || path.includes("/login")) return "auth";
 
     return "";
@@ -138,6 +139,16 @@ class ModernNavBar {
               : ""
           }
 
+          ${
+            this.isLoggedIn
+              ? `
+                <a href="/readiness" class="${this.currentPage === "readiness" ? "active-link" : ""}">
+                  ${this.t("readiness")}
+                </a>
+              `
+              : ""
+          }
+
           <a href="/leaderboard" class="${this.currentPage === "leaderboard" ? "active-link" : ""}">
             ${this.t("leaderboard")}
           </a>
@@ -222,6 +233,10 @@ class ModernNavBar {
 
           <a href="/analytics" class="dropdown-item">
             <span>${this.t("analytics")}</span>
+          </a>
+
+          <a href="/readiness" class="dropdown-item">
+            <span>${this.t("readiness")}</span>
           </a>
 
           ${

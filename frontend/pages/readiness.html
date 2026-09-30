@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Rasd Readiness Index — a measured view of your defensive readiness." />
+  <title>Rasd | رَصد – Readiness Index</title>
+
+  <script src="/js/theme.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <script src="/js/components/auth.js"></script>
+  <script src="/js/components/pageGuard.js"></script>
+  <script src="/js/translations.js"></script>
+  <script src="/js/i18n.js"></script>
+  <script src="/js/components/modernNavBar.js"></script>
+</head>
+<body>
+  <nav id="navbar-container" class="navbar"></nav>
+
+  <main class="readiness-shell">
+    <div class="training-header">
+      <div class="kicker" id="rdEyebrow"></div>
+      <h1 id="rdTitle"></h1>
+      <p id="rdSubtitle"></p>
+    </div>
+
+    <div id="rdContent" class="readiness-content"></div>
+    <div id="rdTeam" class="readiness-team"></div>
+  </main>
+
+  <script>
+    const lang = () => (window.i18n?.getCurrentLanguage?.() || document.documentElement.lang || "en");
+    const T = (en, ar) => (lang() === "ar" ? ar : en);
+
+    const COMPONENT_LABELS = {
+      defenseAccuracy: ["Defense accuracy", "دقة الدفاع"],
+      containment: ["Containment", "الاحتواء"],
+      pressure: ["Under pressure", "تحت الضغط"],
+      forensics: ["Forensics", "التحقيق الجنائي"],
+      behavior: ["Behaviour", "السلوك"],
+    };
+
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined && text !== null) e.textContent = text;
+      return e;
+    }
+
+    function bar(pct, cls) {
+      const wrap = el("div", "rd-bar");
+      const fill = el("div", "rd-bar-fill" + (cls ? " " + cls : ""));
+      fill.style.width = `${Math.max(0, Math.min(100, pct || 0))}%`;
+      wrap.appendChild(fill);
+      return wrap;
+    }
+
+    async function api(path) {
+      const headers = Object.assign({ "Content-Type": "application/json" }, window.authService?.getAuthHeader?.() || {});
+      const res = await fetch(`/api${path}`, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function renderChrome() {
+      document.getElementById("rdEyebrow").textContent = T("Measured Readiness", "جاهزية مُقاسة");
+      document.getElementById("rdTitle").textContent = T("Readiness Index", "مؤشر الجاهزية");
+      document.getElementById("rdSubtitle").textContent = T(
+        "A single measure of your defensive readiness, computed only from what the platform actually observed in your training runs.",
+        "قياس واحد لجاهزيتك الدفاعية، محسوب فقط مما رصدته المنصّة فعليًا في جلسات تدريبك."
+      );
+    }
+
+    function renderReadiness(r) {
+      const content = document.getElementById("rdContent");
+      content.textContent = "";
+      const isAr = lang() === "ar";
+
+      if (r.insufficientData || r.index === null) {
+        const empty = el("div", "rd-card");
+        empty.appendChild(el("h3", "rd-h3", T("Not enough data yet", "لا توجد بيانات كافية بعد")));
+        empty.appendChild(
+          el(
+            "p",
+            "rd-muted",
+            T(
+              "Play the Adaptive Adversary lab (and others) to build your readiness profile. Every finished run feeds this index.",
+              "العب مختبر الخصم المتكيّف (وغيره) لبناء ملف جاهزيتك. كل جلسة مكتملة تُغذّي هذا المؤشر."
+            )
+          )
+        );
+        const link = el("a", "btn btn-primary", T("Go to labs", "اذهب إلى المختبرات"));
+        link.href = "/terminal";
+        empty.appendChild(link);
+        content.appendChild(empty);
+        return;
+      }
+
+      // Index + coverage gauge
+      const top = el("div", "rd-grid");
+      const gauge = el("div", "rd-card rd-gauge");
+      gauge.appendChild(el("div", "rd-index", String(r.index)));
+      gauge.appendChild(el("div", "rd-index-label", T("Readiness / 100", "الجاهزية / 100")));
+      gauge.appendChild(el("div", "rd-muted", T(`Based on ${r.coverage}% of possible signals`, `مبني على ${r.coverage}% من الإشارات الممكنة`)));
+      top.appendChild(gauge);
+
+      // Weakest stage + next target
+      const focus = el("div", "rd-card");
+      focus.appendChild(el("h3", "rd-h3", T("Where you are exposed", "أين أنت مكشوف")));
+      if (r.weakStages && r.weakStages.length) {
+        const weakest = r.stages.find((s) => s.category === r.weakStages[0]);
+        focus.appendChild(el("p", null, `${T("Weakest stage", "أضعف مرحلة")}: ${weakest ? (isAr ? weakest.label.ar : weakest.label.en) : r.weakStages[0]}`));
+      } else {
+        focus.appendChild(el("p", "rd-muted", T("No standout weak stage — keep it up.", "لا توجد مرحلة ضعيفة بارزة — واصل.")));
+      }
+      if (r.nextTarget) {
+        const t = el("p", "rd-target");
+        t.textContent = `${T("Adversary's next likely target", "الهدف التالي المرجّح للخصم")}: ${isAr ? r.nextTarget.label.ar : r.nextTarget.label.en} (${r.nextTarget.mitre})`;
+        focus.appendChild(t);
+      }
+      top.appendChild(focus);
+      content.appendChild(top);
+
+      // Component breakdown
+      const comp = el("div", "rd-card");
+      comp.appendChild(el("h3", "rd-h3", T("Component breakdown", "تفصيل المكوّنات")));
+      Object.entries(r.components).forEach(([key, c]) => {
+        const label = COMPONENT_LABELS[key] ? (isAr ? COMPONENT_LABELS[key][1] : COMPONENT_LABELS[key][0]) : key;
+        const row = el("div", "rd-row");
+        const head = el("div", "rd-row-head");
+        head.appendChild(el("span", "rd-row-label", `${label}`));
+        head.appendChild(el("span", "rd-row-weight", `${T("weight", "الوزن")} ${c.weight}`));
+        head.appendChild(el("span", "rd-row-val", c.value === null ? T("no data", "لا بيانات") : `${c.value}/100`));
+        row.appendChild(head);
+        row.appendChild(bar(c.value === null ? 0 : c.value, c.value === null ? "rd-empty" : ""));
+        comp.appendChild(row);
+      });
+      content.appendChild(comp);
+
+      // Per-stage bars
+      const stages = el("div", "rd-card");
+      stages.appendChild(el("h3", "rd-h3", T("Per-stage defense", "الدفاع لكل مرحلة")));
+      if (r.stages && r.stages.length) {
+        r.stages.forEach((s) => {
+          const row = el("div", "rd-row");
+          const head = el("div", "rd-row-head");
+          head.appendChild(el("span", "rd-row-label", isAr ? s.label.ar : s.label.en));
+          head.appendChild(
+            el("span", "rd-row-val", s.score === null ? T("n/a", "غير متاح") : `${s.score}% (${s.effective}/${s.effective + s.ineffective})`)
+          );
+          row.appendChild(head);
+          row.appendChild(bar(s.score === null ? 0 : s.score, (s.score !== null && s.score < 75) ? "rd-weak" : ""));
+          stages.appendChild(row);
+        });
+      } else {
+        stages.appendChild(el("p", "rd-muted", T("No adversary runs yet.", "لا توجد جلسات خصم بعد.")));
+      }
+      content.appendChild(stages);
+
+      // Recent trend
+      const trend = el("div", "rd-card");
+      trend.appendChild(el("h3", "rd-h3", T("Recent adversary runs", "أحدث جلسات الخصم")));
+      if (r.trend && r.trend.length) {
+        const tl = el("div", "rd-trend");
+        r.trend.forEach((t) => {
+          const pill = el("div", "rd-trend-pill" + (t.contained ? " contained" : " missed"));
+          pill.appendChild(el("span", "rd-trend-acc", `${t.accuracy}%`));
+          pill.appendChild(el("span", "rd-trend-tag", t.contained ? T("contained", "احتُوي") : T("missed", "فُقد")));
+          pill.title = new Date(t.at).toLocaleString();
+          tl.appendChild(pill);
+        });
+        trend.appendChild(tl);
+      } else {
+        trend.appendChild(el("p", "rd-muted", T("No runs recorded yet.", "لا توجد جلسات مسجّلة بعد.")));
+      }
+      content.appendChild(trend);
+    }
+
+    async function renderTeam() {
+      const svc = window.authService;
+      const role = (svc?.userRole || "").toLowerCase();
+      if (role !== "admin" && role !== "instructor") return;
+
+      const container = document.getElementById("rdTeam");
+      container.textContent = "";
+      let team;
+      try {
+        team = (await api("/readiness/team")).data;
+      } catch (_) {
+        return;
+      }
+      const isAr = lang() === "ar";
+
+      const card = el("div", "rd-card");
+      const head = el("h3", "rd-h3", T("Team readiness", "جاهزية الفريق"));
+      card.appendChild(head);
+      const summary = el("p", "rd-muted");
+      summary.textContent =
+        `${T("Team index", "مؤشر الفريق")}: ${team.teamIndex === null ? T("no data", "لا بيانات") : team.teamIndex}` +
+        (team.weakestStage ? ` · ${T("weakest stage", "أضعف مرحلة")}: ${isAr ? team.weakestStage.label.ar : team.weakestStage.label.en}` : "");
+      card.appendChild(summary);
+
+      if (team.members && team.members.length) {
+        const table = el("table", "rd-table");
+        const thead = el("tr");
+        [T("Trainee", "المتدرّب"), T("Readiness", "الجاهزية"), T("Weakest stage", "أضعف مرحلة"), T("Adversary runs", "جلسات الخصم")].forEach((h) =>
+          thead.appendChild(el("th", null, h))
+        );
+        table.appendChild(thead);
+        team.members.forEach((m) => {
+          const tr = el("tr");
+          tr.appendChild(el("td", null, m.username));
+          tr.appendChild(el("td", null, m.index === null ? T("n/a", "غير متاح") : String(m.index)));
+          tr.appendChild(el("td", null, m.weakest ? (isAr ? m.weakest.label.ar : m.weakest.label.en) : "—"));
+          tr.appendChild(el("td", null, String(m.adversaryRuns)));
+          table.appendChild(tr);
+        });
+        card.appendChild(table);
+      } else {
+        card.appendChild(el("p", "rd-muted", T("No trainee runs yet.", "لا توجد جلسات متدربين بعد.")));
+      }
+      container.appendChild(card);
+    }
+
+    async function renderAll() {
+      renderChrome();
+      try {
+        const r = (await api("/readiness")).data;
+        renderReadiness(r);
+      } catch (err) {
+        document.getElementById("rdContent").textContent = T("Could not load readiness.", "تعذّر تحميل الجاهزية.");
+      }
+      await renderTeam();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof ModernNavBar !== "undefined" && !window.navBar) {
+        window.navBar = new ModernNavBar();
+        window.navBar.render();
+      }
+      renderAll();
+      window.addEventListener("languageChanged", renderAll);
+    });
+  </script>
+
+  <style>
+    .readiness-shell { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+    .training-header { margin-bottom: 24px; }
+    .training-header h1 { font-size: 2.6rem; font-weight: 800; color: var(--text-primary); margin: 8px 0; letter-spacing: -0.5px; }
+    .training-header p { color: var(--text-secondary); max-width: 720px; line-height: 1.6; }
+
+    .readiness-content { display: flex; flex-direction: column; gap: 24px; }
+    .rd-grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+    @media (max-width: 780px) { .rd-grid { grid-template-columns: 1fr; } }
+
+    .rd-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-panel);
+    }
+    .rd-h3 { margin: 0 0 16px; color: var(--accent-primary); font-size: 1.1rem; font-weight: 700; }
+    .rd-muted { color: var(--text-muted); font-size: 0.86rem; line-height: 1.5; }
+
+    .rd-gauge { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .rd-index { font-size: 4rem; font-weight: 800; color: var(--accent-primary); line-height: 1; }
+    .rd-index-label { color: var(--text-secondary); font-weight: 600; margin: 8px 0; }
+    .rd-target { color: var(--accent-red); font-weight: 600; margin-top: 8px; }
+
+    .rd-row { margin-bottom: 14px; }
+    .rd-row-head { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; margin-bottom: 6px; flex-wrap: wrap; }
+    .rd-row-label { color: var(--text-primary); font-weight: 600; }
+    .rd-row-weight { color: var(--text-muted); }
+    .rd-row-val { color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+    .rd-bar { height: 10px; background: var(--bg-elevated); border-radius: 6px; overflow: hidden; border: 1px solid var(--border-dim); }
+    .rd-bar-fill { height: 100%; background: var(--accent-primary); border-radius: 6px; transition: width 0.4s ease; }
+    .rd-bar-fill.rd-weak { background: var(--accent-red); }
+    .rd-bar-fill.rd-empty { background: var(--border-mid); }
+
+    .rd-trend { display: flex; gap: 10px; flex-wrap: wrap; }
+    .rd-trend-pill {
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-dim);
+      background: var(--bg-elevated); min-width: 72px;
+    }
+    .rd-trend-pill.contained { border-color: rgba(0, 230, 118, 0.4); }
+    .rd-trend-pill.missed { border-color: rgba(255, 92, 122, 0.4); }
+    .rd-trend-acc { font-weight: 700; color: var(--text-primary); }
+    .rd-trend-tag { font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); }
+
+    .readiness-team { margin-top: 24px; }
+    .rd-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    .rd-table th, .rd-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-dim); font-size: 0.86rem; }
+    .rd-table th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.72rem; }
+    .rd-table td { color: var(--text-secondary); }
+
+    body.rtl .rd-table th, body.rtl .rd-table td { text-align: right; }
+  </style>
+</body>
+</html>

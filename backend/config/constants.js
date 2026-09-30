@@ -155,6 +155,7 @@ const ROUTES = Object.freeze({
     LEARNER_PROFILE: "/learner-profile",
     AI_INSIGHTS: "/ai-insights",
     ANALYTICS: "/analytics",
+    READINESS: "/readiness",
     SETTINGS: "/settings",
   }),
 

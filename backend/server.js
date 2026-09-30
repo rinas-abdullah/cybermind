@@ -197,6 +197,11 @@ app.get(ROUTES.PAGES.ANALYTICS, (req, res, next) => {
   sendPage(res, "analytics.html", next);
 });
 
+// Readiness — HTML shell public; auth + role enforced client-side and on /api
+app.get(ROUTES.PAGES.READINESS, (req, res, next) => {
+  sendPage(res, "readiness.html", next);
+});
+
 // Admin — same pattern as dashboard (client-side + API auth)
 app.get(ROUTES.PAGES.ADMIN, (req, res, next) => {
   sendPage(res, "admin.html", next);
