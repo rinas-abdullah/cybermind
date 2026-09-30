@@ -88,6 +88,64 @@ function computeAwardXp(baseXp, pressure, now = Date.now()) {
   return { xp: baseXp + bonus, bonus, beatClock };
 }
 
+function shuffle(list) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Length of the longest strictly-increasing subsequence — used to reward a
+// forensic timeline that is in the right relative order even if a step or two
+// is missing.
+function longestIncreasingLength(nums) {
+  const tails = [];
+  for (const n of nums) {
+    let lo = 0;
+    let hi = tails.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (tails[mid] < n) lo = mid + 1;
+      else hi = mid;
+    }
+    tails[lo] = n;
+  }
+  return tails.length;
+}
+
+// Scores a trainee's investigation on a 0-100 scale from three parts:
+//   detection  (50) — did they identify the techniques that actually happened
+//   order      (30) — did they reconstruct the sequence correctly
+//   entryPoint (20) — did they name the real initial-access technique
+// Pure and side-effect free so it can be unit-tested directly.
+function scoreForensics(realOrder, selected, entryPoint) {
+  const realSet = new Set(realOrder);
+  const sel = [...new Set((selected || []).filter(Boolean))];
+  const truePos = sel.filter((id) => realSet.has(id));
+
+  const precision = sel.length ? truePos.length / sel.length : 0;
+  const recall = realOrder.length ? truePos.length / realOrder.length : 0;
+  const f1 = precision + recall ? (2 * precision * recall) / (precision + recall) : 0;
+  const detection = 50 * f1;
+
+  const ranks = truePos.map((id) => realOrder.indexOf(id));
+  const lis = realOrder.length ? longestIncreasingLength(ranks) : 0;
+  const order = realOrder.length ? 30 * (lis / realOrder.length) : 0;
+
+  const entry = entryPoint && realOrder.length && entryPoint === realOrder[0] ? 20 : 0;
+
+  return {
+    score: Math.round(Math.min(100, detection + order + entry)),
+    detection: Math.round(detection),
+    order: Math.round(order),
+    entryPoint: entry,
+    precision: Number(precision.toFixed(2)),
+    recall: Number(recall.toFixed(2)),
+  };
+}
+
 // ---- lab listing ----------------------------------------------------------
 
 async function listForUser(userId, lang = "en") {
@@ -346,6 +404,13 @@ async function runAdversaryCommand(user, attempt, clean, lower, lang) {
       base: LAB_XP.adversary,
       adversaryRecord: record,
     });
+    // Forensics step (Part 3): the trainee now reconstructs what happened.
+    const challenge = buildForensicsChallenge(record);
+    attempt.forensics = {
+      realOrder: challenge.realOrder,
+      entryPoint: challenge.entryPoint,
+      runId: completion.runId,
+    };
     const lines = [
       {
         text:
@@ -355,7 +420,13 @@ async function runAdversaryCommand(user, attempt, clean, lower, lang) {
         kind: "success",
       },
     ];
-    return { lines, contained: true, completion, runId: attempt.lastRunId };
+    return {
+      lines,
+      contained: true,
+      completion,
+      runId: attempt.lastRunId,
+      forensics: { items: challenge.items },
+    };
   }
 
   const rationale = result.rationale;
@@ -485,7 +556,121 @@ async function finalizeCompletion(user, attempt, { base, adversaryRecord }) {
     }
   }
 
+  // Remember the pressure outcome as it stood at completion, so the
+  // after-action report shows the real result rather than re-evaluating the
+  // deadline later (when the trainee opens forensics).
+  attempt.pressureResult = attempt.pressure
+    ? { timeLimitMs: attempt.pressure.timeLimitMs, remainingMs: Math.max(0, attempt.pressure.deadline - now), beatClock: award.beatClock }
+    : null;
+
   return { xpAwarded, pressureBonus, beatClock: award.beatClock, alreadyCompleted, points, level, runId };
+}
+
+// ---- forensics + after-action report (Part 3) ----------------------------
+
+// Real techniques (in order) plus two plausible decoys drawn from the rest of
+// the move catalog, shuffled. Items are labelled only by their evidence text —
+// the payload never says which are real, so the trainee has to reason.
+function buildForensicsChallenge(record) {
+  const realOrder = record.moves.map((m) => m.moveId);
+  const realSet = new Set(realOrder);
+  const decoyPool = adversaryEngine.getAllMoves().map((m) => m.id).filter((id) => !realSet.has(id));
+  const decoys = shuffle(decoyPool).slice(0, 2);
+
+  const items = shuffle([...realOrder, ...decoys]).map((id) => {
+    const ev = adversaryEngine.getEvidence(id) || { en: id, ar: id };
+    return { id, en: ev.en, ar: ev.ar };
+  });
+
+  return { items, realOrder, entryPoint: realOrder[0] || null };
+}
+
+function buildAfterAction(record, attempt) {
+  const catLabel = (c) => adversaryEngine.getCategoryLabel(c);
+
+  const timeline = record.moves.map((m, i) => {
+    const next = record.moves[i + 1];
+    const endAt = next ? next.at : record.containedAt || m.at;
+    return {
+      moveId: m.moveId,
+      category: m.category,
+      categoryLabel: catLabel(m.category),
+      mitre: m.mitre,
+      at: m.at,
+      rationale: m.rationale,
+      decidedBy: m.decidedBy,
+      durationMs: Math.max(0, new Date(endAt).getTime() - new Date(m.at).getTime()),
+    };
+  });
+
+  const defenses = record.defenses.map((d) => ({
+    defenseId: d.defenseId,
+    label: adversaryEngine.getDefenseLabel(d.defenseId) || { en: d.defenseId, ar: d.defenseId },
+    neutralized: d.neutralized,
+    againstCategory: d.againstCategory,
+    categoryLabel: d.againstCategory ? catLabel(d.againstCategory) : null,
+    at: d.timestamp,
+  }));
+
+  // Which of the trainee's defenses failed, and — for each technique the
+  // adversary actually ran — which defenses WOULD have stopped it.
+  const failedDefenses = defenses.filter((d) => !d.neutralized);
+  const wouldHaveWorked = record.moves.map((m) => {
+    const full = adversaryEngine.getMove(m.moveId);
+    return {
+      moveId: m.moveId,
+      category: m.category,
+      categoryLabel: catLabel(m.category),
+      counters: (full?.counteredBy || []).map((id) => ({
+        id,
+        label: adversaryEngine.getDefenseLabel(id) || { en: id, ar: id },
+      })),
+    };
+  });
+
+  const stageMs = {};
+  for (const t of timeline) stageMs[t.category] = (stageMs[t.category] || 0) + t.durationMs;
+  const timePerStage = Object.entries(stageMs).map(([category, ms]) => ({
+    category,
+    label: catLabel(category),
+    ms,
+  }));
+
+  return {
+    contained: record.contained,
+    startedAt: record.startedAt,
+    containedAt: record.containedAt,
+    timeline,
+    defenses,
+    failedDefenses,
+    wouldHaveWorked,
+    timePerStage,
+    pressure: attempt.pressureResult || null,
+  };
+}
+
+async function submitForensics(user, attemptId, submission = {}) {
+  const attempt = getOwnedAttempt(attemptId, user.userId);
+  if (!attempt || !attempt.forensics) return null;
+
+  const { realOrder, entryPoint, runId } = attempt.forensics;
+  const scored = scoreForensics(realOrder, submission.selected || [], submission.entryPoint || null);
+
+  const forensicsData = {
+    score: scored.score,
+    detection: scored.detection,
+    order: scored.order,
+    entryPoint: scored.entryPoint,
+    precision: scored.precision,
+    recall: scored.recall,
+    submittedAt: new Date().toISOString(),
+  };
+  await trainingRuns.attachForensics(runId, user.userId, forensicsData);
+
+  const record = adversaryEngine.getSessionRecord(attempt.adversarySessionId, user.userId);
+  const report = record ? buildAfterAction(record, attempt) : null;
+
+  return { score: scored, entryPointCorrect: entryPoint, report };
 }
 
 // ---- pressure timeout -----------------------------------------------------
@@ -538,8 +723,10 @@ module.exports = {
   runCommand,
   submitFlag,
   timeout,
+  submitForensics,
   // exposed for unit tests
   computeAwardXp,
+  scoreForensics,
   getOwnedAttempt,
   clearAttempts,
   _attempts: attempts,

@@ -10,6 +10,7 @@ const {
   validateLabCommand,
   validateLabSubmit,
   validateLabTimeout,
+  validateLabForensics,
 } = require("../middleware/validation");
 const { successResponse, errorResponse, notFoundResponse } = require("../utils/responseUtils");
 const { asyncHandler } = require("../middleware/errorHandler");
@@ -81,6 +82,23 @@ router.post(
     const result = await labService.timeout(req.user, req.body.attemptId);
     if (!result) return notFoundResponse(res, "Attempt");
     return successResponse(res, result, "Timeout recorded");
+  })
+);
+
+// Forensics: after containment, the trainee picks which techniques happened
+// and in what order. The server scores the investigation (0-100), saves it on
+// the run, and returns the after-action report.
+router.post(
+  "/labs/forensics",
+  requireAuth,
+  validateLabForensics,
+  asyncHandler(async (req, res) => {
+    const result = await labService.submitForensics(req.user, req.body.attemptId, {
+      selected: req.body.selected,
+      entryPoint: req.body.entryPoint || null,
+    });
+    if (!result) return notFoundResponse(res, "Forensics challenge");
+    return successResponse(res, result, "Forensics scored");
   })
 );
 
