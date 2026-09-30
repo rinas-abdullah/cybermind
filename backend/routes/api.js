@@ -285,7 +285,7 @@ router.get("/health", (req, res) => {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
     },
-    "Risaq backend is running"
+    "Rasd backend is running"
   );
 });
 
@@ -759,7 +759,7 @@ router.get("/analytics/institution", requireAuth, requireRole("admin", "instruct
     const institution =
       typeof req.query?.institution === "string"
         ? req.query.institution.trim()
-        : "Risaq University";
+        : "Rasd University";
 
     const report = generateInstitutionReport(institution);
     return successResponse(res, report, "Institution report generated");

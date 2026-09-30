@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta
     name="description"
-    content="Risaq Terminal Lab — Live command simulation environment."
+    content="Rasd Terminal Lab — Live command simulation environment."
   />
-  <title>Risaq | رِسَاق – Elite Terminal Labs</title>
+  <title>Rasd | رَصد – Elite Terminal Labs</title>
 
   <script src="/js/theme.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -53,7 +53,7 @@
           </div>
 
           <div class="terminal-title mono" id="terminalTitle">
-            agent@risaq:~/recon_lab — bash — 80×24
+            agent@rasd:~/recon_lab — bash — 80×24
           </div>
 
           <div class="terminal-status">
@@ -64,13 +64,13 @@
         </div>
 
         <div id="terminalOutput" class="terminal-output mono">
-          <div class="terminal-welcome-text">Risaq | رِسَاق Terminal v3.0 — AI-Guided Interactive Sandbox</div>
+          <div class="terminal-welcome-text">Rasd | رَصد Terminal v3.0 — AI-Guided Interactive Sandbox</div>
           <div class="terminal-instruction-text">Select a training scenario in the sidebar to begin. Type 'help' to view command structure.</div>
           <div class="terminal-separator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
         </div>
 
         <div class="terminal-input-row">
-          <span class="terminal-prompt mono" id="terminalPromptPrefix">agent@risaq:~$ &nbsp;</span>
+          <span class="terminal-prompt mono" id="terminalPromptPrefix">agent@rasd:~$ &nbsp;</span>
           <input
             type="text"
             id="terminalInput"
@@ -423,7 +423,7 @@
 
     function renderActiveLab() {
       const lab = LABS[activeLabId];
-      document.getElementById("terminalTitle").textContent = `agent@risaq:~/lab0${activeLabId} — bash — 80×24`;
+      document.getElementById("terminalTitle").textContent = `agent@rasd:~/lab0${activeLabId} — bash — 80×24`;
       document.getElementById("labObjectiveText").innerHTML = lab.objective;
       document.getElementById("labXPReward").textContent = lab.isAdversary ? "+100 XP on containment" : "+50 XP Reward";
 
@@ -456,7 +456,7 @@
       const output = document.getElementById("terminalOutput");
       const lab = LABS[activeLabId];
       output.innerHTML = `
-        <div class="terminal-welcome-text">Risaq | رِسَاق Terminal v3.0 — AI-Guided Interactive Sandbox</div>
+        <div class="terminal-welcome-text">Rasd | رَصد Terminal v3.0 — AI-Guided Interactive Sandbox</div>
         <div class="terminal-instruction-text">Lab: <span style="color: var(--accent-primary); font-weight: bold;">${lab.name}</span></div>
         <div style="color: var(--text-muted); font-size: 0.85rem;">Objective: ${lab.difficulty} tier exercise. Type 'help' for instructions.</div>
         <div class="terminal-separator">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
@@ -560,7 +560,7 @@
     }
 
     function executeTerminalCommand(cmdString) {
-      appendLine(`agent@risaq:~$ ${cmdString}`, "terminal-input-echo");
+      appendLine(`agent@rasd:~$ ${cmdString}`, "terminal-input-echo");
 
       const cleanString = cmdString.trim();
       const lowerString = cleanString.toLowerCase();

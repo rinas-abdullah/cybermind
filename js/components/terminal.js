@@ -10,10 +10,10 @@ export function openTerminal() {
 
   box.innerHTML = `
     <div class="terminal">
-      <h3>💻 Risaq Terminal | رِسَاق</h3>
+      <h3>💻 Rasd Terminal | رَصد</h3>
 
       <pre id="terminalOutput">
-> Risaq Security Terminal | رِسَاق
+> Rasd Security Terminal | رَصد
 > system scan starting...
 > checking network activity...
 > no critical threats detected.
@@ -75,7 +75,7 @@ function handleCommand(cmd, output) {
 
     case "clear":
       output.textContent =
-        "> Risaq Terminal | رِسَاق\n> terminal cleared\n> type 'help' for commands";
+        "> Rasd Terminal | رَصد\n> terminal cleared\n> type 'help' for commands";
       return;
 
     case "exit":

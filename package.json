@@ -1,7 +1,7 @@
 {
   "name": "risaq",
   "version": "2.0.0",
-  "description": "رِسَاق (Risaq) — AI-adaptive cybersecurity training platform with an Express backend and a modern frontend",
+  "description": "رَصد (Rasd) — AI-adaptive cybersecurity training platform with an Express backend and a modern frontend",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",

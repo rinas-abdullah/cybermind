@@ -2,14 +2,14 @@
 
 /**
  * Database Testing Script
- * Tests connection and configuration for Risaq
+ * Tests connection and configuration for Rasd
  */
 
 require("dotenv").config();
 const { config } = require("./backend/config/environment");
 
 async function main() {
-  console.log("🔍 Risaq Database Configuration Test\n");
+  console.log("🔍 Rasd Database Configuration Test\n");
   console.log("=".repeat(50));
 
   // Display current config

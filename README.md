@@ -1,4 +1,4 @@
-# رِسَاق | Risaq
+# رَصد | Rasd
 
 Adaptive cybersecurity training platform: hands-on scenarios, an AI mentor, gamified progress tracking, and institutional analytics — built on Node.js/Express with PostgreSQL (or a zero-setup in-memory mode for a quick trial).
 

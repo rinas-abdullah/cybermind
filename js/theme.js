@@ -1,5 +1,5 @@
 /**
- * Theme Settings for Risaq
+ * Theme Settings for Rasd
  * Manages dark/light theme switching and color customization
  */
 

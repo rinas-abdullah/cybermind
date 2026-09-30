@@ -1,4 +1,4 @@
-// Unified project constants for Risaq
+// Unified project constants for Rasd
 
 const API_PREFIX = "/api";
 

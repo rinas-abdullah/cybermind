@@ -1,8 +1,8 @@
 ﻿// risaq/constants/index.js
-// Unified production-grade constants for Risaq
+// Unified production-grade constants for Rasd
 
 const API_PREFIX = "/api";
-const APP_NAME = "Risaq";
+const APP_NAME = "Rasd";
 
 /**
  * Server / App
@@ -102,6 +102,7 @@ const RESERVED_USERNAMES = Object.freeze([
   "support",
   "security",
   "risaq",
+  "rasd",
   "api",
   "null",
   "undefined",

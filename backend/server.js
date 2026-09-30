@@ -263,7 +263,7 @@ async function startServer() {
             `\n⚠️  Using port ${tryPort} because ${preferredPort} was busy. Set PORT=${tryPort} in .env to make this explicit.\n`
           );
         }
-        logger.info("Risaq server started successfully", {
+        logger.info("Rasd server started successfully", {
           port: tryPort,
           host,
           environment: config.server?.nodeEnv || "development",

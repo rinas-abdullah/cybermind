@@ -1,5 +1,5 @@
 /**
- * Mock OpenAI Service for Risaq
+ * Mock OpenAI Service for Rasd
  * Provides high-fidelity, context-aware bilingual (EN/AR) simulations of elite AI responses
  * conforming to SANS, CISSP, and MITRE ATT&CK standards when offline or no API Key is active.
  */
@@ -23,7 +23,7 @@ class MockOpenAI {
     console.log(`[MockOpenAI] Processing request using high-fidelity cybersecurity simulation engine.`);
 
     // Route requests to appropriate handlers based on prompt clues
-    if (systemMessage.includes("You are Risaq AI Mentor") || systemMessage.includes("Feynman Technique") || systemMessage.includes("Socratic")) {
+    if (systemMessage.includes("You are Rasd AI Mentor") || systemMessage.includes("Feynman Technique") || systemMessage.includes("Socratic")) {
       return this.wrapResponse(await this.handleMentorRequest(userMessage));
     }
 
@@ -372,9 +372,9 @@ class MockOpenAI {
   async handleGeneralQuery(userPrompt) {
     const isArabic = this.detectLanguage(userPrompt) === "ar";
     if (isArabic) {
-      return "مرحباً! أنا مرشد الأمن السيبراني التكتيكي من منصة رِسَاق | Risaq. كيف يمكنني مساعدتك اليوم في استكشاف ثغرات الويب، فحص الشبكات، أو إعداد جدران الحماية؟";
+      return "مرحباً! أنا مرشد الأمن السيبراني التكتيكي من منصة رَصد | Rasd. كيف يمكنني مساعدتك اليوم في استكشاف ثغرات الويب، فحص الشبكات، أو إعداد جدران الحماية؟";
     } else {
-      return "Hello! I am your Risaq AI Assistant (رِسَاق). I can guide you through hands-on terminal commands, SQL injection mitigations, and network protection setups. What cybersecurity domain would you like to explore today?";
+      return "Hello! I am your Rasd AI Assistant (رَصد). I can guide you through hands-on terminal commands, SQL injection mitigations, and network protection setups. What cybersecurity domain would you like to explore today?";
     }
   }
 }

@@ -1,4 +1,4 @@
--- رِسَاق (Risaq) Database Setup Script
+-- رَصد (Rasd) Database Setup Script
 -- Run this script as the postgres user to set up the database manually.
 -- This mirrors backend/db.js#createTables() exactly — the app also runs
 -- that automatically on boot when DB_TYPE=postgresql, so this script is
