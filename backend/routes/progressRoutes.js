@@ -10,47 +10,23 @@ const {
   canAccessUsername,
 } = require("../utils/userAccess");
 const { successResponse, errorResponse, notFoundResponse } = require("../utils/responseUtils");
+const { awardPoints } = require("../services/pointsService");
 
 const router = express.Router();
 
+// Scenario flow scoring. Lab XP no longer goes through here — it is awarded
+// by the server when a flag or containment is verified (routes/labRoutes.js).
+// A single call is capped so a tampered request can't jump the leaderboard.
+const MAX_SCENARIO_AWARD = 100;
+
 router.post("/update-score", requireAuth, validateScoreUpdate, async (req, res) => {
   try {
-    const username = req.user.username;
-    const { amount } = req.body || {};
-    const authUser = await getAuthUserOrNull(username);
-
-    if (!authUser) {
+    const amount = Math.max(-MAX_SCENARIO_AWARD, Math.min(MAX_SCENARIO_AWARD, Number(req.body?.amount) || 0));
+    const result = await awardPoints(req.user.username, amount);
+    if (!result) {
       return notFoundResponse(res, "User");
     }
-
-    const numericAmount = Number(amount);
-    const currentTotal = Number(authUser.profile?.totalScore || authUser.points || 0);
-    const newTotal = Math.max(0, currentTotal + numericAmount);
-    const newLevel = calculateLevel(newTotal);
-
-    const updatedUser =
-      demoAuthService.updateDemoUserProfile?.(authUser.id, {
-        totalScore: newTotal,
-        level: newLevel,
-      }) ||
-      demoAuthService.updateUserProfile?.(authUser.id, {
-        totalScore: newTotal,
-        level: newLevel,
-      });
-
-    await updateUserProgress(username, {
-      totalScore: newTotal,
-    });
-
-    return successResponse(
-      res,
-      {
-        username: updatedUser?.username || authUser.username,
-        points: updatedUser?.profile?.totalScore || newTotal,
-        level: updatedUser?.profile?.level || newLevel,
-      },
-      "Score updated"
-    );
+    return successResponse(res, result, "Score updated");
   } catch (error) {
     console.error("Update score error:", error);
     return errorResponse(res, "Failed to update score", 500);

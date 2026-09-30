@@ -500,6 +500,23 @@ async function createTables() {
       );
     `);
 
+    // One row per finished terminal-lab run, written only by the server-side
+    // lab service (backend/data/trainingRuns.js). Feeds lab completion,
+    // after-action reports and the readiness index.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_runs (
+        run_id VARCHAR(64) PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        lab_id VARCHAR(100) NOT NULL,
+        completed BOOLEAN NOT NULL,
+        duration_ms INTEGER NOT NULL,
+        xp_awarded INTEGER DEFAULT 0,
+        details JSONB,
+        forensics JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
       CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
@@ -510,6 +527,7 @@ async function createTables() {
       CREATE INDEX IF NOT EXISTS idx_task_progress_user_id ON task_progress(user_id);
       CREATE INDEX IF NOT EXISTS idx_lab_behavior_events_user_id ON lab_behavior_events(user_id);
       CREATE INDEX IF NOT EXISTS idx_pressure_attempts_user_id ON pressure_attempts(user_id);
+      CREATE INDEX IF NOT EXISTS idx_training_runs_user_id ON training_runs(user_id);
     `);
 
     await client.query(`
