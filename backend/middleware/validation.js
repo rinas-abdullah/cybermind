@@ -209,6 +209,43 @@ const adversaryDefendSchema = z
   })
   .strict();
 
+const labStartSchema = z
+  .object({
+    pressureMode: z.boolean().optional(),
+    lang: z.enum(["en", "ar"]).optional(),
+  })
+  .strict();
+
+const labCommandSchema = z
+  .object({
+    attemptId: z.string().trim().min(1).max(100),
+    command: z.string().max(500),
+    lang: z.enum(["en", "ar"]).optional(),
+  })
+  .strict();
+
+const labSubmitSchema = z
+  .object({
+    attemptId: z.string().trim().min(1).max(100),
+    flag: z.string().trim().min(1).max(200),
+  })
+  .strict();
+
+const labTimeoutSchema = z
+  .object({
+    attemptId: z.string().trim().min(1).max(100),
+  })
+  .strict();
+
+const labForensicsSchema = z
+  .object({
+    attemptId: z.string().trim().min(1).max(100),
+    selected: z.array(z.string().trim().min(1).max(100)).max(50),
+    entryPoint: z.string().trim().min(1).max(100).nullable().optional(),
+    lang: z.enum(["en", "ar"]).optional(),
+  })
+  .strict();
+
 const pressureAttemptSchema = z
   .object({
     labId: z.union([z.string().trim().min(1).max(100), z.number().int()]),
@@ -244,4 +281,9 @@ module.exports = {
   validateLabBehaviorEvent: createSchemaValidator(labBehaviorEventSchema),
   validateAdversaryDefend: createSchemaValidator(adversaryDefendSchema),
   validatePressureAttempt: createSchemaValidator(pressureAttemptSchema),
+  validateLabStart: createSchemaValidator(labStartSchema),
+  validateLabCommand: createSchemaValidator(labCommandSchema),
+  validateLabSubmit: createSchemaValidator(labSubmitSchema),
+  validateLabTimeout: createSchemaValidator(labTimeoutSchema),
+  validateLabForensics: createSchemaValidator(labForensicsSchema),
 };

@@ -9,6 +9,7 @@ const leaderboardRoutes = require("./leaderboardRoutes");
 const behaviorRoutes = require("./behaviorRoutes");
 const adversaryRoutes = require("./adversaryRoutes");
 const pressureRoutes = require("./pressureRoutes");
+const labRoutes = require("./labRoutes");
 
 const router = express.Router();
 
@@ -311,6 +312,7 @@ router.use(leaderboardRoutes);
 router.use(behaviorRoutes);
 router.use(adversaryRoutes);
 router.use(pressureRoutes);
+router.use(labRoutes);
 
 // ==================================================
 // RISK SCORING & BEHAVIOR ANALYSIS ROUTES

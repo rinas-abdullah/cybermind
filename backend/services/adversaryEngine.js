@@ -470,6 +470,34 @@ class AdversaryEngine {
     };
   }
 
+  // Read-only lookahead used by the optional LLM proposer: given a defense
+  // that has NOT been applied yet, report whether it would neutralize the
+  // current move and, if so, the guardian-approved candidate moves the engine
+  // would choose from. Does not mutate the session, so it never changes how
+  // the engine plays on its own — applyDefense recomputes the same candidate
+  // list and re-validates any proposal against it.
+  previewNextCandidates(sessionId, defenseId, userId) {
+    const session = userId === undefined ? this.sessions.get(sessionId) : this.getOwnedSession(sessionId, userId);
+    if (!session || session.contained) return null;
+    if (!DEFENSE_LABELS[defenseId]) return { wouldNeutralize: false, candidates: [] };
+
+    const currentMove = MOVES_BY_ID.get(session.currentMoveId);
+    const neutralized = Boolean(
+      currentMove &&
+        ((currentMove.counteredBy || []).includes(defenseId) ||
+          (BLANKET_DEFENSES[defenseId] || []).includes(currentMove.category))
+    );
+    if (!neutralized) return { wouldNeutralize: false, candidates: [] };
+
+    const candidates = this.candidateMoves(session, defenseId).map((m) => ({
+      id: m.id,
+      category: m.category,
+      mitre: m.mitre,
+      tier: m.tier,
+    }));
+    return { wouldNeutralize: true, candidates };
+  }
+
   publicMove(move) {
     return {
       id: move.id,

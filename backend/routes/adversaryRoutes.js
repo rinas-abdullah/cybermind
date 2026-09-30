@@ -36,7 +36,9 @@ router.post(
   validateAdversaryDefend,
   asyncHandler(async (req, res) => {
     const { sessionId, defenseId } = req.body;
-    const result = adversaryEngine.applyDefense(sessionId, defenseId);
+    // Pass the caller's id so a session can only be acted on by the user who
+    // started it (adversaryEngine enforces the ownership check).
+    const result = adversaryEngine.applyDefense(sessionId, defenseId, req.user.userId);
 
     if (!result) {
       return notFoundResponse(res, "Adversary session");
@@ -58,7 +60,7 @@ router.get(
   "/adversary/state/:sessionId",
   requireAuth,
   asyncHandler(async (req, res) => {
-    const state = adversaryEngine.getState(req.params.sessionId);
+    const state = adversaryEngine.getState(req.params.sessionId, req.user.userId);
     if (!state) return notFoundResponse(res, "Adversary session");
     return successResponse(res, state, "Adversary session state");
   })
