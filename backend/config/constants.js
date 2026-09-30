@@ -1,8 +1,8 @@
 ﻿// risaq/constants/index.js
-// Unified production-grade constants for Rasd
+// Unified production-grade constants for Rasd Cyber
 
 const API_PREFIX = "/api";
-const APP_NAME = "Rasd";
+const APP_NAME = "Rasd Cyber";
 
 /**
  * Server / App

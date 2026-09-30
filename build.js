@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * رَصد (Rasd) Production Build Script
+ * رصد سايبر (Rasd Cyber) Production Build Script
  *
  * Produces a `dist/` that mirrors the repo's own layout (frontend/, css/,
  * js/, backend/, index.html) so the real backend/server.js — copied
@@ -15,7 +15,7 @@ const path = require('path');
 
 const distDir = path.join(__dirname, 'dist');
 
-console.log('Building رَصد for production...\n');
+console.log('Building رصد سايبر for production...\n');
 
 // Clean existing dist
 if (fs.existsSync(distDir)) {
@@ -65,7 +65,7 @@ files.forEach(file => {
 // Build info — a plain data file, not a served page, so no branding
 // consistency requirements beyond matching the rest of the app.
 const buildInfo = {
-  name: 'Rasd',
+  name: 'Rasd Cyber',
   buildDate: new Date().toISOString(),
   environment: 'production',
 };

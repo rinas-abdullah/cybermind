@@ -68,8 +68,8 @@ class ModernNavBar {
           <span class="hamburger-line"></span>
         </button>
 
-        <a href="/" class="nav-brand" aria-label="Rasd | رَصد home">
-          <span>Rasd | رَصد</span>
+        <a href="/" class="nav-brand" aria-label="Rasd Cyber | رصد سايبر home">
+          <span>Rasd Cyber | رصد سايبر</span>
         </a>
 
         <div class="nav-links">

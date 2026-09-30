@@ -287,7 +287,7 @@ router.get("/health", (req, res) => {
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
     },
-    "Rasd backend is running"
+    "Rasd Cyber backend is running"
   );
 });
 

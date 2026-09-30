@@ -1,5 +1,5 @@
 /**
- * Theme Settings for Rasd
+ * Theme Settings for Rasd Cyber
  * Manages dark/light theme switching and color customization
  */
 

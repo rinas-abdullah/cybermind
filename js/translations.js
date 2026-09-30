@@ -142,7 +142,7 @@ window.__CYBERMIND_TRANSLATIONS = {
       hero_title_main: "Train Smarter.",
       hero_title_accent: "Defend Faster.",
       hero_subtitle:
-        "Rasd | رَصد helps learners and institutions build real cybersecurity skills through adaptive missions, AI-guided feedback, realistic terminal practice, and measurable progress across every training path.",
+        "Rasd Cyber | رصد سايبر helps learners and institutions build real cybersecurity skills through adaptive missions, AI-guided feedback, realistic terminal practice, and measurable progress across every training path.",
       hero_action_explore: "Explore Platform →",
       hero_action_practice: "Start Practicing",
       hero_action_login_join: "Log In / Join",
@@ -201,7 +201,7 @@ window.__CYBERMIND_TRANSLATIONS = {
 
     auth: {
       access_eyebrow: "Access Layer",
-      hero_title: "Enter Rasd | رَصد",
+      hero_title: "Enter Rasd Cyber | رصد سايبر",
       hero_subtitle:
         "AI-driven cybersecurity training with adaptive missions, guided learning, immersive terminal practice, and a real progression system built for modern cyber education.",
       meta_platform: "Platform",
@@ -220,7 +220,7 @@ window.__CYBERMIND_TRANSLATIONS = {
       feature_mentor_desc:
         "Get guided explanations, hints, and support while learning cybersecurity concepts.",
       card_kicker: "Authentication",
-      card_title: "Rasd Access | رَصد",
+      card_title: "Rasd Cyber Access | رصد سايبر",
       card_intro:
         "Sign in to continue your training journey or create a new account to begin.",
       tab_signin: "Sign In",
@@ -270,7 +270,7 @@ window.__CYBERMIND_TRANSLATIONS = {
       hero_badge: "Administrative Control Center",
       hero_title: "Platform Command Console",
       hero_subtitle:
-        "Real-time institutional intelligence, learner posture, and operational analytics for your Rasd | رَصد training ecosystem — unified in a single secure admin surface.",
+        "Real-time institutional intelligence, learner posture, and operational analytics for your Rasd Cyber | رصد سايبر training ecosystem — unified in a single secure admin surface.",
       hero_sync: "Sync intelligence",
       hero_lookup: "User lookup",
       snap_total: "Total users",
@@ -330,11 +330,11 @@ window.__CYBERMIND_TRANSLATIONS = {
     },
 
     learn: {
-      page_title: "Rasd | رَصد — Learning Path",
+      page_title: "Rasd Cyber | رصد سايبر — Learning Path",
       eyebrow: "Learning Architecture",
       hero_title: "Structured Learning Path",
       hero_subtitle:
-        "Rasd | رَصد provides a modular cybersecurity curriculum that guides learners from core foundations to advanced offensive and defensive skills through structured progression, guided labs, and practical simulations.",
+        "Rasd Cyber | رصد سايبر provides a modular cybersecurity curriculum that guides learners from core foundations to advanced offensive and defensive skills through structured progression, guided labs, and practical simulations.",
       btn_get_started: "Get Started",
       btn_open_practice: "Open Practice",
       meta_tracks: "Tracks",
@@ -345,7 +345,7 @@ window.__CYBERMIND_TRANSLATIONS = {
     },
 
     practice: {
-      page_title: "Rasd | رَصد — Practice Labs",
+      page_title: "Rasd Cyber | رصد سايبر — Practice Labs",
       eyebrow: "Hands-On Mission Space",
       hero_title: "Start Practicing",
       hero_subtitle:
@@ -568,7 +568,7 @@ window.__CYBERMIND_TRANSLATIONS = {
 
     auth: {
       access_eyebrow: "طبقة الوصول",
-      hero_title: "ادخل إلى رَصد | Rasd",
+      hero_title: "ادخل إلى رصد سايبر | Rasd Cyber",
       hero_subtitle:
         "تدريب سيبراني مدعوم بالذكاء الاصطناعي مع مهام تكيفية وتعليم موجّه ومحاكاة طرفية وتقدم حقيقي.",
       meta_platform: "المنصة",
@@ -584,7 +584,7 @@ window.__CYBERMIND_TRANSLATIONS = {
       feature_mentor_title: "مرشد ذكي",
       feature_mentor_desc: "شروحات وتلميحات أثناء تعلم مفاهيم الأمن السيبراني.",
       card_kicker: "المصادقة",
-      card_title: "بوابة رَصد | Rasd",
+      card_title: "بوابة رصد سايبر | Rasd Cyber",
       card_intro: "سجّل الدخول لمتابعة التدريب أو أنشئ حساباً جديداً.",
       tab_signin: "تسجيل الدخول",
       tab_signup: "إنشاء حساب",
@@ -633,7 +633,7 @@ window.__CYBERMIND_TRANSLATIONS = {
       hero_badge: "مركز التحكم الإداري",
       hero_title: "وحدة قيادة المنصة",
       hero_subtitle:
-        "ذكاء مؤسسي لحظي ووضع المتعلمين وتحليلات تشغيلية لمنظومة رَصد | Rasd في واجهة إدارة واحدة آمنة.",
+        "ذكاء مؤسسي لحظي ووضع المتعلمين وتحليلات تشغيلية لمنظومة رصد سايبر | Rasd Cyber في واجهة إدارة واحدة آمنة.",
       hero_sync: "مزامنة البيانات",
       hero_lookup: "بحث مستخدم",
       snap_total: "إجمالي المستخدمين",
@@ -693,7 +693,7 @@ window.__CYBERMIND_TRANSLATIONS = {
     },
 
     learn: {
-      page_title: "رَصد | Rasd — مسار التعلم",
+      page_title: "رصد سايبر | Rasd Cyber — مسار التعلم",
       eyebrow: "هيكل التعلم",
       hero_title: "مسار تعلّم منظم",
       hero_subtitle:
@@ -708,7 +708,7 @@ window.__CYBERMIND_TRANSLATIONS = {
     },
 
     practice: {
-      page_title: "رَصد | Rasd — مختبرات التدريب",
+      page_title: "رصد سايبر | Rasd Cyber — مختبرات التدريب",
       eyebrow: "فضاء المهام العملية",
       hero_title: "ابدأ التمرين",
       hero_subtitle:

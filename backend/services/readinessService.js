@@ -1,4 +1,4 @@
-// Rasd Readiness Index
+// Rasd Cyber Readiness Index
 //
 // Turns what the server actually observed in training runs into one 0-100
 // score per person, plus a per-attack-stage breakdown and the weak stages

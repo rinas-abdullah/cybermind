@@ -1,4 +1,4 @@
-// Reproducible evaluation of the Rasd adversary engine (no learners involved).
+// Reproducible evaluation of the Rasd Cyber adversary engine (no learners involved).
 // Usage: node scripts/eval-adversary.js
 // Runs 15,000 simulated defense sessions (fixed seed) against the adversary engine
 // with three defender policies: informed (always deploys a real counter), mixed

@@ -1,7 +1,7 @@
 {
   "themes": {
     "dark": {
-      "name": "Rasd Dark",
+      "name": "Rasd Cyber Dark",
       "description": "Dark cybersecurity-themed interface",
       "colors": {
         "bg-primary": "#030810",
@@ -27,7 +27,7 @@
       }
     },
     "light": {
-      "name": "Rasd Light",
+      "name": "Rasd Cyber Light",
       "description": "Light, professional cybersecurity interface",
       "colors": {
         "bg-primary": "#ffffff",

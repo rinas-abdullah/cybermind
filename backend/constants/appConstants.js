@@ -1,4 +1,4 @@
-// Unified project constants for Rasd
+// Unified project constants for Rasd Cyber
 
 const API_PREFIX = "/api";
 
