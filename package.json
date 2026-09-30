@@ -11,7 +11,7 @@
     "build:prod": "cross-env NODE_ENV=production node build.js",
     "ci:verify": "node --check backend/server.js && node --check backend/config/environment.js && node --check backend/db.js && node --check build.js && node build.js && npm test",
     "serve:dist": "cd dist && npm install && npm start",
-    "test": "node --test test/constants.test.js test/environment.test.js",
+    "test": "node --test test/constants.test.js test/environment.test.js test/labService.test.js test/readiness.test.js",
     "lint": "echo \"No linter configured\""
   },
   "keywords": [
