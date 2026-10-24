@@ -1,0 +1,28 @@
+# Render Blueprint — one-click deploy of رصد سايبر (Rasd Cyber)
+# Docs: https://render.com/docs/blueprint-spec
+#
+# The app needs no external database: it runs in in-memory mode by default,
+# so a single free web service is enough. In production the server binds to
+# 0.0.0.0 and reads PORT from the platform automatically; the only secret it
+# requires is JWT_SECRET, which Render generates below.
+services:
+  - type: web
+    name: rasd-cyber
+    runtime: node
+    plan: free
+    branch: rename-to-rasd
+    buildCommand: npm install
+    # Render injects RENDER_EXTERNAL_URL at runtime; the server requires a
+    # public origin (SITE_URL) in production, so derive it from that.
+    startCommand: SITE_URL="${RENDER_EXTERNAL_URL}" npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: in-memory
+      - key: TRUST_PROXY
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
