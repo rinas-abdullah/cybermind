@@ -190,38 +190,45 @@
           analysisStatus.textContent = 'Analysis Complete';
           analysisStatus.style.color = 'var(--accent-primary)';
 
+          // Escape all interpolated values; the analysis echoes back the
+          // user's own scenario text, so unescaped innerHTML here is a
+          // reflected-XSS sink.
+          const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
           resultsContent.innerHTML = `
             <div class="analysis-summary">
               <div class="summary-card">
                 <h4>Risk Assessment</h4>
                 <div class="risk-score">
-                  <span class="score-value">${analysis.riskScore || 'N/A'}</span>
+                  <span class="score-value">${esc(analysis.riskScore || 'N/A')}</span>
                   <span class="score-label">Risk Level</span>
                 </div>
-                <p>${analysis.riskAnalysis || 'No risk analysis available'}</p>
+                <p>${esc(analysis.riskAnalysis || 'No risk analysis available')}</p>
               </div>
 
               <div class="summary-card">
                 <h4>Behavioral Insights</h4>
-                <p>${analysis.behavioralAnalysis || 'No behavioral analysis available'}</p>
+                <p>${esc(analysis.behavioralAnalysis || 'No behavioral analysis available')}</p>
               </div>
 
               <div class="summary-card">
                 <h4>AI Mentor Guidance</h4>
-                <p>${analysis.aiMentor || 'No AI guidance available'}</p>
+                <p>${esc(analysis.aiMentor || 'No AI guidance available')}</p>
               </div>
 
               <div class="summary-card">
                 <h4>Learning Recommendations</h4>
-                <p>${analysis.adaptiveLearning || 'No learning recommendations available'}</p>
+                <p>${esc(analysis.adaptiveLearning || 'No learning recommendations available')}</p>
               </div>
             </div>
 
             <div class="detailed-analysis">
               <h4>Detailed Analysis</h4>
-              <pre>${JSON.stringify(analysis, null, 2)}</pre>
+              <pre id="analysisJson"></pre>
             </div>
           `;
+          // Render the raw JSON via textContent so no echoed field can inject markup.
+          document.getElementById('analysisJson').textContent = JSON.stringify(analysis, null, 2);
 
         } catch (error) {
           console.error('Analysis error:', error);
@@ -230,7 +237,7 @@
           resultsContent.innerHTML = `
             <div class="error-message">
               <p>Failed to analyze scenario. Please try again.</p>
-              <p>Error: ${error.message}</p>
+              <p>Error: ${String(error.message ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]))}</p>
             </div>
           `;
         }
