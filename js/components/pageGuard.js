@@ -39,6 +39,11 @@
     if (s) s.remove();
   }
 
+  // Safety net: if the verification request hangs (slow network, cold start),
+  // never leave the page blank forever — reveal it after a few seconds. The
+  // /api routes still enforce auth, so a hung check can't expose real data.
+  const safetyReveal = setTimeout(reveal, 5000);
+
   function toLogin() {
     try {
       if (window.authService && typeof window.authService.setRedirectAfterLogin === "function") {
@@ -79,6 +84,7 @@
       }
     }
 
+    clearTimeout(safetyReveal);
     reveal();
   }
 
