@@ -13,18 +13,23 @@ class AuthService {
    * Sync current auth state from localStorage
    */
   syncFromStorage() {
-    this.token = localStorage.getItem("authToken");
+    // The JWT now lives in an httpOnly cookie the browser sends automatically;
+    // it is intentionally NOT readable here. Only non-sensitive UI state is
+    // kept in localStorage.
+    this.token = null;
+    this.loggedIn = localStorage.getItem("loggedIn") === "1";
     this.userId = localStorage.getItem("userId");
     this.username = localStorage.getItem("username");
     this.userRole = localStorage.getItem("userRole");
   }
 
   /**
-   * Check if user is authenticated
+   * Check if user is authenticated (client hint; the server is authoritative
+   * and still verifies the session cookie on every /api call).
    */
   isAuthenticated() {
     this.syncFromStorage();
-    return Boolean(this.token && this.username);
+    return Boolean(this.loggedIn && this.username);
   }
 
   /**
@@ -36,7 +41,6 @@ class AuthService {
     }
 
     return {
-      token: this.token,
       userId: this.userId,
       username: this.username,
       role: this.userRole || "user",
@@ -45,15 +49,16 @@ class AuthService {
   }
 
   /**
-   * Set authentication data after login/signup
+   * Set authentication data after login/signup. The token is held by the
+   * httpOnly cookie the server set — never stored in JS-readable storage.
    */
   setAuthData(token, userId, username, role = "user") {
-    this.token = token;
     this.userId = userId;
     this.username = username;
     this.userRole = role;
+    this.loggedIn = true;
 
-    localStorage.setItem("authToken", token);
+    localStorage.setItem("loggedIn", "1");
     localStorage.setItem("userId", String(userId));
     localStorage.setItem("username", username);
     localStorage.setItem("userRole", role);
@@ -64,11 +69,13 @@ class AuthService {
    */
   clearAuthData() {
     this.token = null;
+    this.loggedIn = false;
     this.userId = null;
     this.username = null;
     this.userRole = null;
 
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("authToken"); // clean up any legacy value
     localStorage.removeItem("userId");
     localStorage.removeItem("username");
     localStorage.removeItem("userRole");
@@ -76,37 +83,21 @@ class AuthService {
   }
 
   /**
-   * Get authorization header for API calls
+   * Authorization header for API calls. Auth now rides on the httpOnly cookie
+   * (sent automatically on same-origin requests), so no header is needed; this
+   * returns {} and is kept only so existing call sites keep working.
    */
   getAuthHeader() {
-    this.syncFromStorage();
-
-    if (!this.token) {
-      return {};
-    }
-
-    return {
-      Authorization: `Bearer ${this.token}`,
-    };
+    return {};
   }
 
   /**
    * Verify token with backend
    */
   async verifyToken() {
-    this.syncFromStorage();
-
-    if (!this.token) {
-      return false;
-    }
-
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
+      // The session cookie is sent automatically on this same-origin request.
+      const response = await fetch("/api/auth/profile", { method: "GET" });
 
       if (!response.ok) {
         return false;
@@ -124,18 +115,12 @@ class AuthService {
    * Logout and clear session
    */
   async logout(redirectTo = "/") {
-    this.syncFromStorage();
-
     try {
-      if (this.token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-            "Content-Type": "application/json",
-          },
-        });
-      }
+      // Server clears the httpOnly cookie; the cookie is sent automatically.
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -321,7 +306,7 @@ class AuthService {
   async updateProfile(updates) {
     this.syncFromStorage();
 
-    if (!this.token || !this.username) {
+    if (!this.username) {
       return { success: false, message: "Not authenticated" };
     }
 
@@ -330,7 +315,6 @@ class AuthService {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${this.token}`,
         },
         body: JSON.stringify(updates || {}),
       });
@@ -349,17 +333,9 @@ class AuthService {
   async getProfile() {
     this.syncFromStorage();
 
-    if (!this.token) {
-      return null;
-    }
-
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      });
+      // Session cookie is sent automatically on this same-origin request.
+      const response = await fetch("/api/auth/profile", { method: "GET" });
 
       if (!response.ok) {
         return null;

@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const db = require("../db");
 const demoAuthService = require("../services/demoAuthService");
-const { issueToken } = require("../middleware/auth");
+const { issueToken, setAuthCookie, clearAuthCookie } = require("../middleware/auth");
 const { VALIDATION_RULES, USER_ROLES } = require("../config/constants");
 
 const SALT_ROUNDS = 12;
@@ -120,6 +120,8 @@ async function register(req, res) {
         institution_id: null,
       });
 
+      setAuthCookie(res, token);
+
       return res.status(201).json({
         success: true,
         message: "User registered successfully",
@@ -173,6 +175,8 @@ async function register(req, res) {
       role: role.name,
       institution_id: user.institution_id,
     });
+
+    setAuthCookie(res, token);
 
     return res.status(201).json({
       success: true,
@@ -236,6 +240,8 @@ async function login(req, res) {
         institution_id: null,
       });
 
+      setAuthCookie(res, token);
+
       return res.json({
         success: true,
         message: "Login successful",
@@ -292,6 +298,8 @@ async function login(req, res) {
       institution_id: user.institution_id,
     });
 
+    setAuthCookie(res, token);
+
     return res.json({
       success: true,
       message: "Login successful",
@@ -317,6 +325,7 @@ async function login(req, res) {
 }
 
 async function logout(req, res) {
+  clearAuthCookie(res);
   return res.json({
     success: true,
     message: "Logged out successfully",

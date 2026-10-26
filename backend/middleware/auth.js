@@ -56,6 +56,50 @@ function extractBearerToken(req) {
   return token || null;
 }
 
+const AUTH_COOKIE = "authToken";
+
+// Minimal cookie reader (no cookie-parser dependency).
+function readCookie(req, name) {
+  const header = req?.headers?.cookie;
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx < 0) continue;
+    if (part.slice(0, idx).trim() === name) {
+      return decodeURIComponent(part.slice(idx + 1).trim());
+    }
+  }
+  return null;
+}
+
+// Auth token comes from the httpOnly cookie (primary) or an Authorization
+// Bearer header (kept for API clients / backward compatibility).
+function extractToken(req) {
+  return extractBearerToken(req) || readCookie(req, AUTH_COOKIE);
+}
+
+function authCookieOptions() {
+  const isProduction = Boolean(config?.server?.isProduction);
+  return {
+    httpOnly: true,
+    sameSite: "strict", // mitigates CSRF for this same-origin app
+    secure: isProduction,
+    path: "/",
+    maxAge: 24 * 60 * 60 * 1000, // 24h, matches the token's default lifetime
+  };
+}
+
+// Stores the JWT in an httpOnly cookie so page scripts can never read it
+// (XSS cannot exfiltrate the session), unlike localStorage.
+function setAuthCookie(res, token) {
+  res.cookie(AUTH_COOKIE, token, authCookieOptions());
+}
+
+function clearAuthCookie(res) {
+  const { maxAge, ...opts } = authCookieOptions();
+  res.clearCookie(AUTH_COOKIE, opts);
+}
+
 function mapDecodedUser(decoded) {
   if (!decoded || typeof decoded !== "object") {
     return null;
@@ -99,7 +143,7 @@ function decodeTokenSafely(token) {
 
 function requireAuth(req, res, next) {
   try {
-    const token = extractBearerToken(req);
+    const token = extractToken(req);
 
     if (!token) {
       return res.status(401).json({
@@ -134,7 +178,7 @@ function requireAuth(req, res, next) {
 
 function optionalAuth(req, res, next) {
   try {
-    const token = extractBearerToken(req);
+    const token = extractToken(req);
 
     if (!token) {
       req.user = null;
@@ -204,10 +248,14 @@ function issueToken(payload = {}) {
 
 module.exports = {
   extractBearerToken,
+  extractToken,
   verifyToken,
   decodeTokenSafely,
   requireAuth,
   optionalAuth,
   requireRole,
   issueToken,
+  setAuthCookie,
+  clearAuthCookie,
+  AUTH_COOKIE,
 };

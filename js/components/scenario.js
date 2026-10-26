@@ -514,9 +514,10 @@ async function getAIExplanation(question, userAnswer, correctAnswer) {
 
 async function applyScore(amount) {
   const username = getStoredUsername();
-  const token = localStorage.getItem("authToken");
 
-  if (!username || username === "Guest" || !token) {
+  // Auth rides on the httpOnly session cookie now (sent automatically); the
+  // token is no longer readable here, so gate on the signed-in username only.
+  if (!username || username === "Guest") {
     alert("Session expired. Please log in again.");
     window.location.href = "/";
     return;
