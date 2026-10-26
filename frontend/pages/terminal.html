@@ -39,7 +39,7 @@
         <div class="celebration-icon">🏆</div>
         <h2 data-i18n="terminal.labCompleted">LAB COMPLETED!</h2>
         <p id="celebrationMessage"></p>
-        <button class="btn btn-primary" onclick="closeCelebration()" data-i18n="terminal.acknowledge">Acknowledge</button>
+        <button class="btn btn-primary" id="celebrationAckBtn" data-i18n="terminal.acknowledge">Acknowledge</button>
       </div>
     </div>
 
@@ -62,7 +62,7 @@
         <div id="afterActionBody" class="aa-body"></div>
         <div class="aa-actions">
           <a class="btn btn-secondary" href="/readiness" data-i18n="terminal.viewReadiness">View readiness</a>
-          <button class="btn btn-primary" onclick="closeAfterAction()" data-i18n="terminal.close">Close</button>
+          <button class="btn btn-primary" id="afterActionCloseBtn" data-i18n="terminal.close">Close</button>
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@
       <div class="terminal-window">
         <div class="terminal-chrome">
           <div class="traffic-lights">
-            <span class="tl tl-red" onclick="resetActiveLab()"></span>
+            <span class="tl tl-red" id="trafficReset"></span>
             <span class="tl tl-yellow"></span>
             <span class="tl tl-green"></span>
           </div>
@@ -122,7 +122,7 @@
               <p class="pressure-toggle-desc" data-i18n="terminal.pressureDesc">Adds a countdown timer and live incident noise to any lab. Finish before time's up for bonus XP.</p>
             </div>
             <label class="pressure-switch">
-              <input type="checkbox" id="pressureModeToggle" onchange="togglePressureMode()" />
+              <input type="checkbox" id="pressureModeToggle" />
               <span class="pressure-switch-slider"></span>
             </label>
           </div>
@@ -143,7 +143,7 @@
           <h4 data-i18n="terminal.submitFlag">Submit Captured Flag</h4>
           <div class="flag-submit-container">
             <input type="text" id="directFlagInput" placeholder="FLAG{...}" class="flag-input mono" />
-            <button class="btn btn-primary flag-btn" onclick="submitFlagFromInput()" data-i18n="terminal.submitBtn">Submit</button>
+            <button class="btn btn-primary flag-btn" id="flagSubmitBtn" data-i18n="terminal.submitBtn">Submit</button>
           </div>
         </div>
       </div>
@@ -734,7 +734,12 @@
       }
 
       const terminalInput = document.getElementById("terminalInput");
-      // Command history (U3): ↑/↓ recall previous commands, like a real shell.
+      // Wire controls via addEventListener (no inline on* handlers — CSP bans them).
+      document.getElementById("celebrationAckBtn")?.addEventListener("click", closeCelebration);
+      document.getElementById("afterActionCloseBtn")?.addEventListener("click", closeAfterAction);
+      document.getElementById("trafficReset")?.addEventListener("click", resetActiveLab);
+      document.getElementById("pressureModeToggle")?.addEventListener("change", togglePressureMode);
+      document.getElementById("flagSubmitBtn")?.addEventListener("click", submitFlagFromInput);
       const history = [];
       let historyIndex = -1;
       terminalInput.addEventListener("keydown", (e) => {

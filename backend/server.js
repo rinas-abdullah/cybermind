@@ -4,6 +4,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const path = require("path");
+const crypto = require("crypto");
+const fsp = require("fs").promises;
 // ===== CONFIGURATION & UTILITIES =====
 const envModule = require("./config/environment");
 const config = envModule.config || envModule;
@@ -47,14 +49,22 @@ function getSafeCorsOrigin(originConfig) {
   return originConfig;
 }
 
-function sendPage(res, pageFileName, next) {
-  const filePath = path.join(pagesPath, pageFileName);
+function injectNonce(html, nonce) {
+  // Add the per-request CSP nonce to every <script> so the pages' inline
+  // bootstrap scripts run under a strict policy (no 'unsafe-inline'). Safe
+  // because these HTML files never contain the literal "<script" inside a
+  // string or template literal (verified).
+  return html.replace(/<script/g, `<script nonce="${nonce}"`);
+}
 
-  res.sendFile(filePath, (err) => {
-    if (err && typeof next === "function") {
-      next(err);
-    }
-  });
+async function sendPage(res, pageFileName, next) {
+  try {
+    const filePath = path.join(pagesPath, pageFileName);
+    const html = await fsp.readFile(filePath, "utf8");
+    res.type("html").send(injectNonce(html, res.locals.cspNonce || ""));
+  } catch (err) {
+    if (typeof next === "function") next(err);
+  }
 }
 
 // ===== VALIDATE CONFIG =====
@@ -69,22 +79,27 @@ app.use(
     credentials: config.cors?.credentials,
   })
 );
-// Default Helmet CSP blocks inline <script> with no nonce/hash — every page
-// in frontend/pages/ has at least one inline bootstrap script (dashboard
-// score sync, admin analytics init, etc.), so the default silently broke
-// them all. It separately defaults script-src-attr to 'none', which blocks
-// every inline onclick="..." handler (switchLab(), submitFlagFromInput(),
-// etc. — used throughout these pages) even once script-src itself allows
-// unsafe-inline; that needs its own override. Also allow the CDN hosts
-// actually used (Chart.js from jsdelivr, Google Fonts) instead of
-// disabling CSP outright.
+// Per-request CSP nonce. Every page's inline <script> is tagged with this
+// nonce (see injectNonce), so the Content-Security-Policy can allow those
+// specific scripts without a blanket 'unsafe-inline' — which would re-open the
+// door to injected scripts. Must run before helmet so the directive can read it.
+app.use((req, res, next) => {
+  res.locals.cspNonce = crypto.randomBytes(16).toString("base64");
+  next();
+});
+
+// Strict CSP: scripts run only from same origin, the per-request nonce, or the
+// one CDN actually used (Chart.js on jsdelivr). No 'unsafe-inline' for scripts,
+// and inline event-handler attributes (onclick=...) are banned outright
+// (script-src-attr 'none') — all handlers are wired via addEventListener.
+// Inline styles are still allowed (low risk, and used widely for theming).
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        "script-src": ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-        "script-src-attr": ["'unsafe-inline'"],
+        "script-src": ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`, "https://cdn.jsdelivr.net"],
+        "script-src-attr": ["'none'"],
         "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
       },
@@ -109,7 +124,9 @@ app.use(logger.requestLogger.bind(logger));
 const STATIC_ASSET_OPTIONS = { maxAge: "1h" };
 app.use("/css", express.static(path.join(rootPath, "css"), STATIC_ASSET_OPTIONS));
 app.use("/js", express.static(path.join(rootPath, "js"), STATIC_ASSET_OPTIONS));
-app.use(express.static(rootPath));
+// index:false so "/" falls through to the HOME route below, which injects the
+// CSP nonce into index.html (express.static would serve it raw, with no nonce).
+app.use(express.static(rootPath, { index: false }));
 app.use("/frontend", express.static(path.join(rootPath, "frontend")));
 
 // ===== API ROUTES =====
@@ -136,10 +153,13 @@ app.get("/status", (req, res) => {
 // ===== PAGE ROUTES =====
 
 // Home page -> always public
-app.get(ROUTES.PAGES.HOME, (req, res, next) => {
-  res.sendFile(path.join(rootPath, "index.html"), (err) => {
-    if (err) next(err);
-  });
+app.get(ROUTES.PAGES.HOME, async (req, res, next) => {
+  try {
+    const html = await fsp.readFile(path.join(rootPath, "index.html"), "utf8");
+    res.type("html").send(injectNonce(html, res.locals.cspNonce || ""));
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Auth page -> public

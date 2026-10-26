@@ -542,10 +542,14 @@
               <p>${rec.description}</p>
             </div>
             <div class="rec-action">
-              <button class="btn btn-sm" onclick="handleRecommendation('${rec.id}')">Take Action</button>
+              <button class="btn btn-sm js-rec-action" data-rec-id="${rec.id}">Take Action</button>
             </div>
           </div>
         `).join('');
+        // Wire buttons via addEventListener (CSP bans inline onclick).
+        container.querySelectorAll('.js-rec-action').forEach((btn) => {
+          btn.addEventListener('click', () => handleRecommendation(btn.dataset.recId));
+        });
       }
 
       function exportAnalytics() {
