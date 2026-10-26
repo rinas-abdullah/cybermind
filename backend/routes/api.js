@@ -1037,7 +1037,6 @@ router.post("/ai/generate-insights", requireAuth, async (req, res) => {
       return errorResponse(res, "Forbidden", 403);
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const insights = {
       dataPoints: 185,

@@ -5,7 +5,7 @@
 const bcrypt = require("bcrypt");
 
 const ALLOWED_SKILL_LEVELS = new Set(["beginner", "intermediate", "advanced"]);
-const SEEDED_DEMO_PASSWORD = "Risaq@Demo123!";
+const SEEDED_DEMO_PASSWORD = process.env.DEMO_PASSWORD || "Risaq@Demo123!";
 
 function normalizeString(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -155,6 +155,13 @@ let nextId = 3;
 
 function seedDemoUsers() {
   if (demoUsers.length > 0) return;
+
+  // Never seed the publicly-known demo accounts in production unless the
+  // operator explicitly opts in (and ideally sets a DEMO_PASSWORD). Otherwise
+  // a public deployment would ship a known admin login.
+  if (process.env.NODE_ENV === "production" && process.env.SEED_DEMO_USERS !== "true") {
+    return;
+  }
 
   const demoPasswordHash = bcrypt.hashSync(SEEDED_DEMO_PASSWORD, 12);
 

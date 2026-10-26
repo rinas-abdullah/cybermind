@@ -571,17 +571,39 @@ async function finalizeCompletion(user, attempt, { base, adversaryRecord }) {
 // Real techniques (in order) plus two plausible decoys drawn from the rest of
 // the move catalog, shuffled. Items are labelled only by their evidence text —
 // the payload never says which are real, so the trainee has to reason.
+// Plausible techniques that are NOT in the adversary's move catalog, used to
+// top up the decoy set to two when the adversary ran almost every real move
+// (so the catalog alone can't supply two). They are still decoys — events the
+// trainee should reject — never presented as having happened.
+const SYNTHETIC_DECOYS = [
+  { id: "decoy_ransomware_note", en: "A ransom note was dropped on multiple hosts demanding payment.", ar: "تُركت مذكرة فدية على عدة أجهزة تطالب بالدفع." },
+  { id: "decoy_dns_tunnel", en: "Data was tunnelled out slowly over crafted DNS TXT queries.", ar: "سُرّبت بيانات ببطء عبر استعلامات DNS TXT مُصاغة." },
+  { id: "decoy_usb_drop", en: "A malicious USB device was mounted on a workstation.", ar: "رُكّب جهاز USB خبيث على إحدى محطات العمل." },
+];
+
 function buildForensicsChallenge(record) {
   const realOrder = record.moves.map((m) => m.moveId);
   const realSet = new Set(realOrder);
-  const decoyPool = adversaryEngine.getAllMoves().map((m) => m.id).filter((id) => !realSet.has(id));
-  const decoys = shuffle(decoyPool).slice(0, 2);
+  const catalogDecoys = shuffle(adversaryEngine.getAllMoves().map((m) => m.id).filter((id) => !realSet.has(id)));
 
-  const items = shuffle([...realOrder, ...decoys]).map((id) => {
+  const decoys = [];
+  for (const id of catalogDecoys) {
+    if (decoys.length >= 2) break;
+    const ev = adversaryEngine.getEvidence(id) || { en: id, ar: id };
+    decoys.push({ id, en: ev.en, ar: ev.ar });
+  }
+  // Top up to two with synthetic decoys if the catalog couldn't supply enough.
+  for (const d of shuffle(SYNTHETIC_DECOYS)) {
+    if (decoys.length >= 2) break;
+    if (!realSet.has(d.id) && !decoys.some((x) => x.id === d.id)) decoys.push(d);
+  }
+
+  const realItems = realOrder.map((id) => {
     const ev = adversaryEngine.getEvidence(id) || { en: id, ar: id };
     return { id, en: ev.en, ar: ev.ar };
   });
 
+  const items = shuffle([...realItems, ...decoys]);
   return { items, realOrder, entryPoint: realOrder[0] || null };
 }
 

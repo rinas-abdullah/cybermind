@@ -160,18 +160,21 @@ async function computeTeamReadiness(resolveUsername) {
     byUser.get(r.userId).push(r);
   }
 
-  const members = [];
-  for (const [userId, runs] of byUser) {
-    const events = await getUserEvents(userId);
-    const r = computeFromData(runs, events);
-    members.push({
-      userId,
-      username: (await resolveUsername(userId)) || `user-${userId}`,
-      index: r.index,
-      weakest: r.stages.find((s) => s.score !== null) || null,
-      adversaryRuns: r.runs.adversary,
-    });
-  }
+  // One pass per trainee, in parallel — avoids an N+1 of sequential event
+  // reads (and username lookups) as the team grows.
+  const members = await Promise.all(
+    [...byUser.entries()].map(async ([userId, runs]) => {
+      const [events, username] = await Promise.all([getUserEvents(userId), resolveUsername(userId)]);
+      const r = computeFromData(runs, events);
+      return {
+        userId,
+        username: username || `user-${userId}`,
+        index: r.index,
+        weakest: r.stages.find((s) => s.score !== null) || null,
+        adversaryRuns: r.runs.adversary,
+      };
+    })
+  );
   members.sort((a, b) => (a.index ?? -1) - (b.index ?? -1));
 
   const teamStages = stageBreakdown(all);
